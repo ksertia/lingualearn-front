@@ -146,7 +146,6 @@ const remember = ref(false);
 const showPassword = ref(false);
 
 const onSubmit = () => {
-  // Placeholder: wire this to your auth API later
   console.log("sign-in", { email: email.value, remember: remember.value });
 };
 </script>
