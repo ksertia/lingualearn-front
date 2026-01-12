@@ -101,11 +101,19 @@
               <NuxtLink to="/" class="text-sm text-[#2D5BFF] hover:underline">Mot de passe oublié?</NuxtLink>
             </div>
 
+            <div v-if="error" class="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-200" aria-live="polite">
+              {{ error }}
+            </div>
+            <div v-if="successMessage" class="rounded-md bg-green-500/10 px-3 py-2 text-sm text-green-200" aria-live="polite">
+              {{ successMessage }}
+            </div>
+
             <button
               type="submit"
-              class="w-full rounded-md bg-[#2D5BFF] px-4 py-3 text-sm font-semibold text-white hover:bg-[#2D5BFF]/90"
+              :disabled="isLoading"
+              class="w-full rounded-md bg-[#2D5BFF] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2D5BFF]/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign In
+              {{ isLoading ? "Connexion..." : "Sign In" }}
             </button>
 
             <p class="text-sm text-white/60">
@@ -138,14 +146,31 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
 import { ref } from "vue";
+import { useUsersStore } from "~/stores/usersStore";
+
+const usersStore = useUsersStore();
+const { isLoading, error } = storeToRefs(usersStore);
 
 const email = ref("");
 const password = ref("");
 const remember = ref(false);
 const showPassword = ref(false);
+const successMessage = ref("");
 
-const onSubmit = () => {
-  console.log("sign-in", { email: email.value, remember: remember.value });
+const onSubmit = async () => {
+  successMessage.value = "";
+  usersStore.clearError();
+
+  const result = await usersStore.login({
+    username: email.value,
+    password: password.value,
+  });
+
+  if (result.success) {
+    usersStore.rememberUser(result.user ?? null, remember.value);
+    successMessage.value = "Connexion réussie !";
+  }
 };
 </script>

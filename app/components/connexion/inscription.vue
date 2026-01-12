@@ -132,8 +132,8 @@
               <label for="password" class="block text-sm font-medium text-white/80">confirmer le mot de passe<span class="text-red-400">*</span></label>
               <div class="relative mt-2">
                 <input
-                  id="password"
-                  v-model="password"
+                  id="password-confirm"
+                  v-model="confirmPassword"
                   :type="showPassword ? 'text' : 'password'"
                   autocomplete="current-password"
                   placeholder="Confirmez votre mot de passe"
@@ -173,11 +173,22 @@
               <NuxtLink to="/" class="text-sm text-[#2D5BFF] hover:underline">Mot de passe oublié?</NuxtLink>
             </div> -->
 
+            <div v-if="formError" class="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-200" aria-live="polite">
+              {{ formError }}
+            </div>
+            <div v-else-if="error" class="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-200" aria-live="polite">
+              {{ error }}
+            </div>
+            <div v-if="successMessage" class="rounded-md bg-green-500/10 px-3 py-2 text-sm text-green-200" aria-live="polite">
+              {{ successMessage }}
+            </div>
+
             <button
               type="submit"
-              class="w-full rounded-md bg-[#2D5BFF] px-4 py-3 text-sm font-semibold text-white hover:bg-[#2D5BFF]/90"
+              :disabled="isLoading"
+              class="w-full rounded-md bg-[#2D5BFF] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#2D5BFF]/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign Up
+              {{ isLoading ? "Création..." : "Sign Up" }}
             </button>
 
             <p class="text-sm text-white/60">
@@ -210,17 +221,50 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
 import { ref } from "vue";
+import { useUsersStore } from "~/stores/usersStore";
+
+const usersStore = useUsersStore();
+const { isLoading, error } = storeToRefs(usersStore);
 
 const email = ref("");
 const password = ref("");
+const confirmPassword = ref("");
 const remember = ref(false);
 const showPassword = ref(false);
 const nom = ref("");
 const phone = ref("");
 const prenom = ref("");
+const formError = ref("");
+const successMessage = ref("");
 
-const onSubmit = () => {
-  console.log("sign-up", { email: email.value, password: password.value, remember: remember.value, firstName: nom.value, phone: phone.value, lastName: prenom.value  });
+const onSubmit = async () => {
+  formError.value = "";
+  successMessage.value = "";
+  usersStore.clearError();
+
+  if (password.value !== confirmPassword.value) {
+    formError.value = "Les mots de passe ne correspondent pas.";
+    return;
+  }
+
+  const result = await usersStore.register({
+    accountType: "parent",
+    email: email.value,
+    phone: phone.value,
+    username: email.value || `${prenom.value}.${nom.value}`.toLowerCase(),
+    profile: {
+      firstName: prenom.value,
+      lastName: nom.value,
+      timezone: "Europe/Paris",
+      preferredLanguage: "fr",
+    },
+  });
+
+  if (result.success) {
+    usersStore.rememberUser(result.user ?? null, true);
+    successMessage.value = "Compte créé et connecté (simulation).";
+  }
 };
 </script>
