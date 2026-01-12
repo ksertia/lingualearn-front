@@ -182,7 +182,7 @@
 
             <p class="text-sm text-white/60">
               vous avez déjà un compte?
-              <NuxtLink to="/signup" class="text-[#2D5BFF] hover:underline">Connectez-vous</NuxtLink>
+              <NuxtLink to="/signin" class="text-[#2D5BFF] hover:underline">Connectez-vous</NuxtLink>
             </p>
           </form>
         </div>

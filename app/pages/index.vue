@@ -1,7 +1,7 @@
 <template>
     <Header />
   <div>
-    <h1>Home</h1>
+    <h1>A mettre en place</h1>
   </div>
 </template>
 
