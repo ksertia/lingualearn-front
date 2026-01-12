@@ -1,12 +1,5 @@
-<!-- <template>
-    <Header />
-  <div>
-    <h1>A mettre en place</h1>
-  </div>
-</template> -->
-
 <template>
-  <!-- <Header /> -->
+<Header class="sticky top-0 z-50 bg-[#0B1220]/95 backdrop-blur border-b border-white/10"/>
   <div>
     <HeroSection />
     <LanguagesSection />
@@ -15,9 +8,8 @@
     <AudienceSection />
     <ImpactSection />
     <FinalCTA />
-    
   </div>
-  <TheFooter />
+<TheFooter />
 </template>
 
 <script setup>
