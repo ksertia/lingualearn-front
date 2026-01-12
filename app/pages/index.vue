@@ -8,6 +8,7 @@
 <template>
   <Header />
   <div>
+    <TheHeader />
     <HeroSection />
     <LanguagesSection />
     <HowItWorks />
@@ -15,7 +16,9 @@
     <AudienceSection />
     <ImpactSection />
     <FinalCTA />
+    
   </div>
+  <TheFooter />
 </template>
 
 <script setup>

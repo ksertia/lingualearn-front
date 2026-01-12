@@ -3,7 +3,7 @@
     <div
       class="container mx-auto px-4 flex justify-between items-center max-w-6xl"
     >
-      <div class="logo text-2xl font-bold text-indigo-600">Langues+</div>
+      <div class="logo text-2xl font-bold text-indigo-600">LinguaLearn</div>
 
       <nav class="hidden md:flex space-x-8">
         <a
