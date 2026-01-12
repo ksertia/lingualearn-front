@@ -6,9 +6,8 @@
 </template> -->
 
 <template>
-  <Header />
+  <!-- <Header /> -->
   <div>
-    <TheHeader />
     <HeroSection />
     <LanguagesSection />
     <HowItWorks />
@@ -30,8 +29,7 @@ import AppPreview from "~/components/landing/AppPreview.vue";
 import AudienceSection from "~/components/landing/AudienceSection.vue";
 import ImpactSection from "~/components/landing/ImpactSection.vue";
 import FinalCTA from "~/components/landing/FinalCTA.vue";
-import TheHeader from "~/components/landing/TheHeader.vue";
-import TheFooter from "~/components/landing/TheFooter.vue";
+import TheFooter from "~/components/Footer/TheFooter.vue";
 </script>
 
 <style>
