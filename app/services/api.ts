@@ -1,4 +1,4 @@
-import type { LoginCredentials, AuthResponse } from '~/types/auth';
+import type { LoginCredentials, AuthResponse, User } from '~/types/auth';
 
 class ApiService {
   private api;
@@ -21,6 +21,10 @@ class ApiService {
       method: 'POST',
       body: credentials,
     });
+  };
+
+  async getMe(): Promise<{ data: User }>{
+    return await this.api('v1/users/me');
   }
 }
 

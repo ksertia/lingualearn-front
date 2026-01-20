@@ -24,14 +24,16 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null;
   }
 
-  const userProfile = computed(()=> {
-  return user.value?.profile;
-})
+  const userProfile = computed(() => {
+    return user.value?.profile;
+  })
 
-const fullname = computed (() => {
+  const fullname = computed(() => {
     if (!user.value?.profile) return 'invité';
     return `${user.value.profile.firstName} ${user.value.profile.lastName}`
-})
+  })
+
+
 
   async function login(credentials: LoginCredentials) {
     isLoading.value = true;
@@ -39,7 +41,7 @@ const fullname = computed (() => {
     try {
       const response = await apiService.login(credentials);
       if (response.success && response.data) {
-        setToken(response.data.token);
+        setToken(response.data.tokens.accessToken);
         setUser(response.data.user);
         return true;
       } else {
@@ -47,7 +49,7 @@ const fullname = computed (() => {
         return false;
       }
     } catch (err) {
-      const e =  err as FetchError;
+      const e = err as FetchError;
 
       const status = e.statusCode;
       switch (status) {
@@ -71,10 +73,25 @@ const fullname = computed (() => {
 
   function logout() {
     clearAuth();
+    navigateTo('/');
   }
+
+  async function initAuth() {
+    if (token.value && !user.value) {
+      try {
+        const response = await apiService.getMe();
+        setUser(response.data.user);
+      } catch (err) {
+        clearAuth();
+      }
+    }
+
+  }
+  initAuth();
 
   return {
     user,
+    initAuth,
     userProfile,
     fullname,
     token,

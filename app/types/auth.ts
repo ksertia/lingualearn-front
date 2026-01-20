@@ -12,7 +12,7 @@ export interface AuthResponse {
   success: boolean;
   message?: string;
   data?: {
-    token: string;
+    tokens: { accessToken: string, refreshToken: string };
     user: User;
   };
 }
