@@ -2,16 +2,16 @@
   <div class="min-h-screen bg-[#0B1220] text-white">
     <div class="mx-auto grid min-h-screen max-w-7xl grid-cols-1 lg:grid-cols-2">
       <div class="px-6 py-10 lg:px-10">
-        <NuxtLink to="/" class="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white">
+        <!-- <NuxtLink to="/" class="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white">
           <span aria-hidden="true">←</span>
           <span>Accueil</span>
-        </NuxtLink>
+        </NuxtLink> -->
 
         <div class="mt-10 max-w-md">
           <h1 class="text-4xl font-semibold tracking-tight">Connectez-vous</h1>
           <p class="mt-2 text-sm text-white/70">Entrez votre email et mot de passe pour vous connecter!</p>
 
-          <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <!-- <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <button
               type="button"
               class="inline-flex items-center justify-center gap-2 rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10"
@@ -40,7 +40,7 @@
             <div class="h-px flex-1 bg-white/10"></div>
             <span class="text-xs text-white/50">Ou</span>
             <div class="h-px flex-1 bg-white/10"></div>
-          </div>
+          </div> -->
 
           <form class="space-y-5" @submit.prevent="onSubmit">
             <div>
@@ -98,17 +98,19 @@
                 <span>se souvenir de moi</span>
               </label>
 
-              <NuxtLink to="/" class="text-sm text-[#2D5BFF] hover:underline">Mot de passe oublié?</NuxtLink>
+              <!-- <NuxtLink to="/" class="text-sm text-[#2D5BFF] hover:underline">Mot de passe oublié?</NuxtLink> -->
             </div>
 
             <div v-if="error" class="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-200" aria-live="polite">
               {{ error }}
             </div>
-            <div v-if="successMessage" class="rounded-md bg-green-500/10 px-3 py-2 text-sm text-green-200" aria-live="polite">
-              {{ successMessage }}
+
+            <div v-if="loginSuccess" class="rounded-md bg-green-500/10 px-3 py-2 text-sm text-green-200" aria-live="polite">
+              {{ loginSuccess }}
             </div>
 
             <button
+            @click="onSubmit"
               type="submit"
               :disabled="isLoading"
               class="w-full rounded-md bg-[#2D5BFF] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#FFA500]/90 disabled:cursor-not-allowed disabled:opacity-60"
@@ -116,10 +118,10 @@
               {{ isLoading ? "Connexion..." : "Sign In" }}
             </button>
 
-            <p class="text-sm text-white/60">
+            <!-- <p class="text-sm text-white/60">
               vous n'avez pas de compte?
               <NuxtLink to="/signup" class="text-[#2D5BFF] hover:underline">Inscrivez-vous</NuxtLink>
-            </p>
+            </p> -->
           </form>
         </div>
       </div>
@@ -146,31 +148,35 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-import { ref } from "vue";
-import { useUsersStore } from "~/stores/usersStore";
+import { ref } from 'vue';
+import { useAuthStore } from '~/stores/authStore';
+import { storeToRefs } from 'pinia';
 
-const usersStore = useUsersStore();
-const { isLoading, error } = storeToRefs(usersStore);
+const authStore = useAuthStore();
+const { isLoading, error } = storeToRefs(authStore);
 
-const email = ref("");
-const password = ref("");
+const email = ref('');
+const password = ref('');
 const remember = ref(false);
 const showPassword = ref(false);
-const successMessage = ref("");
+const loginSuccess = ref('');
 
 const onSubmit = async () => {
-  successMessage.value = "";
-  usersStore.clearError();
-
-  const result = await usersStore.login({
-    username: email.value,
+  const success = await authStore.login({
+    loginInfo: email.value,
     password: password.value,
   });
-
-  if (result.success) {
-    usersStore.rememberUser(result.user ?? null, remember.value);
-    successMessage.value = "Connexion réussie !";
+ console.log(email.value, password.value);
+  if (success) {
+    loginSuccess.value = 'Connexion reussie';
+    if (remember.value) {
+      // Mettre en place la logique 
+    }
+    setTimeout(() => {
+      loginSuccess.value = '';
+      navigateTo('/'); 
+    }, 2000);
+    
   }
 };
 </script>

@@ -184,6 +184,7 @@
             </div>
 
             <button
+            @click="onSubmit"
               type="submit"
               :disabled="isLoading"
               class="w-full rounded-md bg-[#2D5BFF] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#FFA500]/90 disabled:cursor-not-allowed disabled:opacity-60"
@@ -223,10 +224,12 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
-import { useUsersStore } from "~/stores/usersStore";
+// import { useUsersStore } from "~/stores/usersStore";
+// const usersStore = useUsersStore();
+// const { isLoading, error } = storeToRefs(usersStore);
+const isLoading = ref(false);
+const error = ref(null);
 
-const usersStore = useUsersStore();
-const { isLoading, error } = storeToRefs(usersStore);
 
 const email = ref("");
 const password = ref("");
@@ -236,35 +239,21 @@ const showPassword = ref(false);
 const nom = ref("");
 const phone = ref("");
 const prenom = ref("");
+const accountType = ref("parent");
 const formError = ref("");
 const successMessage = ref("");
 
 const onSubmit = async () => {
   formError.value = "";
   successMessage.value = "";
-  usersStore.clearError();
+  // usersStore.clearError();
 
   if (password.value !== confirmPassword.value) {
     formError.value = "Les mots de passe ne correspondent pas.";
     return;
   }
 
-  const result = await usersStore.register({
-    accountType: "parent",
-    email: email.value,
-    phone: phone.value,
-    username: email.value || `${prenom.value}.${nom.value}`.toLowerCase(),
-    profile: {
-      firstName: prenom.value,
-      lastName: nom.value,
-      timezone: "Europe/Paris",
-      preferredLanguage: "fr",
-    },
-  });
-
-  if (result.success) {
-    usersStore.rememberUser(result.user ?? null, true);
-    successMessage.value = "Compte créé et connecté (simulation).";
-  }
+  // Désactivé - l'inscription sera gérée par le backend
+  formError.value = "L'inscription est temporairement désactivée. Veuillez contacter l'administrateur.";
 };
 </script>
