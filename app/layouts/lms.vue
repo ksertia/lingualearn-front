@@ -1,100 +1,133 @@
 <template>
   <div class="lms-layout">
-    
     <nav class="vertical-navbar">
-      
       <div class="nav-item menu-toggle">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path
+            d="M3 12h18M3 6h18M3 18h18"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
         </svg>
         <span class="nav-text">Menu</span>
       </div>
 
-      
       <div class="nav-items">
         <div class="nav-item active" title="Tableau de bord" @click="gotoTableauDeBord">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <polyline points="9 22 9 12 15 12 15 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path
+              d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <polyline
+              points="9 22 9 12 15 12 15 22"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
           <span class="nav-text">Tableau de bord</span>
         </div>
 
-
-        <div class="nav-item" title="Liste des apprenants" @click="gotoApprenants">
+        <div class="nav-item" title="Liste des apprenants">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path
+              d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle
+              cx="9"
+              cy="7"
+              r="4"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="M23 21v-2a4 4 0 0 0-3-3.87"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M16 3.13a4 4 0 0 1 0 7.75"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
           <span class="nav-text">Liste des apprenants</span>
         </div>
-        
 
-        
-        <div class="nav-item " title="Parcours" @click="gotoParcours">
+        <div class="nav-item" title="Parcours">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path
+              d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
           <span class="nav-text">Parcours</span>
         </div>
 
         <div class="nav-item" title="Paramètres" @click="gotoParametres">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 9.96l4.24 4.24M1 12h6m6 0h6m-13.22 4.22l4.24-4.24M18.46 14.04l4.24-4.24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle
+              cx="12"
+              cy="12"
+              r="3"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+            <path
+              d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 9.96l4.24 4.24M1 12h6m6 0h6m-13.22 4.22l4.24-4.24M18.46 14.04l4.24-4.24"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
           <span class="nav-text">Paramètres</span>
         </div>
       </div>
 
-      
       <div class="nav-bottom">
         <div class="nav-item profile-item">
-          <img src="https://i.pravatar.cc/300" alt="Profile" class="profile-pic">
-           <span class="nav-text">{{ authStore.fullname }}</span> 
-        </div>
-
-        <div class="nav-item profile-item" @click="logout">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="nav-text">Se déconnecter</span>
+          <img
+            src="https://picsum.photos/seed/woman-profile/32/32.jpg"
+            alt="Profile"
+            class="profile-pic"
+          />
+          <span class="nav-text">Profil</span>
         </div>
       </div>
     </nav>
 
-    
     <main class="main-content">
-      <slot />
+      <NuxtPage />
     </main>
   </div>
 </template>
 
-<script setup>
-const authStore = useAuthStore();
-//des fonctions pour naviguer entre les pages
-const gotoParametres = () => {
-  navigateTo('/parametres')
-}
-const gotoParcours = () => {
-  navigateTo('/parcours')
-}
-const gotoApprenants = () => {
-  navigateTo('/apprenants')
-}
-const gotoTableauDeBord = () => {
-  navigateTo('/dashboard')
-}
-const logout = () => {
-  authStore.logout()
-}
-
-</script>
+<script setup></script>
 
 <style scoped>
 .lms-layout {
@@ -132,7 +165,7 @@ const logout = () => {
   margin: 8px 0;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: #C0C0C0;
+  color: #c0c0c0;
   position: relative;
   gap: 0;
   overflow: hidden;
@@ -147,19 +180,19 @@ const logout = () => {
 
 .nav-item:hover {
   background-color: rgba(0, 206, 209, 0.2);
-  color: #00CED1;
+  color: #00ced1;
   transform: translateX(2px);
 }
 
 .nav-item.active {
-  background-color: #00CED1;
-  color: #FFFFFF;
+  background-color: #00ced1;
+  color: #ffffff;
   box-shadow: 0 4px 15px rgba(0, 206, 209, 0.3);
 }
 
 .menu-toggle:hover {
   background-color: rgba(255, 127, 0, 0.2);
-  color: #FF7F00;
+  color: #ff7f00;
   transform: scale(1.05);
 }
 
@@ -219,7 +252,7 @@ const logout = () => {
   .vertical-navbar {
     width: 70px;
   }
-  
+
   .nav-item {
     width: 45px;
     height: 45px;

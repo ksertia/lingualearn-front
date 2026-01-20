@@ -1,9 +1,9 @@
 <template>
     <div>
-        <Profile />
+        <About />
     </div>
 </template>
 
 <script setup lang="ts">
-import Profile from "~/components/settings/profile.vue";
+import About from "~/components/about/about.vue";
 </script>
