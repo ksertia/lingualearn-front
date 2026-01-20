@@ -174,7 +174,7 @@ const onSubmit = async () => {
     }
     setTimeout(() => {
       loginSuccess.value = '';
-      navigateTo('/'); 
+      navigateTo('/dashboard'); 
     }, 2000);
     
   }
