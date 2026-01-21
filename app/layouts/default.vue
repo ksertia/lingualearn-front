@@ -1,9 +1,9 @@
 <template>
-    <main>
-      <slot />
-    </main>
+  <main>
+    <NuxtPage />
+  </main>
 </template>
 
 <script setup>
-
+  
 </script>
