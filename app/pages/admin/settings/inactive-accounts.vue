@@ -1,9 +1,13 @@
 <template>
-    <div>
-        <InactiveAccounts />
-    </div>
+  <div>
+    <InactiveAccounts />
+  </div>
 </template>
 
 <script setup lang="ts">
 import InactiveAccounts from "~/components/settings-admin/inactive-accounts.vue";
+
+definePageMeta({
+  layout: "settings",
+});
 </script>
