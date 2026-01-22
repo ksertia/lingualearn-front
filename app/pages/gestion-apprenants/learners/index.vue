@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 md:p-6 space-y-6 bg-gray-50 min-h-screen">
 
-    <h1 class="text-xl md:text-2xl font-bold text-[#000099]">
+    <h1 class="text-xl md:text-2xl font-bold" style="color: rgb(0,42,104);">
       Liste des apprenants
     </h1>
 
@@ -19,7 +19,10 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ layout: 'learners-layout' })
+definePageMeta({
+  layout: 'lms' 
+})
+
 
 import { ref, computed } from 'vue'
 import LearnerFilters from '~/components/learners/LearnerFilters.vue'
@@ -33,15 +36,16 @@ interface Learner {
   createdAt: string
   parcours: string
   status: string
+  lastLogin?: string
 }
 
 // Données mock
 const learners = ref<Learner[]>([
-  { id: 1, name: 'Goama', email: 'goama@mail.com', phone: '60000000', createdAt: '2026-01-01', parcours: 'A', status: 'actif' },
-  { id: 2, name: 'Nadi Traoré', email: 'nadi@mail.com', phone: '25000000', createdAt: '2026-01-01', parcours: 'B', status: 'inactif' },
-  { id: 3, name: 'Mariam Kaboré', email: 'mariam@mail.com', phone: '50000000', createdAt: '2026-01-02', parcours: 'A', status: 'actif' },
-  { id: 4, name: 'Issa Ouédraogo', email: 'issa@mail.com', phone: '70000000', createdAt: '2026-01-03', parcours: 'C', status: 'actif' },
-  { id: 5, name: 'Fatou Diallo', email: 'fatou@mail.com', phone: '60005000', createdAt: '2026-01-04', parcours: 'B', status: 'inactif' }
+{ id: 1, name: 'Goama', email: 'goama@mail.com', phone: '60000000', createdAt: '2026-01-01', parcours: 'A', status: 'actif', lastLogin: '2026-01-19T10:15:00' },
+  { id: 2, name: 'Nadi Traoré', email: 'nadi@mail.com', phone: '25000000', createdAt: '2026-01-01', parcours: 'B', status: 'inactif', lastLogin: '2026-01-18T14:30:00' },
+  { id: 3, name: 'Mariam Kaboré', email: '', phone: '', createdAt: '2026-01-02', parcours: 'A', status: 'actif', lastLogin: undefined },
+  { id: 4, name: 'Issa Ouédraogo', email: 'issa@mail.com', phone: '70000000', createdAt: '2026-01-03', parcours: 'C', status: 'actif', lastLogin: '2026-01-20T09:00:00' },
+  { id: 5, name: 'Fatou Diallo', email: 'fatou@mail.com', phone: '60005000', createdAt: '2026-01-04', parcours: 'B', status: 'inactif', lastLogin: undefined }
 ])
 
 // Filtres

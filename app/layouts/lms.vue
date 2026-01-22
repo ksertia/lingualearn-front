@@ -14,7 +14,7 @@
       </div>
 
       <div class="nav-items">
-        <div class="nav-item active" title="Tableau de bord" @click="gotoTableauDeBord">
+        <div class="nav-item active" title="Tableau de bord">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <path
               d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
@@ -88,7 +88,7 @@
           <span class="nav-text">Parcours</span>
         </div>
 
-        <div class="nav-item" title="Paramètres" @click="gotoParametres">
+        <div class="nav-item" title="Paramètres">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
             <circle
               cx="12"

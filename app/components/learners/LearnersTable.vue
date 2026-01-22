@@ -10,6 +10,7 @@
             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Téléphone</th>
             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Inscrit le</th>
             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Parcours</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Dernière connexion</th>
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
@@ -23,13 +24,16 @@
                 {{ learner.name }}
               </NuxtLink>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ learner.email }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ learner.phone }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ learner.createdAt }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ learner.email || '-' }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ learner.phone || '-' }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ formatDate(learner.createdAt) }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ learner.parcours }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-gray-700">
+              {{ formatDate(learner.lastLogin) }}
+            </td>
           </tr>
           <tr v-if="paginatedLearners.length === 0">
-            <td colspan="5" class="px-6 py-4 text-center text-gray-500">
+            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
               Aucun apprenant trouvé
             </td>
           </tr>
@@ -80,10 +84,11 @@ import { ref, computed, watch } from 'vue'
 interface Learner {
   id: number
   name: string
-  email: string
-  phone: string
+  email?: string
+  phone?: string
   createdAt: string
   parcours: string
+  lastLogin?: string
 }
 
 const props = defineProps<{ filteredLearners: Learner[] }>()
@@ -93,7 +98,6 @@ const itemsPerPage = 3
 
 const totalPages = computed(() => Math.ceil(props.filteredLearners.length / itemsPerPage))
 
-// Pages affichées (1…n) ; simple logique ici, tu peux optimiser pour "..." si beaucoup
 const pagesToDisplay = computed(() => {
   return Array.from({ length: totalPages.value }, (_, i) => i + 1)
 })
@@ -103,10 +107,7 @@ const paginatedLearners = computed(() => {
   return props.filteredLearners.slice(start, start + itemsPerPage)
 })
 
-watch(
-  () => props.filteredLearners,
-  () => (currentPage.value = 1)
-)
+watch(() => props.filteredLearners, () => (currentPage.value = 1))
 
 function prevPage() {
   if (currentPage.value > 1) currentPage.value--
@@ -114,5 +115,12 @@ function prevPage() {
 
 function nextPage() {
   if (currentPage.value < totalPages.value) currentPage.value++
+}
+
+// Formatage des dates et affichage "Jamais connecté"
+function formatDate(date?: string) {
+  if (!date) return 'Jamais connecté'
+  const d = new Date(date)
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString()
 }
 </script>
