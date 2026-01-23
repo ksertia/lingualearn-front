@@ -97,10 +97,20 @@
 import { ref } from "vue";
 
 const columns = [
-  { label: 'Titre du Parcours', key: 'title' },
-  { label: 'Apprenants', key: 'learners' },
-  { label: 'Difficulté', key: 'level' },
-  { label: 'État', key: 'status' },
+  { 
+    label: 'Titre du Parcours', 
+    key: 'title' },
+  { label: 'Apprenants', key: 'learners' 
+
+  },
+  { 
+    label: 'Difficulté', 
+    key: 'level' 
+  },
+  { 
+    label: 'État', 
+    key: 'status' 
+  },
 ];
 
 
