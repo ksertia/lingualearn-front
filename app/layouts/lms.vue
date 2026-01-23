@@ -1,133 +1,84 @@
 <template>
   <div class="lms-layout">
+    
     <nav class="vertical-navbar">
       <div class="nav-item menu-toggle">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path
-            d="M3 12h18M3 6h18M3 18h18"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
+          <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
         <span class="nav-text">Menu</span>
       </div>
-
+      
       <div class="nav-items">
-        <div class="nav-item active" title="Tableau de bord">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <polyline
-              points="9 22 9 12 15 12 15 22"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <span class="nav-text">Tableau de bord</span>
-        </div>
+      <NuxtLink 
+          v-for="item in menuItems" 
+          :key="item.path"
+          :to="item.path"
+          class="nav-item"
+          :class="{ 'active': $route.path === item.path }">
 
-        <div class="nav-item" title="Liste des apprenants">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <circle
-              cx="9"
-              cy="7"
-              r="4"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-            <path
-              d="M23 21v-2a4 4 0 0 0-3-3.87"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M16 3.13a4 4 0 0 1 0 7.75"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <span class="nav-text">Liste des apprenants</span>
-        </div>
-
-        <div class="nav-item" title="Parcours">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <span class="nav-text">Parcours</span>
-        </div>
-
-        <div class="nav-item" title="Paramètres">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle
-              cx="12"
-              cy="12"
-              r="3"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-            <path
-              d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 9.96l4.24 4.24M1 12h6m6 0h6m-13.22 4.22l4.24-4.24M18.46 14.04l4.24-4.24"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <span class="nav-text">Paramètres</span>
-        </div>
+            <path :d="item.icon" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+          </svg> 
+          <span class="nav-text">{{ item.label }}</span>
+      </NuxtLink>
       </div>
-
+      
       <div class="nav-bottom">
         <div class="nav-item profile-item">
-          <img
-            src="https://picsum.photos/seed/woman-profile/32/32.jpg"
-            alt="Profile"
-            class="profile-pic"
-          />
-          <span class="nav-text">Profil</span>
+          <img src="https://i.pravatar.cc/300" alt="Profile" class="profile-pic">
+           <span class="nav-text">{{ authStore.fullname }}</span> 
+        </div>
+
+        <div class="nav-item profile-item" @click="logout">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="nav-text">Se déconnecter</span>
         </div>
       </div>
     </nav>
 
+    
     <main class="main-content">
-      <NuxtPage />
+      <slot />
     </main>
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+const authStore = useAuthStore();
+
+const menuItems = [
+  {
+    label: 'Tableau de bord',
+    path: '/dashboard',
+    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
+  },
+  {
+    label: 'Apprenants',
+    path: '/apprenants',
+    icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197'
+  },
+  {
+    label: 'Parcours',
+    path: '/parcours',
+    icon: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'
+  },
+  {
+    label: 'Paramètres',
+    path: '/admin/settings',
+    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z'
+  }
+]
+
+const logout = () => {
+  authStore.logout()
+}
+
+</script>
 
 <style scoped>
 .lms-layout {
@@ -165,7 +116,7 @@
   margin: 8px 0;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: #c0c0c0;
+  color: #C0C0C0;
   position: relative;
   gap: 0;
   overflow: hidden;
@@ -180,19 +131,19 @@
 
 .nav-item:hover {
   background-color: rgba(0, 206, 209, 0.2);
-  color: #00ced1;
+  color: #00CED1;
   transform: translateX(2px);
 }
 
 .nav-item.active {
-  background-color: #00ced1;
-  color: #ffffff;
+  background-color: #00CED1;
+  color: #FFFFFF;
   box-shadow: 0 4px 15px rgba(0, 206, 209, 0.3);
 }
 
 .menu-toggle:hover {
   background-color: rgba(255, 127, 0, 0.2);
-  color: #ff7f00;
+  color: #FF7F00;
   transform: scale(1.05);
 }
 
@@ -252,7 +203,7 @@
   .vertical-navbar {
     width: 70px;
   }
-
+  
   .nav-item {
     width: 45px;
     height: 45px;

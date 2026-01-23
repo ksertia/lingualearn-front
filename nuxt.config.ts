@@ -12,6 +12,12 @@ export default defineNuxtConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  runtimeConfig: {
+    public: {
+      apiBase: '',
+    },
+    apiSecret: '',
+  },
 
   // Redirects for deprecated routes
   routeRules: {

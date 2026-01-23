@@ -2,28 +2,28 @@ import type { LoginCredentials, AuthResponse, User } from '~/types/auth';
 
 class ApiService {
   private api;
-  constructor() { 
+  constructor() {
     const config = useRuntimeConfig();
     this.api = $fetch.create({
       baseURL: config.public.apiBase,
-      onRequest({options}){
+      onRequest({ options }) {
         const token = useCookie('token').value;
-        if(token){
+        if (token) {
           options.headers.set('Authorization', `Bearer ${token}`)
         }
       },
-      
+
     })
   }
 
-  async login(credentials:LoginCredentials): Promise<AuthResponse>{
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
     return await this.api('v1/auth/login', {
       method: 'POST',
       body: credentials,
     });
   };
 
-  async getMe(): Promise<{ data: User }>{
+  async getMe(): Promise<{ data: User }> {
     return await this.api('v1/users/me');
   }
 }
