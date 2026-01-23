@@ -14,12 +14,15 @@
               Créer, modifier et supprimer les plans d'abonnement
             </p>
           </div>
-          <NuxtLink
-            to="/admin/settings"
-            class="rounded-lg border border-gray-700 px-4 py-2 font-medium text-gray-400 transition-all hover:bg-gray-800 whitespace-nowrap"
-          >
-             Retour
-          </NuxtLink>
+          <div class="flex items-center gap-3">
+            <SettingsDropdown />
+            <NuxtLink
+              to="/admin/settings"
+              class="rounded-lg border border-gray-700 px-4 py-2 font-medium text-gray-400 transition-all hover:bg-gray-800 whitespace-nowrap"
+            >
+              Retour
+            </NuxtLink>
+          </div>
         </div>
       </div>
     </div>
@@ -306,6 +309,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
+import SettingsDropdown from "~/components/SettingsDropdown.vue";
+
 definePageMeta({ layout: "default" });
 
 const showAddPlanForm = ref(false);

@@ -2,11 +2,24 @@
   <div>
     <!-- Header -->
     <div class="border-b border-gray-800 bg-[#0B1220]/50 backdrop-blur">
-      <div class="mx-auto max-w-7xl px-6 py-8">
-        <h1 class="text-3xl font-bold text-white">Paramètres Administrateur</h1>
-        <p class="mt-2 text-gray-400">
-          Gestion des paramètres globaux de la plateforme
-        </p>
+      <div class="mx-auto max-w-7xl px-6 py-8 flex items-start justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-white">
+            Paramètres Administrateur
+          </h1>
+          <p class="mt-2 text-gray-400">
+            Gestion des paramètres globaux de la plateforme
+          </p>
+        </div>
+        <div class="flex items-center gap-3">
+          <SettingsDropdown />
+          <NuxtLink
+            to="/dashboard"
+            class="rounded-lg border border-gray-700 px-4 py-2 font-medium text-gray-400 transition-all hover:bg-gray-800 whitespace-nowrap"
+          >
+            Retour
+          </NuxtLink>
+        </div>
       </div>
     </div>
 
@@ -167,7 +180,10 @@
 </template>
 
 <script setup lang="ts">
+import SettingsDropdown from "~/components/SettingsDropdown.vue";
+
 definePageMeta({
-  layout: "settings",
+  layout: "lms",
+  // layout: "settings",
 });
 </script>

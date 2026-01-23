@@ -8,6 +8,7 @@
 import Subscriptions from "~/components/settings-admin/subscriptions.vue";
 
 definePageMeta({
-  layout: "settings",
+  layout: "lms",
+  // layout: "settings",
 });
 </script>

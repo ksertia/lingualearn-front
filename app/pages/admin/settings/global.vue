@@ -8,6 +8,6 @@
 import Global from "~/components/settings-admin/global.vue";
 
 definePageMeta({
-  layout: "settings",
+  layout: "lms",
 });
 </script>

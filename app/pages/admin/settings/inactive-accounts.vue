@@ -8,6 +8,7 @@
 import InactiveAccounts from "~/components/settings-admin/inactive-accounts.vue";
 
 definePageMeta({
-  layout: "settings",
+  layout: "lms",
+  // layout: "settings",
 });
 </script>

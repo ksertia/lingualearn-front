@@ -8,6 +8,7 @@
 import Notifications from "~/components/settings-admin/notifications.vue";
 
 definePageMeta({
-  layout: "settings",
+  layout: "lms",
+  // layout: "settings",
 });
 </script>
