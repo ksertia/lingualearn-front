@@ -1,54 +1,52 @@
 <template>
-  <div class="lms-layout">
-    
-    <nav class="vertical-navbar">
-      <div class="nav-item menu-toggle">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <span class="nav-text">Menu</span>
-      </div>
-      
-      <div class="nav-items">
-      <NuxtLink 
-          v-for="item in menuItems" 
-          :key="item.path"
-          :to="item.path"
-          class="nav-item"
-          :class="{ 'active': $route.path === item.path }">
+  <div class="flex flex-col h-screen bg-slate-50 overflow-hidden">
+    <AppNavbar />
 
+    <div class="flex flex-1 overflow-hidden">
+      <nav class="vertical-navbar">
+        <!-- <div class="nav-item menu-toggle">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path :d="item.icon" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-          </svg> 
-          <span class="nav-text">{{ item.label }}</span>
-      </NuxtLink>
-      </div>
-      
-      <div class="nav-bottom">
-        <div class="nav-item profile-item">
-          <img src="https://i.pravatar.cc/300" alt="Profile" class="profile-pic">
-           <span class="nav-text">{{ authStore.fullname }}</span> 
-        </div>
-
-        <div class="nav-item profile-item" @click="logout">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
-          <span class="nav-text">Se déconnecter</span>
-        </div>
-      </div>
-    </nav>
+          <span class="nav-text">Menu</span>
+        </div> -->
+        
+        <div class="nav-items">
+          <NuxtLink 
+              v-for="item in menuItems" 
+              :key="item.path"
+              :to="item.path"
+              class="nav-item"
+              :class="{ 'active': $route.path === item.path }">
 
-    
-    <main class="main-content">
-      <slot />
-    </main>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path :d="item.icon" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              </svg> 
+              <span class="nav-text">{{ item.label }}</span>
+          </NuxtLink>
+        </div>
+        
+        <!-- <div class="nav-bottom">
+          <div class="nav-item profile-item" @click="logout">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <polyline points="16 17 21 12 16 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="nav-text">Se déconnecter</span>
+          </div>
+        </div> -->
+      </nav>
+
+      <main class="flex-1 overflow-y-auto p-4 md:p-8">
+        <slot />
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup>
+import AppNavbar from '~/layouts/AppNavbar.vue'
 const authStore = useAuthStore();
 
 const menuItems = [
@@ -81,58 +79,39 @@ const logout = () => {
 </script>
 
 <style scoped>
-.lms-layout {
-  display: flex;
-  height: 100vh;
-  background-color: #f5f5f5;
-}
-
 .vertical-navbar {
-  width: 80px;
+  width: 200px;
   background-color: #000099;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 20px 0;
+  padding: 20px 15px;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
   position: relative;
   transition: width 0.3s ease;
   overflow: hidden;
 }
 
-.vertical-navbar:hover {
-  width: 250px;
-  align-items: flex-start;
-  padding-left: 15px;
-}
-
 .nav-item {
-  width: 50px;
+  width: 100%;
   height: 50px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-left: 12px;
+  gap: 16px;
   border-radius: 12px;
-  margin: 8px 0;
+  margin: 4px 0;
   cursor: pointer;
   transition: all 0.3s ease;
   color: #C0C0C0;
   position: relative;
-  gap: 0;
   overflow: hidden;
-}
-
-.vertical-navbar:hover .nav-item {
-  width: 220px;
-  justify-content: flex-start;
-  padding-left: 10px;
-  gap: 12px;
 }
 
 .nav-item:hover {
   background-color: rgba(0, 206, 209, 0.2);
   color: #00CED1;
-  transform: translateX(2px);
+  transform: translateX(4px);
 }
 
 .nav-item.active {
@@ -144,59 +123,32 @@ const logout = () => {
 .menu-toggle:hover {
   background-color: rgba(255, 127, 0, 0.2);
   color: #FF7F00;
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .nav-text {
-  display: none;
-}
-
-.vertical-navbar:hover .nav-text {
   display: inline;
+  font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .nav-items {
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+  gap: 16px;
 }
 
 .nav-bottom {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
   margin-top: auto;
 }
 
-.profile-pic {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  /* border: 2px solid #00CED1; */
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  font-weight: bold;
-  font-size: 12px;
-  padding: 0 8px;
-  height: 36px;
-  width: auto;
-  min-width: 50px;
-}
-
-.points-text {
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.main-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-}
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
