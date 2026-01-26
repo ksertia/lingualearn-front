@@ -1,4 +1,5 @@
 import type { LoginCredentials, AuthResponse, User } from '~/types/auth';
+import type { parcours } from '~/types/parcours';
 
 class ApiService {
   private api;
@@ -25,6 +26,14 @@ class ApiService {
 
   async getMe(): Promise<{ data: User }> {
     return await this.api('v1/users/me');
+  };
+
+  async createParcours(Parcours: parcours): Promise<{ data: parcours }> {
+    //Direction temporaire
+    return await this.api('v1/parcours', {
+      method: 'POST',
+      body: Parcours,
+    });
   }
 }
 
