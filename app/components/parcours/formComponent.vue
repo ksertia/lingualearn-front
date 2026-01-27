@@ -2,8 +2,8 @@
   <div class="min-h-screen bg-slate-50 p-4 md:p-8">
     <div class="max-w-4xl mx-auto mb-10 flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-black text-brand-blue tracking-tight">Nouveau Parcours</h1>
-        <p class="text-slate-500 text-sm mt-1">Configurez votre programme et assignez-le à un apprenant.</p>
+        <h1 class="text-3xl font-black text-brand-blue tracking-tight">{{ isEdit ? 'Modifier le Parcours' : 'Nouveau Parcours' }}</h1>
+        <p class="text-slate-500 text-sm mt-1">{{ isEdit ? 'Mettez à jour les informations de votre programme.' : 'Configurez votre programme et assignez-le à un apprenant.' }}</p>
       </div>
       <button 
         @click="navigateTo('/parcours')"
@@ -28,7 +28,7 @@
                 class="w-full bg-slate-50 border-none rounded-2xl px-6 py-4 text-slate-700 placeholder:text-slate-300 focus:ring-2 focus:ring-brand-blue transition-all"
               >
             </div>
-            <div class="space-y-2">
+            <!-- <div class="space-y-2">
               <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Niveau</label>
               <select 
                 v-model="courseForm.level"
@@ -38,8 +38,8 @@
                 <option value="intermédiaire">Intermédiaire</option>
                 <option value="avancé">Avancé</option>
               </select>
-            </div>
-            <div class="space-y-2">
+            </div> -->
+            <!-- <div class="space-y-2">
               <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Attribuer à</label>
               <select 
                 v-model="courseForm.assignedTo"
@@ -49,7 +49,7 @@
                 <option value="user_1">Jean Dupont</option>
                 <option value="user_2">Marie Koné</option>
               </select>
-            </div>
+            </div> -->
           </div>
 
           <div class="space-y-2">
@@ -62,7 +62,7 @@
             ></textarea>
           </div>
 
-          <div class="space-y-2">
+          <!-- <div class="space-y-2">
             <label class="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Contenu du cours</label>
             <div 
               class="relative border-2 border-dashed rounded-[2rem] p-10 transition-all flex flex-col items-center justify-center cursor-pointer group"
@@ -96,7 +96,7 @@
                 </button>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <div class="flex flex-col sm:flex-row items-center justify-end gap-4 pt-4">
             <button 
@@ -122,46 +122,78 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import { useParcoursStore } from '~/stores/parcoursStore';
+import { useRoute } from 'vue-router';
+
+const props = defineProps<{
+  id?: string
+}>();
 
 const parcoursStore = useParcoursStore();
+const route = useRoute();
 const isDragging = ref(false);
+const isEdit = ref(false);
 
 const courseForm = reactive({
   title: '',
-  level: 'débutant',
   description: '',
-  assignedTo: '',
-  file: null as File | null
+  isPublished: false,
+});
+
+onMounted(async () => {
+  const pathId = props.id || route.params.id as string;
+  if (pathId) {
+    isEdit.value = true;
+    // On cherche dans le store d'abord
+    let existing = parcoursStore.allParcours.find(p => p.id === pathId);
+    
+    // Si pas trouvé (ex: refresh page), on peut soit fetch la liste soit fetch l'unité
+    if (!existing) {
+       await parcoursStore.fetchParcours();
+       existing = parcoursStore.allParcours.find(p => p.id === pathId);
+    }
+
+    if (existing) {
+      courseForm.title = existing.title;
+      courseForm.description = existing.description;
+      courseForm.isPublished = existing.isPublished || false;
+    }
+  }
 });
 
 function handleFileDrop(e: DragEvent) {
   isDragging.value = false;
   const files = e.dataTransfer?.files;
   if (files && files.length > 0) {
-    courseForm.file = files[0];
+    // courseForm.file = files[0];
   }
 }
 
 async function submitParcours(status: 'brouillon' | 'publié') {
   if (!courseForm.title) return alert('Le titre est requis');
   
-  const fd = new FormData();
-  fd.append('title', courseForm.title);
-  fd.append('level', courseForm.level);
-  fd.append('description', courseForm.description);
-  fd.append('status', status);
-  fd.append('assignedTo', courseForm.assignedTo);
-  
-  if (courseForm.file) {
-    fd.append('file', courseForm.file);
-  }
+  const payload: any = {
+    title: courseForm.title,
+    description: courseForm.description,
+    isPublished: status === 'publié'
+  };
 
-  const result = await parcoursStore.createParcours(fd as any);
+  let result = false;
+  const pathId = props.id || route.params.id as string;
+  
+  console.log("Submitting parcours form:", { isEdit: isEdit.value, pathId, payload });
+
+  if (isEdit.value && pathId) {
+    result = await parcoursStore.updateParcours(pathId, payload);
+  } else {
+    result = await parcoursStore.createParcours(payload);
+  }
   
   if (result) {
     navigateTo('/parcours');
+  } else if (parcoursStore.error) {
+    alert(parcoursStore.error);
   }
 }
 </script>

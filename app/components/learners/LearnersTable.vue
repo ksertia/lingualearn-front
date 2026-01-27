@@ -21,13 +21,17 @@
           >
             <td class="px-6 py-4 whitespace-nowrap font-medium text-[#000099] underline">
               <NuxtLink :to="`/gestion-apprenants/learners/${learner.id}`">
-                {{ learner.name }}
+                {{ getFullName(learner) }}
               </NuxtLink>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ learner.email || '-' }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ learner.phone || '-' }}</td>
             <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ formatDate(learner.createdAt) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-gray-700">{{ learner.parcours }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-gray-700">
+              <span class="px-2 py-1 rounded-lg text-[10px] font-black uppercase bg-slate-100 border border-slate-200">
+                {{ learner.accountType }}
+              </span>
+            </td>
             <td class="px-6 py-4 whitespace-nowrap text-gray-700">
               {{ formatDate(learner.lastLogin) }}
             </td>
@@ -80,26 +84,17 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import type { User } from '~/types/auth'
 
-interface Learner {
-  id: number
-  name: string
-  email?: string
-  phone?: string
-  createdAt: string
-  parcours: string
-  lastLogin?: string
-}
-
-const props = defineProps<{ filteredLearners: Learner[] }>()
+const props = defineProps<{ filteredLearners: User[] }>()
 
 const currentPage = ref(1)
-const itemsPerPage = 3
+const itemsPerPage = 10
 
 const totalPages = computed(() => Math.ceil(props.filteredLearners.length / itemsPerPage))
 
 const pagesToDisplay = computed(() => {
-  return Array.from({ length: totalPages.value }, (_, i) => i + 1)
+  return Array.from({ length: totalPages.value }, (_, i) => i + 1).slice(0, 10) 
 })
 
 const paginatedLearners = computed(() => {
@@ -117,10 +112,20 @@ function nextPage() {
   if (currentPage.value < totalPages.value) currentPage.value++
 }
 
+const getFullName = (user: User) => {
+  const firstName = user.profile?.firstName || (user as any).firstName || '';
+  const lastName = user.profile?.lastName || (user as any).lastName || '';
+  if (firstName || lastName) {
+    return `${firstName} ${lastName}`.trim();
+  }
+  return user.username || 'Inconnu';
+}
+
 // Formatage des dates et affichage "Jamais connecté"
-function formatDate(date?: string) {
+function formatDate(date?: Date | string) {
   if (!date) return 'Jamais connecté'
   const d = new Date(date)
-  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString()
+  if (isNaN(d.getTime())) return '-'
+  return d.toLocaleDateString('fr-FR')
 }
 </script>

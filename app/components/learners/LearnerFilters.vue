@@ -24,10 +24,10 @@
         />
       </div>
 
-      <!-- Parcours -->
+      <!-- Type de compte -->
       <div>
         <label class="block text-sm font-medium text-gray-600 mb-1">
-          Parcours
+          Type de compte
         </label>
 
         <select
@@ -37,10 +37,11 @@
                  focus:ring-2 focus:ring-[#00CED1] focus:border-[#00CED1]
                  outline-none transition bg-white"
         >
-          <option value="">Tous</option>
-          <option value="A">Parcours A</option>
-          <option value="B">Parcours B</option>
-          <option value="C">Parcours C</option>
+          <option value="">Tous les types</option>
+          <option value="parent">Parent</option>
+          <option value="child">Enfant (Apprenant)</option>
+          <option value="teacher">Professeur</option>
+          <option value="admin">Administrateur</option>
         </select>
       </div>
 

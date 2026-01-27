@@ -12,41 +12,33 @@
       v-model:status="status"
     />
 
+    <!-- État de chargement / erreur -->
+    <div v-if="isLoading" class="flex justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#000099]"></div>
+    </div>
+    <div v-else-if="error" class="bg-rose-50 text-rose-600 p-4 rounded-xl border border-rose-100 mb-6">
+      {{ error }}
+    </div>
+
     <!-- Tableau -->
-    <LearnersTable :filtered-learners="filteredLearners" />
+    <LearnersTable v-else :filtered-learners="filteredLearners" />
 
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import LearnerFilters from '~/components/learners/LearnerFilters.vue'
+import LearnersTable from '~/components/learners/LearnersTable.vue'
+import { useUserStore } from '~/stores/userStore'
+import { storeToRefs } from 'pinia'
+
 definePageMeta({
   layout: 'lms' 
 })
 
-
-import { ref, computed } from 'vue'
-import LearnerFilters from '~/components/learners/LearnerFilters.vue'
-import LearnersTable from '~/components/learners/LearnersTable.vue'
-
-interface Learner {
-  id: number
-  name: string
-  email: string
-  phone: string
-  createdAt: string
-  parcours: string
-  status: string
-  lastLogin?: string
-}
-
-// Données mock
-const learners = ref<Learner[]>([
-{ id: 1, name: 'Goama', email: 'goama@mail.com', phone: '60000000', createdAt: '2026-01-01', parcours: 'A', status: 'actif', lastLogin: '2026-01-19T10:15:00' },
-  { id: 2, name: 'Nadi Traoré', email: 'nadi@mail.com', phone: '25000000', createdAt: '2026-01-01', parcours: 'B', status: 'inactif', lastLogin: '2026-01-18T14:30:00' },
-  { id: 3, name: 'Mariam Kaboré', email: '', phone: '', createdAt: '2026-01-02', parcours: 'A', status: 'actif', lastLogin: undefined },
-  { id: 4, name: 'Issa Ouédraogo', email: 'issa@mail.com', phone: '70000000', createdAt: '2026-01-03', parcours: 'C', status: 'actif', lastLogin: '2026-01-20T09:00:00' },
-  { id: 5, name: 'Fatou Diallo', email: 'fatou@mail.com', phone: '60005000', createdAt: '2026-01-04', parcours: 'B', status: 'inactif', lastLogin: undefined }
-])
+const userStore = useUserStore()
+const { users: learners, isLoading, error } = storeToRefs(userStore)
 
 // Filtres
 const search = ref('')
@@ -55,11 +47,27 @@ const status = ref('')
 
 // Filtrage
 const filteredLearners = computed(() => {
+  if (!learners.value) return [];
+  console.log('Filtering learners:', learners.value.length, 'found');
   return learners.value.filter(l => {
-    const matchName = l.name.toLowerCase().includes(search.value.toLowerCase())
-    const matchParcours = parcours.value ? l.parcours === parcours.value : true
-    const matchStatus = status.value ? l.status === status.value : true
-    return matchName && matchParcours && matchStatus
-  })
+    const firstName = l.profile?.firstName || (l as any).firstName || '';
+    const lastName = l.profile?.lastName || (l as any).lastName || '';
+    const username = l.username || '';
+    const fullName = (firstName || lastName) ? `${firstName} ${lastName}` : username;
+    
+    const searchTerm = search.value.toLowerCase();
+    const matchName = fullName.toLowerCase().includes(searchTerm) || 
+                      username.toLowerCase().includes(searchTerm) ||
+                      (l.email && l.email.toLowerCase().includes(searchTerm));
+                      
+    const matchStatus = status.value ? (status.value === 'actif' ? l.isActive : !l.isActive) : true;
+    const matchType = parcours.value ? l.accountType === parcours.value : true;
+    
+    return matchName && matchStatus && matchType;
+  });
+});
+
+onMounted(() => {
+  userStore.fetchUsers()
 })
 </script>
