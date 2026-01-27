@@ -80,12 +80,11 @@ export const useAuthStore = defineStore('auth', () => {
     if (token.value && !user.value) {
       try {
         const response = await apiService.getMe();
-        setUser(response.data.user);
+        setUser(response.data);
       } catch (err) {
         clearAuth();
       }
     }
-
   }
   initAuth();
 
