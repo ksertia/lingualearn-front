@@ -14,7 +14,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBase: '',
+      apiBase: 'https://213.32.120.11:4000',
     },
     apiSecret: '',
   },

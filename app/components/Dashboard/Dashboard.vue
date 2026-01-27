@@ -49,142 +49,143 @@
   <!-- Statistiques des langues les plus parlées et utilisateurs par niveau -->
 </template>
 
-<script setup>
-//  debut du script Statistiques utilisateur 
-        import { reactive, computed } from 'vue'
+<script setup lang="ts">
+//  debut du script Statistiques utilisateur
+        import { reactive, computed, onMounted, ref } from 'vue'
+        import { useApiService } from '~/services/api'
+        import type { DashboardResponse } from '~/types/dashboard'
+        import {
+                  Chart,
+                  PieController,
+                  ArcElement,
+                  BarElement,
+                  CategoryScale,
+                  LinearScale,
+                  Tooltip,
+                  Legend,
+                  Title,
+                  BarController,
+                  type ChartConfiguration
+                } from 'chart.js'
 
-    //  Données simulées (comme depuis une API)
+    const apiService = useApiService()
+
+    //  Données depuis l'API
     const stats = reactive({
-    totalUsers: 1250,
-    newUsers: 87,
-    inactiveUsers: 320
+    totalUsers: 0,
+    newUsers: 0,
+    inactiveUsers: 0
+    })
+
+    const dashboardData = reactive<DashboardResponse>({
+      stats: stats,
+      languages: [],
+      userLevels: []
     })
 
     // Calcul du taux d'activité
     const activityRate = computed(() => {
     const activeUsers = stats.totalUsers - stats.inactiveUsers
-    return ((activeUsers / stats.totalUsers) * 100).toFixed(1)
+    return stats.totalUsers > 0 ? ((activeUsers / stats.totalUsers) * 100).toFixed(1) : '0.0'
     })
-//  fin du script Statistiques utilisateur 
 
-// debut du script Statistiques des langues les plus parlées
-import { ref, onMounted } from 'vue'
-import {
-  Chart,
-  PieController,
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend,
-  Title,
-  BarController
-} from 'chart.js'
+    // Refs pour les canvas
+    const pieCanvas = ref(null)
+    const chartCanvas = ref(null)
 
-// OBLIGATOIRE : enregistrer le controller + éléments
-Chart.register(
-  PieController,
-  ArcElement,
-  Tooltip,
-  Legend,
-  Title
-)
+    // OBLIGATOIRE : enregistrer le controller + éléments
+    Chart.register(
+      PieController,
+      ArcElement,
+      BarController,
+      BarElement,
+      CategoryScale,
+      LinearScale,
+      Tooltip,
+      Legend,
+      Title
+    )
 
-const pieCanvas = ref(null)
+    onMounted(async () => {
+      try {
+        const response = await apiService.getAdminDashboard()
+        console.log('Réponse API dashboard:', response)  // Ajout pour déboguer
+        Object.assign(stats, response.stats)
+        dashboardData.languages = response.languages
+        dashboardData.userLevels = response.userLevels
 
-onMounted(() => {
-  const data = {
-    labels: ['Mooré', 'Dioula', 'Fulfuldé'],
-    datasets: [
-      {
-        label: 'Langues les plus parlées',
-        data: [45, 30, 25],
-        backgroundColor: [
-          'rgba(0,0,153,1)',
-          'rgba(255, 165, 0, 1)',
-          'rgba(64, 224, 208, 1)'
-        ],
-        borderWidth: 1
+        // Graphique des langues (utiliser les données de l'API)
+        if (dashboardData.languages.length > 0 && pieCanvas.value) {
+          const pieData = {
+            labels: dashboardData.languages.map(lang => lang.label),
+            datasets: [
+              {
+                label: 'Langues les plus parlées',
+                data: dashboardData.languages.map(lang => lang.data),
+                backgroundColor: dashboardData.languages.map(lang => lang.backgroundColor),
+                borderWidth: 1
+              }
+            ]
+          }
+
+          const config: ChartConfiguration = {
+            type: 'pie',
+            data: pieData,
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  position: 'bottom'
+                }
+              }
+            }
+          }
+
+          new Chart(pieCanvas.value, config)
+        }
+
+        // Graphique des niveaux (utiliser les données de l'API)
+        if (dashboardData.userLevels.length > 0 && chartCanvas.value) {
+          const barData = {
+            labels: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'], // Assumer des mois fixes ou ajuster selon l'API
+            datasets: dashboardData.userLevels.map(level => ({
+              label: level.label,
+              data: level.data,
+              backgroundColor: level.backgroundColor
+            }))
+          }
+
+          const barConfig: ChartConfiguration = {
+            type: 'bar',
+            data: barData,
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom'
+                },
+                tooltip: {
+                  enabled: true
+                }
+              },
+              scales: {
+                x: {
+                  stacked: true,
+                  beginAtZero: true
+                },
+                y: {
+                  stacked: true
+                }
+              }
+            }
+          }
+
+          new Chart(chartCanvas.value, barConfig)
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération des données du dashboard:', error)
       }
-    ]
-  }
-
-  const config = {
-    type: 'pie',
-    data,
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: 'bottom'
-        }
-      }
-    }
-  }
-
-  new Chart(pieCanvas.value, config)
-}) // fin du script Statistiques des langues les plus parlées
-
-
-// debut du script utilisateurs par niveau
-// Enregistrement des composants Chart.js
-Chart.register(
-  BarController,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  Tooltip,
-  Legend
-)
-
-const chartCanvas = ref(null)
-
-onMounted(() => {
-  new Chart(chartCanvas.value, {
-    type: 'bar',
-    data: {
-      labels: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
-      datasets: [
-        {
-          label: 'Débutant',
-          data: [150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260],
-          backgroundColor: ['rgba(0,0,153,1)'] // blue-foncé
-        },
-        {
-          label: 'Intermédiaire',
-          data: [100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210],
-          backgroundColor: ['rgba(255, 165, 0, 1)'] // orange
-        },
-        {
-          label: 'Avancé',
-          data: [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105],
-          backgroundColor: ['rgba(64, 224, 208, 1)'] // turquoise
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom'
-        },
-        tooltip: {
-          enabled: true
-        }
-      },
-      scales: {
-        x: {
-          stacked: true,
-          beginAtZero: true
-        },
-        y: {
-          stacked: true
-        }
-      }
-    }
-  })
-})
-// fin du script utilisateurs par niveau
+    })
+//  fin du script Statistiques utilisateur
 </script>

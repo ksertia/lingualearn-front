@@ -1,5 +1,6 @@
 import type { LoginCredentials, AuthResponse, User } from '~/types/auth';
 import type { parcours } from '~/types/parcours';
+import type { DashboardResponse } from '~/types/dashboard';
 
 class ApiService {
   private api;
@@ -34,6 +35,10 @@ class ApiService {
       method: 'POST',
       body: Parcours,
     });
+  }
+
+  async getAdminDashboard(): Promise<DashboardResponse> {
+    return await this.api('api/v1/admin/dashboard');
   }
 }
 
