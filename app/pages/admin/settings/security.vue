@@ -1,11 +1,11 @@
 <template>
   <div>
-    <Global />
+    <Security />
   </div>
 </template>
 
 <script setup lang="ts">
-import Global from "~/components/settings-admin/global.vue";
+import Security from "~/components/settings-admin/security.vue";
 
 definePageMeta({
   layout: "lms",
