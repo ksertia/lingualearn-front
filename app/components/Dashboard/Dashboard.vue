@@ -110,9 +110,9 @@
       try {
         const response = await apiService.getAdminDashboard()
         console.log('Réponse API dashboard:', response)  // Ajout pour déboguer
-        Object.assign(stats, response.stats)
-        dashboardData.languages = response.languages
-        dashboardData.userLevels = response.userLevels
+        Object.assign(dashboardData, response.data)
+        // dashboardData.languages = response.languagesData
+        // dashboardData.userLevels = response.userLevels
 
         // Graphique des langues (utiliser les données de l'API)
         if (dashboardData.languages.length > 0 && pieCanvas.value) {

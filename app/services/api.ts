@@ -133,6 +133,10 @@ class ApiService {
     return await this.api(`v1/courses/${id}`, { method: 'DELETE' });
   }
 
+  async getAdminDashboard(): Promise<ApiResponse<DashboardResponse>> {
+    return await this.api('v1/admin/dashboard');
+  }
+
   // async getStepQuizzes(stepId?: string): Promise<ApiResponse<StepQuiz[]>> {
   //   return await this.api('v1/step-quizzes', { query: stepId ? { stepId } : {} });
   // }
