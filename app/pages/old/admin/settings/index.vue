@@ -165,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import SettingsDropdown from "~/components/SettingsDropdown.vue";
+import SettingsDropdown from "~/components/old code/SettingsDropdown.vue";
 
 const SettingsCard = defineAsyncComponent(
   () => import("~/components/settings-admin/SettingsCard.vue"),

@@ -206,6 +206,6 @@
 </template>
 
 <script setup lang="ts">
-import SettingsDropdown from "~/components/SettingsDropdown.vue";
+import SettingsDropdown from "~/components/old code/SettingsDropdown.vue";
 // Configuration du contenu gratuit
 </script>
