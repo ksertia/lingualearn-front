@@ -1,11 +1,11 @@
 <template>
   <div>
-    <Global />
+    <Notifications />
   </div>
 </template>
 
 <script setup lang="ts">
-import Global from "~/components/settings-admin/global.vue";
+import Notifications from "~/components/settings-admin/notifications.vue";
 
 definePageMeta({
   layout: "lms",
