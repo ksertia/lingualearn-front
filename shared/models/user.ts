@@ -1,7 +1,7 @@
 export interface User {
     id: string
     parentId?: string
-    accountType: 'parent' | 'child' | 'teacher' | 'admin'
+    accountType: 'admin' | 'platform_manager' | 'teacher'
     email?: string
     phone?: string
     username: string
