@@ -177,6 +177,7 @@ const onSubmit = async () => {
     setTimeout(() => {
       loginSuccess.value = '';
       navigateTo(authStore.dashboardRoute) 
+      console.log(authStore.dashboardRoute) 
     }, 2000);
     
   }
