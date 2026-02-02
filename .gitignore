@@ -23,5 +23,12 @@ logs
 .env.*
 !.env.example
 
-# Local files
-.swagger-init.js 
+
+BACKEND_RESPONSE_STRUCTURE.ts
+CORS_EXPLIQUE.md 
+CORS_GUIDE.md 
+DASHBOARD_GESTIONNAIRE.md 
+EXEMPLE_COMPOSANT.vue 
+INTEGRATION_BACKEND.md 
+TEST_API.md 
+
