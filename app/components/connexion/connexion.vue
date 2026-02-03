@@ -166,15 +166,17 @@ const onSubmit = async () => {
     loginInfo: email.value,
     password: password.value,
   });
+
  console.log(email.value, password.value);
   if (success) {
+    
     loginSuccess.value = 'Connexion reussie';
     if (remember.value) {
       // Mettre en place la logique 
     }
     setTimeout(() => {
       loginSuccess.value = '';
-      navigateTo('/dashboard'); 
+      navigateTo(authStore.dashboardRoute) 
     }, 2000);
     
   }

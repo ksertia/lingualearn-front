@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useApiService } from '~/services/api';
 import type { LoginCredentials, User } from '~/types/auth';
+// import type { FetchError } from 'h3';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
@@ -33,7 +34,15 @@ export const useAuthStore = defineStore('auth', () => {
     return `${user.value.profile.firstName} ${user.value.profile.lastName}`
   })
 
-
+  const dashboardRoute = computed(()=>{
+    if (!user.value) return '/';
+    switch (user.value.accountType) {
+      case 'admin': return '/admin';
+      case 'platform_manager' : return '/gestionnaire';
+      case 'teacher' : return '/formateur';
+      default: return '/'
+    }
+  })
 
   async function login(credentials: LoginCredentials) {
     isLoading.value = true;
@@ -57,7 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
           error.value = 'Email ou mot de passe incorrect';
           break;
         case 500:
-          error.value = 'Le serveur semble fatigué, réessayez plus tard';
+          error.value = 'Erreur du serveur, réessayez plus tard';
           break;
         case 422:
           error.value = 'Certains champs du formulaire sont invalides';
@@ -66,6 +75,7 @@ export const useAuthStore = defineStore('auth', () => {
           error.value = status ? 'Une erreur inconnue est survenue' : "La connexion est coupée ou impossible";
           break;
       }
+      return false;
     } finally {
       isLoading.value = false;
     }
@@ -99,5 +109,6 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     login,
     logout,
+    dashboardRoute
   };
 });
