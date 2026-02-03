@@ -47,7 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
   switch (user.value.accountType) {
     case 'admin': 
       console.log(' Match: admin');
-      return '/admin';
+      return '/admin/users';
     case 'plateform_manager': 
       console.log(' Match: plateform_manager');
       return '/gestionnaire';
