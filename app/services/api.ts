@@ -17,10 +17,8 @@ class ApiService {
   onRequest({ options }) {
     const token = useCookie('token').value;
 
-    // options.headers peut être undefined, on initialise si besoin
     if (!options.headers) options.headers = new Headers();
 
-    // Utilisation correcte de Headers.set()
     if (token) {
       (options.headers as Headers).set('Authorization', `Bearer ${token}`);
     }

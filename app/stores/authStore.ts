@@ -35,21 +35,37 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   const dashboardRoute = computed(()=>{
-    if (!user.value) return '/';
-    switch (user.value.accountType) {
-      case 'admin': return '/admin';
-      case 'platform_manager' : return '/gestionnaire';
-      case 'teacher' : return '/formateur';
-      default: return '/'
-    }
-  })
+  console.log(' DEBUG - user.value:', user.value);
+  console.log('DEBUG - accountType:', user.value?.accountType);
+  console.log(' DEBUG - typeof accountType:', typeof user.value?.accountType);
+  
+  if (!user.value) {
+    console.log(' user.value est null/undefined');
+    return '/';
+  }
+  
+  switch (user.value.accountType) {
+    case 'admin': 
+      console.log(' Match: admin');
+      return '/admin';
+    case 'plateform_manager': 
+      console.log(' Match: plateform_manager');
+      return '/gestionnaire';
+    case 'teacher': 
+      console.log(' Match: teacher');
+      return '/formateur';
+    default: 
+      console.log(' DEFAULT HIT - accountType reçu:', JSON.stringify(user.value.accountType));
+      return '/';
+  }
+})
 
   async function login(credentials: LoginCredentials) {
     isLoading.value = true;
     error.value = null;
     try {
       const response = await apiService.login(credentials);
-      if (response.success && response.data) {
+      if (response.success && response.data && dashboardRoute) {
         setToken(response.data.tokens.accessToken);
         setUser(response.data.user);
         return true;
