@@ -174,15 +174,11 @@ const onSubmit = async () => {
     if (remember.value) {
       // Mettre en place la logique 
     }
-    setTimeout(() => {
-      loginSuccess.value = '';
-      navigateTo(authStore.dashboardRoute)
-<<<<<<< Updated upstream
-      console.log(authStore.dashboardRoute) 
-=======
-      console.log('authStore.dashboardRoute')
->>>>>>> Stashed changes
-    }, 2000);
+   setTimeout(() => { 
+  loginSuccess.value = '';
+  navigateTo(authStore.dashboardRoute)
+  console.log(authStore.dashboardRoute) 
+}, 2000);;
     
   }
 };

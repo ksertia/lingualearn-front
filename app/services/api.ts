@@ -12,13 +12,6 @@ class ApiService {
 
   constructor() {
     const config = useRuntimeConfig();
-<<<<<<< Updated upstream
-    this.api = $fetch.create({
-      baseURL: config.public.apiBase,
-      onRequest({ options }) {
-        const token = useCookie('token').value;
-        if (token) options.headers.set('Authorization', `Bearer ${token}`);
-=======
 
     // BaseURL corrigé : port 4000 et /api
     this.api = $fetch.create({
@@ -28,7 +21,6 @@ class ApiService {
         if (!options.headers) options.headers = new Headers();
         if (token)
           (options.headers as Headers).set("Authorization", `Bearer ${token}`);
->>>>>>> Stashed changes
       },
     });
   }
@@ -45,7 +37,6 @@ class ApiService {
     return await this.api("v1/users/me");
   }
 
-<<<<<<< Updated upstream
   // async getUsers(): Promise<ApiResponse<User[]>> {
   //   return await this.api('v1/users');
   // }
@@ -87,11 +78,6 @@ class ApiService {
     return await this.api(`v1/users/${id}`, {
       method: 'DELETE'
     })
-=======
-  /** Users */
-  async getUsers(): Promise<ApiResponse<User[]>> {
-    return await this.api("v1/users");
->>>>>>> Stashed changes
   }
 
   /** Languages */
@@ -179,66 +165,65 @@ class ApiService {
     });
   }
 
-<<<<<<< Updated upstream
-  async getSteps(levelId?: string): Promise<ApiResponse<Step[]>> {
-    return await this.api('v1/steps', { query: levelId ? { levelId } : {} });
-  }
+  // async getSteps(levelId?: string): Promise<ApiResponse<Step[]>> {
+  //   return await this.api('v1/steps', { query: levelId ? { levelId } : {} });
+  // }
 
-  async getStep(id: string): Promise<ApiResponse<Step>> {
-    return await this.api(`v1/steps/${id}`);
-  }
+  // async getStep(id: string): Promise<ApiResponse<Step>> {
+  //   return await this.api(`v1/steps/${id}`);
+  // }
 
-  async createStep(data: CreateStepRequest): Promise<ApiResponse<Step>> {
-    return await this.api('v1/steps', { method: 'POST', body: data });
-  }
+  // async createStep(data: CreateStepRequest): Promise<ApiResponse<Step>> {
+  //   return await this.api('v1/steps', { method: 'POST', body: data });
+  // }
 
-  async updateStep(id: string, data: Partial<Step>): Promise<ApiResponse<Step>> {
-    return await this.api(`v1/steps/${id}`, { method: 'PUT', body: data });
-  }
+  // async updateStep(id: string, data: Partial<Step>): Promise<ApiResponse<Step>> {
+  //   return await this.api(`v1/steps/${id}`, { method: 'PUT', body: data });
+  // }
 
-  async deleteStep(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`v1/steps/${id}`, { method: 'DELETE' });
-  }
+  // async deleteStep(id: string): Promise<ApiResponse<void>> {
+  //   return await this.api(`v1/steps/${id}`, { method: 'DELETE' });
+  // }
 
-  async getExercises(lessonId?: string): Promise<ApiResponse<Exercise[]>> {
-    return await this.api('v1/exercises', { query: lessonId ? { lessonId } : {} });
-  }
+  // async getExercises(lessonId?: string): Promise<ApiResponse<Exercise[]>> {
+  //   return await this.api('v1/exercises', { query: lessonId ? { lessonId } : {} });
+  // }
 
-  async getExercise(id: string): Promise<ApiResponse<Exercise>> {
-    return await this.api(`v1/exercises/${id}`);
-  }
+  // async getExercise(id: string): Promise<ApiResponse<Exercise>> {
+  //   return await this.api(`v1/exercises/${id}`);
+  // }
 
-  async createExercise(data: CreateExerciseRequest): Promise<ApiResponse<Exercise>> {
-    return await this.api('v1/exercises', { method: 'POST', body: data });
-  }
+  // async createExercise(data: CreateExerciseRequest): Promise<ApiResponse<Exercise>> {
+  //   return await this.api('v1/exercises', { method: 'POST', body: data });
+  // }
 
-  async updateExercise(id: string, data: Partial<Exercise>): Promise<ApiResponse<Exercise>> {
-    return await this.api(`v1/exercises/${id}`, { method: 'PUT', body: data });
-  }
+  // async updateExercise(id: string, data: Partial<Exercise>): Promise<ApiResponse<Exercise>> {
+  //   return await this.api(`v1/exercises/${id}`, { method: 'PUT', body: data });
+  // }
 
-  async deleteExercise(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`v1/exercises/${id}`, { method: 'DELETE' });
-  }
+  // async deleteExercise(id: string): Promise<ApiResponse<void>> {
+  //   return await this.api(`v1/exercises/${id}`, { method: 'DELETE' });
+  // }
 
-  async getCourses(stepId?: string): Promise<ApiResponse<Course[]>> {
-    return await this.api('v1/courses', { query: stepId ? { stepId } : {} });
-  }
+  // async getCourses(stepId?: string): Promise<ApiResponse<Course[]>> {
+  //   return await this.api('v1/courses', { query: stepId ? { stepId } : {} });
+  // }
 
-  async getCourse(id: string): Promise<ApiResponse<Course>> {
-    return await this.api(`v1/courses/${id}`);
-  }
+  // async getCourse(id: string): Promise<ApiResponse<Course>> {
+  //   return await this.api(`v1/courses/${id}`);
+  // }
 
-  async createCourse(data: CreateCourseRequest): Promise<ApiResponse<Course>> {
-    return await this.api('v1/courses', { method: 'POST', body: data });
-  }
+  // async createCourse(data: CreateCourseRequest): Promise<ApiResponse<Course>> {
+  //   return await this.api('v1/courses', { method: 'POST', body: data });
+  // }
 
-  async updateCourse(id: string, data: Partial<Course>): Promise<ApiResponse<Course>> {
-    return await this.api(`v1/courses/${id}`, { method: 'PUT', body: data });
-  }
+  // async updateCourse(id: string, data: Partial<Course>): Promise<ApiResponse<Course>> {
+  //   return await this.api(`v1/courses/${id}`, { method: 'PUT', body: data });
+  // }
 
-  async deleteCourse(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`v1/courses/${id}`, { method: 'DELETE' });
-  }
+  // async deleteCourse(id: string): Promise<ApiResponse<void>> {
+  //   return await this.api(`v1/courses/${id}`, { method: 'DELETE' });
+  // }
 
   // async getStepQuizzes(stepId?: string): Promise<ApiResponse<StepQuiz[]>> {
   //   return await this.api('v1/step-quizzes', { query: stepId ? { stepId } : {} });
@@ -251,7 +236,6 @@ class ApiService {
   // async createStepQuiz(data: CreateStepQuizRequest): Promise<ApiResponse<StepQuiz>> {
   //   return await this.api('v1/step-quizzes', { method: 'POST', body: data });
   // }
-=======
   /** Supprimer un niveau d'une langue */
   async deleteLevelForLanguage(
     languageId: string,
@@ -261,7 +245,6 @@ class ApiService {
       method: "DELETE",
     });
   }
->>>>>>> Stashed changes
 
   /** Création des niveaux par défaut */
   async createDefaultLevels(languageId: string): Promise<ApiResponse<Level[]>> {
