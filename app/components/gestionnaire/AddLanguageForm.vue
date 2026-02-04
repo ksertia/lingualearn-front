@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useLanguageStore } from "../../stores/languageStore";
+import { useLanguageStore } from "~/stores/languageStore";
 
 const languageStore = useLanguageStore();
 
@@ -106,21 +106,31 @@ const submitForm = async () => {
   }
 
   try {
-    // Convertir le nom natif en code (ex: "Mooré" → "mor")
-    const code = formData.value.name.substring(0, 3).toLowerCase();
+    // Générer un code unique basé sur le nom
+    const baseCode = formData.value.name.substring(0, 2).toLowerCase();
+    const uniqueSuffix = Date.now().toString().slice(-3);
+    const code = `${baseCode}${uniqueSuffix}`; // Ex: "mo123"
 
-    await languageStore.addLanguage({
-      name: formData.value.name,
+    // ⚡ TypeScript safe : iconUrl ne peut pas être null, on utilise undefined
+    const newLanguage = await languageStore.addLanguage({
+      name: formData.value.name.trim(),
       code: code,
-      description: formData.value.nativeLanguage,
+      description: formData.value.nativeLanguage.trim(),
+      iconUrl: undefined, // safe pour TS
+      isActive: true,
     });
+
+    // fermer modal et réinitialiser
     closeModal();
+
+    console.log("Langue créée :", newLanguage);
   } catch (error) {
     console.error("Erreur lors de l'ajout de la langue:", error);
     alert("Erreur lors de l'ajout de la langue");
   }
 };
 </script>
+
 
 <style scoped>
 .add-language-form {

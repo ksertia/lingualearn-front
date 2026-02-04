@@ -166,7 +166,7 @@ const onSubmit = async () => {
     loginInfo: email.value,
     password: password.value,
   });
-
+ 
  console.log(email.value, password.value);
   if (success) {
     
@@ -177,7 +177,11 @@ const onSubmit = async () => {
     setTimeout(() => {
       loginSuccess.value = '';
       navigateTo(authStore.dashboardRoute)
+<<<<<<< Updated upstream
       console.log(authStore.dashboardRoute) 
+=======
+      console.log('authStore.dashboardRoute')
+>>>>>>> Stashed changes
     }, 2000);
     
   }

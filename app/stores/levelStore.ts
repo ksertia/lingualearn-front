@@ -1,109 +1,145 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import { useApiService } from '~/services/api';
-import type { Level, CreateLevelRequest } from '~/types/learning';
+import { defineStore } from "pinia";
+import { ref } from "vue";
+import { useApiService } from "~/services/api";
+import type { Level, CreateLevelPayload, UpdateLevelPayload } from "~/types/language-level";
 
-export const useLevelStore = defineStore('level', () => {
-    const apiService = useApiService();
-    const levels = ref<Level[]>([]);
-    const isLoading = ref(false);
-    const error = ref<string | null>(null);
+export const useLevelStore = defineStore("level", () => {
+  const api = useApiService();
 
-    async function fetchLevels(learningPathId?: string) {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            const response: any = await apiService.getLevels(learningPathId);
-            const data = response.data || (Array.isArray(response) ? response : null);
+  // STATE
+  const levels = ref<Level[]>([]);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
-            if (data) {
-                levels.value = data;
-            } else {
-                error.value = response.message || 'Échec du chargement des niveaux';
-            }
-        } catch (err: any) {
-            error.value = 'Erreur lors de la récupération des niveaux';
-        } finally {
-            isLoading.value = false;
-        }
+  // ----------------------
+  // ACTIONS
+  // ----------------------
+
+  /**
+   * Charger tous les niveaux
+   */
+  const fetchLevels = async () => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const res = await api.getLevels();
+      if (!res.success || !res.data) throw new Error(res.message);
+
+      levels.value = res.data;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Erreur chargement niveaux";
+    } finally {
+      loading.value = false;
     }
+  };
 
-    async function createLevel(data: CreateLevelRequest) {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            const response: any = await apiService.createLevel(data);
-            // Si l'API renvoie {success: true, data: {...}} OU directement l'objet créé
-            const levelData = response.data || (response.id ? response : null);
+  /**
+   * Charger les niveaux pour une langue spécifique
+   */
+  const fetchLevelsByLanguage = async (languageId: string) => {
+    loading.value = true;
+    error.value = null;
 
-            if (levelData) {
-                levels.value.push(levelData);
-                return true;
-            } else {
-                error.value = response.message || 'Échec de la création du niveau';
-                return false;
-            }
-        } catch (err: any) {
-            error.value = err.data?.message || 'Erreur lors de la création du niveau';
-            return false;
-        } finally {
-            isLoading.value = false;
-        }
+    try {
+      const res = await api.getLevels();
+      if (!res.success || !res.data) throw new Error(res.message);
+
+      // filtrer par languageId
+      levels.value = res.data.filter(lvl => lvl.languageId === languageId);
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Erreur chargement niveaux";
+    } finally {
+      loading.value = false;
     }
+  };
 
-    async function updateLevel(id: string, data: Partial<Level>) {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            const response: any = await apiService.updateLevel(id, data);
-            const levelData = response.data || (response.id ? response : null);
+  /**
+   * Créer un nouveau niveau pour une langue
+   */
+  const addLevel = async (payload: CreateLevelPayload) => {
+    loading.value = true;
+    error.value = null;
 
-            if (levelData) {
-                const index = levels.value.findIndex(l => l.id === id);
-                if (index !== -1) {
-                    levels.value[index] = levelData;
-                }
-                return true;
-            } else {
-                error.value = response.message || 'Échec de la mise à jour du niveau';
-                return false;
-            }
-        } catch (err: any) {
-            error.value = err.data?.message || 'Erreur lors de la mise à jour du niveau';
-            return false;
-        } finally {
-            isLoading.value = false;
-        }
+    try {
+      // Vérifier index obligatoire
+      if (payload.index === undefined || payload.index === null) payload.index = 0;
+
+      const res = await api.createLevelForLanguage(payload.languageId, payload);
+      if (!res.success || !res.data) throw new Error(res.message);
+
+      levels.value.push(res.data);
+      return res.data;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Erreur création niveau";
+      throw e;
+    } finally {
+      loading.value = false;
     }
+  };
 
-    async function deleteLevel(id: string) {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            const response: any = await apiService.deleteLevel(id);
-            // Si l'API renvoie success: true OU si elle renvoie 200/204 sans corps (response vide ou true)
-            if (response.success || response === true || !response || Object.keys(response).length === 0) {
-                levels.value = levels.value.filter(l => l.id !== id);
-                return true;
-            } else {
-                error.value = response.message || 'Échec de la suppression du niveau';
-                return false;
-            }
-        } catch (err: any) {
-            error.value = err.data?.message || 'Erreur lors de la suppression du niveau';
-            return false;
-        } finally {
-            isLoading.value = false;
-        }
+  /**
+   * Mettre à jour un niveau
+   */
+  const updateLevel = async (id: string, payload: UpdateLevelPayload) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      // ⚡ transformer index undefined si nécessaire
+      const payloadToSend = { ...payload };
+
+      const res = await api.updateLevelForLanguage(payload.languageId!, id, payloadToSend);
+      if (!res.success || !res.data) throw new Error(res.message);
+
+      const index = levels.value.findIndex(l => l.id === id);
+      if (index !== -1) levels.value[index] = { ...levels.value[index], ...res.data };
+
+      return res.data;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Erreur mise à jour niveau";
+      throw e;
+    } finally {
+      loading.value = false;
     }
+  };
 
-    return {
-        levels,
-        isLoading,
-        error,
-        fetchLevels,
-        createLevel,
-        updateLevel,
-        deleteLevel
-    };
-});
+  /**
+   * Supprimer un niveau
+   */
+  const deleteLevel = async (id: string, languageId: string) => {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const res = await api.deleteLevelForLanguage(languageId, id);
+      if (!res.success) throw new Error(res.message);
+
+      levels.value = levels.value.filter(l => l.id !== id);
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Erreur suppression niveau";
+      throw e;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  /**
+   * Récupérer tous les niveaux dans le store
+   */
+  const getLevelsForLanguage = (languageId: string) => {
+    return levels.value.filter(lvl => lvl.languageId === languageId);
+  };
+
+  return {
+    levels,
+    loading,
+    error,
+    fetchLevels,
+    fetchLevelsByLanguage,
+    addLevel,
+    updateLevel,
+    deleteLevel,
+    getLevelsForLanguage,
+  };
+})

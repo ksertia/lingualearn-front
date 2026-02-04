@@ -35,6 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   const dashboardRoute = computed(()=>{
+<<<<<<< Updated upstream
   console.log(' DEBUG - user.value:', user.value);
   console.log('DEBUG - accountType:', user.value?.accountType);
   console.log(' DEBUG - typeof accountType:', typeof user.value?.accountType);
@@ -59,6 +60,16 @@ export const useAuthStore = defineStore('auth', () => {
       return '/';
   }
 })
+=======
+    if (!user.value) return '/';
+    switch (user.value.accountType) {
+      case 'admin': return '/admin';
+      case 'plateform_manager' : return '/gestionnaire';
+      case 'teacher' : return '/formateur';
+      default: return '/'
+    }
+  })
+>>>>>>> Stashed changes
 
   async function login(credentials: LoginCredentials) {
     isLoading.value = true;
