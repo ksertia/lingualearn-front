@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-layout">
-    <Sidebar />
+    <!-- <Sidebar /> -->
     <main class="dashboard-main">
       <div class="dashboard-header">
         <div class="header-content">

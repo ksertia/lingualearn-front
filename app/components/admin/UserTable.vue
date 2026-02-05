@@ -17,8 +17,8 @@
           :key="user.id"
           class="border-b hover:bg-gray-100"
         >
-          <td class="px-6 py-4">{{ user.prenom }}</td>
-          <td class="px-6 py-4">{{ user.nom }}</td>
+          <td class="px-6 py-4">{{ user.lastName }}</td>
+          <td class="px-6 py-4">{{ user.firstName }}</td>
           <td class="px-6 py-4">{{ user.email }}</td>
 
           <!-- rôle cliquable -->

@@ -29,9 +29,6 @@ class ApiService {
     return await this.api('v1/users/me');
   }
 
-  // async getUsers(): Promise<ApiResponse<User[]>> {
-  //   return await this.api('v1/users');
-  // }
 
   async getUsers(): Promise<ApiResponse<User[]>> {
     return await this.api('v1/users')

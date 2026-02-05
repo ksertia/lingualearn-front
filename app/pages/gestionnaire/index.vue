@@ -6,6 +6,10 @@
 
 <script setup lang="ts">
 import DashboardLayout from "../../components/gestionnaire/DashboardLayout.vue";
+
+definePageMeta({
+  layout: 'gestionnaire'
+})
 </script>
 
 <style scoped>
