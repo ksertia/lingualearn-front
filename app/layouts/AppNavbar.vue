@@ -54,7 +54,7 @@
           </div>
           
           <NuxtLink 
-            to="/admin/settings/profile" 
+            to="/admin/profil" 
             class="flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-brand-blue transition-colors"
             @click="isDropdownOpen = false"
           >
