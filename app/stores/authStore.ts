@@ -35,9 +35,9 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   const dashboardRoute = computed(()=>{
-  console.log(' DEBUG - user.value:', user.value);
-  console.log('DEBUG - accountType:', user.value?.accountType);
-  console.log(' DEBUG - typeof accountType:', typeof user.value?.accountType);
+  // console.log(' DEBUG - user.value:', user.value);
+  // console.log('DEBUG - accountType:', user.value?.accountType);
+  // console.log(' DEBUG - typeof accountType:', typeof user.value?.accountType);
   
   if (!user.value) {
     console.log(' user.value est null/undefined');
@@ -46,16 +46,16 @@ export const useAuthStore = defineStore('auth', () => {
   
   switch (user.value.accountType) {
     case 'admin': 
-      console.log(' Match: admin');
+      // console.log(' Match: admin');
       return '/admin/users';
     case 'plateform_manager': 
-      console.log(' Match: plateform_manager');
+      // console.log(' Match: plateform_manager');
       return '/gestionnaire';
     case 'teacher': 
-      console.log(' Match: teacher');
+      // console.log(' Match: teacher');
       return '/formateur';
     default: 
-      console.log(' DEFAULT HIT - accountType reçu:', JSON.stringify(user.value.accountType));
+      // console.log(' DEFAULT HIT - accountType reçu:', JSON.stringify(user.value.accountType));
       return '/';
   }
 })

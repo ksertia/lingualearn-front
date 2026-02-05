@@ -1,107 +1,142 @@
+
+
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { languageService } from "../services/language.service";
-import { levelService } from "../services/level.service";
-import type { Language as ApiLanguage, Level as ApiLevel } from "../types/api";
-
-// Types locaux pour compatibilité
-export interface Level extends ApiLevel {}
-export interface Language extends ApiLanguage {}
-
-// Helpers de typage
-const isLanguageArray = (data: unknown): data is Language[] =>
-  Array.isArray(data);
-
-const isLanguage = (data: unknown): data is Language =>
-  typeof data === "object" && data !== null && "id" in data;
+import { useApiService } from "~/services/api";
+import type { LanguageWithLevels, CreateLanguagePayload, Level } from "~/types/language-level";
 
 export const useLanguageStore = defineStore("language", () => {
-  // État
-  const languages = ref<Language[]>([]);
+  const api = useApiService();
+
+  // -----------------------------
+  // STATE
+  // -----------------------------
+  const languages = ref<LanguageWithLevels[]>([]);
   const selectedLanguageId = ref<string | null>(null);
   const loading = ref(false);
   const error = ref<string | null>(null);
-  const initialized = ref(false);
 
-  // Computed
-  const selectedLanguage = computed(() => {
-    if (!selectedLanguageId.value) return null;
-    return languages.value.find(
-      (lang) => lang.id === selectedLanguageId.value,
-    );
-  });
+  // -----------------------------
+  // GETTERS
+  // -----------------------------
+  const selectedLanguage = computed(() =>
+    languages.value.find(l => l.id === selectedLanguageId.value) ?? null
+  );
 
   const totalLanguages = computed(() => languages.value.length);
 
-  // Actions
+  // -----------------------------
+  // UTILS : normaliser la réponse des niveaux
+  // -----------------------------
+  const normalizeLevelsResponse = (res: any): Level[] => {
+    if (Array.isArray(res)) return res;
+    if (res?.success && Array.isArray(res.data)) return res.data;
+    return [];
+  };
+
+  // -----------------------------
+  // ACTIONS
+  // -----------------------------
+
+  // 1️⃣ Charger toutes les langues et leurs niveaux
   const fetchLanguages = async () => {
     loading.value = true;
     error.value = null;
-
     try {
-      const response = await languageService.getAll();
+      const res = await api.getLanguages();
+      if (!res.success || !res.data) throw new Error(res.message);
 
-      if (response.success && response.data && isLanguageArray(response.data)) {
-        languages.value = response.data;
-        initialized.value = true;
-      } else {
-        throw new Error(
-          response.error?.message || "Erreur lors du chargement des langues",
-        );
+      // Initialiser chaque langue avec niveaux vides
+      languages.value = res.data.map(l => ({
+        ...l,
+        levels: [],
+        levelsLoaded: false,
+      }));
+
+      // Charger les niveaux pour chaque langue
+      for (const lang of languages.value) {
+        await loadLevelsForLanguage(lang.id);
       }
-    } catch (err) {
-      error.value =
-        err instanceof Error
-          ? err.message
-          : "Erreur réseau lors du chargement des langues";
-      console.error("Erreur fetchLanguages:", err);
-      throw err;
+
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Erreur chargement langues";
     } finally {
       loading.value = false;
     }
   };
 
+  // 2️⃣ Charger les niveaux d'une langue
   const loadLevelsForLanguage = async (languageId: string) => {
-  loading.value = true;
-  error.value = null;
+    const lang = languages.value.find(l => l.id === languageId);
+    if (!lang) return;
 
-  try {
-    const response = await levelService.getByLanguage(languageId);
+    loading.value = true;
+    try {
+      const res = await api.getLevelsByLanguage(languageId);
+      let levels = normalizeLevelsResponse(res).filter(l => l.languageId === languageId);
 
-    if (response.success && Array.isArray(response.data)) {
-      const index = languages.value.findIndex(
-        (l) => l.id === languageId
-      );
-
-      if (index !== -1) {
-        const lang = languages.value[index];
-        if (lang) {
-          lang.levels = response.data as ApiLevel[];
-        }
+      // Si aucun niveau retourné par le backend, créer les 3 par défaut
+      if (levels.length === 0) {
+        const defaultLevelsRes = await api.createDefaultLevels(languageId);
+        levels = normalizeLevelsResponse(defaultLevelsRes);
       }
-    } else {
-      throw new Error(
-        response.error?.message || "Erreur lors du chargement des niveaux"
-      );
+
+      lang.levels = levels;
+      lang.levelsLoaded = true;
+    } catch (e) {
+      console.error("Erreur chargement niveaux :", e);
+      lang.levels = [];
+      lang.levelsLoaded = false;
+    } finally {
+      loading.value = false;
     }
-  } catch (err) {
-    error.value =
-      err instanceof Error
-        ? err.message
-        : "Erreur réseau lors du chargement des niveaux";
-    console.error("Erreur loadLevelsForLanguage:", err);
-  } finally {
-    loading.value = false;
-  }
-};
+  };
 
+  // 3️⃣ Ajouter une langue avec ses niveaux backend
+  const addLanguage = async (payload: CreateLanguagePayload) => {
+    loading.value = true;
+    error.value = null;
 
-  const selectLanguage = async (languageId: string) => {
-    selectedLanguageId.value = languageId;
-    const lang = languages.value.find((l) => l.id === languageId);
+    try {
+      // Créer la langue
+      const res = await api.createLanguage(payload);
+      if (!res.success || !res.data) throw new Error(res.message);
 
-    if (!lang?.levels || lang.levels.length === 0) {
-      await loadLevelsForLanguage(languageId);
+      const newLang = res.data;
+
+      // Charger les niveaux du backend pour cette langue
+      let levelsRes = await api.getLevelsByLanguage(newLang.id);
+      let levels = normalizeLevelsResponse(levelsRes).filter(l => l.languageId === newLang.id);
+
+      // Si le backend n'a pas créé de niveaux, créer les niveaux par défaut
+      if (levels.length === 0) {
+        const defaultLevelsRes = await api.createDefaultLevels(newLang.id);
+        levels = normalizeLevelsResponse(defaultLevelsRes);
+      }
+
+      newLang.levels = levels;
+      newLang.levelsLoaded = true;
+
+      // Ajouter la langue au store
+      languages.value.push(newLang);
+
+      return newLang;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Erreur création langue";
+      throw e;
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  // 4️⃣ Sélectionner une langue
+  const selectLanguage = async (id: string) => {
+    selectedLanguageId.value = id;
+    const lang = languages.value.find(l => l.id === id);
+    if (!lang) return;
+
+    if (!lang.levelsLoaded) {
+      await loadLevelsForLanguage(id);
     }
   };
 
@@ -109,105 +144,54 @@ export const useLanguageStore = defineStore("language", () => {
     selectedLanguageId.value = null;
   };
 
-  const addLanguage = async (payload: {
-    name: string;
-    code: string;
-    description?: string;
-    iconUrl?: string;
-  }) => {
+  // 5️⃣ Mettre à jour une langue
+  const updateLanguage = async (id: string, payload: Partial<CreateLanguagePayload>) => {
     loading.value = true;
     error.value = null;
-
     try {
-      const response = await languageService.create(payload);
+      const payloadToSend = { ...payload, iconUrl: payload.iconUrl ?? undefined };
+      const res = await api.updateLanguage(id, payloadToSend);
+      if (!res.success || !res.data) throw new Error(res.message);
 
-      if (response.success && response.data && isLanguage(response.data)) {
-        languages.value.push(response.data);
-        return response.data;
-      } else {
-        throw new Error(
-          response.error?.message || "Erreur lors de la création de la langue",
-        );
-      }
-    } catch (err) {
-      error.value =
-        err instanceof Error
-          ? err.message
-          : "Erreur réseau lors de la création de la langue";
-      console.error("Erreur addLanguage:", err);
-      throw err;
+      const index = languages.value.findIndex(l => l.id === id);
+      if (index !== -1) languages.value[index] = { ...languages.value[index], ...res.data };
+      return res.data;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Erreur mise à jour langue";
+      throw e;
     } finally {
       loading.value = false;
     }
   };
 
-  const deleteLanguage = async (languageId: string) => {
+  // 6️⃣ Supprimer une langue
+  const deleteLanguage = async (id: string) => {
     loading.value = true;
     error.value = null;
-
     try {
-      const response = await languageService.delete(languageId);
-
-      if (response.success) {
-        languages.value = languages.value.filter(
-          (l) => l.id !== languageId,
-        );
-        if (selectedLanguageId.value === languageId) {
-          clearSelection();
-        }
-      } else {
-        throw new Error(
-          response.error?.message || "Erreur lors de la suppression",
-        );
-      }
-    } catch (err) {
-      error.value =
-        err instanceof Error
-          ? err.message
-          : "Erreur réseau lors de la suppression";
-      console.error("Erreur deleteLanguage:", err);
-      throw err;
+      await api.deleteLanguage(id);
+      languages.value = languages.value.filter(l => l.id !== id);
+      if (selectedLanguageId.value === id) selectedLanguageId.value = null;
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : "Erreur suppression langue";
+      throw e;
     } finally {
       loading.value = false;
     }
   };
 
-  const updateLanguage = async (
-    languageId: string,
-    payload: Partial<{
-      name: string;
-      code: string;
-      description?: string;
-      iconUrl?: string;
-      isActive?: boolean;
-    }>,
-  ) => {
+  // 7️⃣ Supprimer un niveau
+  const deleteLevel = async (languageId: string, levelId: string) => {
     loading.value = true;
     error.value = null;
-
     try {
-      const response = await languageService.update(languageId, payload);
-
-      if (response.success && response.data && isLanguage(response.data)) {
-        const index = languages.value.findIndex(
-          (l) => l.id === languageId,
-        );
-        if (index !== -1) {
-          languages.value[index] = response.data;
-        }
-        return response.data;
-      } else {
-        throw new Error(
-          response.error?.message || "Erreur lors de la mise à jour",
-        );
-      }
-    } catch (err) {
-      error.value =
-        err instanceof Error
-          ? err.message
-          : "Erreur réseau lors de la mise à jour";
-      console.error("Erreur updateLanguage:", err);
-      throw err;
+      await api.deleteLevelForLanguage(languageId, levelId);
+      const lang = languages.value.find(l => l.id === languageId);
+      if (lang) lang.levels = lang.levels.filter(l => l.id !== levelId);
+    } catch (e) {
+      console.error("Erreur suppression niveau :", e);
+      error.value = e instanceof Error ? e.message : "Échec suppression niveau";
+      throw e;
     } finally {
       loading.value = false;
     }
@@ -220,13 +204,13 @@ export const useLanguageStore = defineStore("language", () => {
     totalLanguages,
     loading,
     error,
-    initialized,
     fetchLanguages,
     selectLanguage,
     clearSelection,
     addLanguage,
-    deleteLanguage,
     updateLanguage,
+    deleteLanguage,
     loadLevelsForLanguage,
+    deleteLevel,
   };
 });

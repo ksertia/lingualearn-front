@@ -17,9 +17,9 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   runtimeConfig: {
-    public: {
-      apiBase: '',
-    },
-    apiSecret: '',
+  public: {
+    apiBase: ''
   },
-})
+  apiSecret: ''
+}
+});

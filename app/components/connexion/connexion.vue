@@ -138,7 +138,7 @@
               <div class="text-3xl font-semibold">LinguaLearn</div>
             </div>
             <p class="mx-auto max-w-sm text-sm text-white/70">
-              Replongez dans vos origines linguistiques avec nous
+              Vos racines ont une langue. Faites-la revivre
             </p>
           </div>
         </div>
@@ -166,7 +166,7 @@ const onSubmit = async () => {
     loginInfo: email.value,
     password: password.value,
   });
-
+ 
  console.log(email.value, password.value);
   if (success) {
     
@@ -177,7 +177,7 @@ const onSubmit = async () => {
     setTimeout(() => {
       loginSuccess.value = '';
       navigateTo(authStore.dashboardRoute)
-      console.log(authStore.dashboardRoute) 
+      // console.log(authStore.dashboardRoute) 
     }, 2000);
     
   }
