@@ -2,6 +2,7 @@
   <div class="dashboard-layout">
     <!-- <Sidebar /> -->
     <main class="dashboard-main">
+      <!-- Header -->
       <div class="dashboard-header">
         <div class="header-content">
           <h1 class="page-title">Gestion des Langues</h1>
@@ -12,17 +13,24 @@
         <AddLanguageForm />
       </div>
 
+      <!-- Contenu -->
       <div class="dashboard-content">
-        <div v-if="!languageStore.selectedLanguageId" class="content-left">
-          <LanguagesList />
-        </div>
-
-        <div v-else class="content-with-levels">
-          <div class="content-left">
+        <div v-if="languageStore.loading">Chargement des langues...</div>
+        <div v-else-if="languageStore.error">{{ languageStore.error }}</div>
+        <div v-else>
+          <!-- Si aucune langue sélectionnée -->
+          <div v-if="!languageStore.selectedLanguageId" class="content-left">
             <LanguagesList />
           </div>
-          <div class="content-right">
-            <LevelsList />
+
+          <!-- Si une langue est sélectionnée -->
+          <div v-else class="content-with-levels">
+            <div class="content-left">
+              <LanguagesList />
+            </div>
+            <div class="content-right">
+              <LevelsList />
+            </div>
           </div>
         </div>
       </div>
@@ -31,6 +39,7 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted } from "vue";
 import Sidebar from "./Sidebar.vue";
 import LanguagesList from "./LanguagesList.vue";
 import LevelsList from "./LevelsList.vue";
@@ -38,7 +47,20 @@ import AddLanguageForm from "./AddLanguageForm.vue";
 import { useLanguageStore } from "../../stores/languageStore";
 
 const languageStore = useLanguageStore();
+
+// ⚡ Charger toutes les langues et leurs niveaux dès l'affichage du dashboard
+onMounted(async () => {
+  await languageStore.fetchLanguages();
+
+  // Charger les niveaux pour chaque langue afin d'avoir les 3 niveaux générés par le backend
+  for (const lang of languageStore.languages) {
+    if (!lang.levelsLoaded) {
+      await languageStore.loadLevelsForLanguage(lang.id);
+    }
+  }
+});
 </script>
+
 
 <style scoped>
 .dashboard-layout {

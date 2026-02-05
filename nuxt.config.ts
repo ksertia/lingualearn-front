@@ -17,9 +17,9 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   runtimeConfig: {
-    public: {
-      apiBase: '',
-    },
-    apiSecret: '',
+  public: {
+    apiBase: process.env.NUXT_PUBLIC_API_URL || 'https://213.32.120.11:4000',
   },
-})
+  apiSecret: process.env.NUXT_API_SECRET || ''
+}
+});

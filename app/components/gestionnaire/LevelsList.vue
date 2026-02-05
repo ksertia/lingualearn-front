@@ -1,92 +1,68 @@
 <template>
   <div class="levels-section">
     <div v-if="languageStore.selectedLanguage" class="levels-container">
+      <!-- Header -->
       <div class="levels-header">
         <div class="header-content">
           <button class="btn-back" @click="clearSelection">
             <span>←</span>
           </button>
           <div>
-            <h2 class="section-title">
-              {{ languageStore.selectedLanguage.name }}
-            </h2>
-            <p class="section-subtitle">
-              {{ languageStore.selectedLanguage.nativeLanguage }}
-            </p>
+            <h2 class="section-title">{{ languageStore.selectedLanguage.name }}</h2>
+            <p class="section-subtitle">{{ languageStore.selectedLanguage.nativeLanguage }}</p>
           </div>
         </div>
       </div>
 
+      <!-- Levels Grid -->
       <div class="levels-grid">
-        <div
-          v-for="(level, index) in languageStore.selectedLanguage?.levels ?? []"
-          :key="level.id"
-          :class="['level-card', `level-${index + 1}`]"
-        >
-          <div class="level-icon">
-            <span>{{ getLevelIcon(level.name) }}</span>
-          </div>
-
-          <h3 class="level-name">{{ level.name }}</h3>
-
-          <p class="level-description">{{ level.description }}</p>
-
-          <div class="level-stats">
-            <div class="stat">
-              <span class="stat-value">{{ 15 + index * 10 }}</span>
-              <span class="stat-label">Cours</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">{{ 5 + index * 3 }}</span>
-              <span class="stat-label">Vidéos</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value">{{ (index + 1) * 20 }}</span>
-              <span class="stat-label">Exercices</span>
-            </div>
-          </div>
-
-          <button class="btn-access">Accéder →</button>
-        </div>
-      </div>
-
-      <div class="levels-footer">
-        <div class="footer-info">
-          <p class="info-text">
-            Cette langue compte
-            <strong
-              >{{
-                languageStore.selectedLanguage?.levels?.length ?? 0
-              }}
-              niveaux</strong
-            >
-            avec un total de <strong>{{ getTotalCourses() }} cours</strong>
-            <strong>{{ getTotalVideos() }} vidéos</strong> et
-            <strong>{{ getTotalExercises() }} exercices</strong>
-          </p>
-        </div>
-      </div>
+  <div
+    v-for="(level, index) in displayedLevels"
+    :key="level.id || index"
+    :class="['level-card', `level-${index + 1}`]"
+  >
+    <div class="level-icon">
+      <span>{{ getLevelIcon(level.name) }}</span>
     </div>
 
+    <h3 class="level-name">{{ level.name }}</h3>
+    <p class="level-description">{{ level.description }}</p>
+
+    <button class="btn-access">Accéder →</button>
+  </div>
+</div>
+
+      <!-- Footer -->
+<div class="levels-footer">
+  <div class="footer-info">
+    <p class="info-text">
+      Cette langue compte <strong>{{ displayedLevels.length }} niveaux</strong>
+    </p>
+  </div>
+</div>
+    </div>
+
+    <!-- No selection -->
     <div v-else class="no-selection">
       <p class="no-selection-icon">🔍</p>
       <p class="no-selection-text">Sélectionnez une langue</p>
-      <p class="no-selection-subtext">
-        Cliquez sur une langue pour voir ses niveaux
-      </p>
+      <p class="no-selection-subtext">Cliquez sur une langue pour voir ses niveaux</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { useLanguageStore } from "../../stores/languageStore";
 
 const languageStore = useLanguageStore();
 
+// Fonction locale pour vider la sélection
 const clearSelection = () => {
   languageStore.selectedLanguageId = null;
 };
 
+// Icônes pour chaque niveau
 const getLevelIcon = (levelName: string) => {
   const icons: Record<string, string> = {
     Basique: "🌱",
@@ -96,33 +72,24 @@ const getLevelIcon = (levelName: string) => {
   return icons[levelName] || "📚";
 };
 
-const getTotalCourses = () => {
-  return languageStore.selectedLanguage?.levels
-    ? languageStore.selectedLanguage.levels.reduce(
-        (sum, _, i) => sum + (15 + i * 10),
-        0,
-      )
-    : 0;
-};
+// Niveaux affichés (réels ou par défaut)
+const displayedLevels = computed(() => {
+  const lang = languageStore.selectedLanguage;
+  if (!lang) return [];
 
-const getTotalVideos = () => {
-  return languageStore.selectedLanguage?.levels
-    ? languageStore.selectedLanguage.levels.reduce(
-        (sum, _, i) => sum + (5 + i * 3),
-        0,
-      )
-    : 0;
-};
+  if (lang.levelsLoaded && lang.levels.length > 0) return lang.levels;
 
-const getTotalExercises = () => {
-  return languageStore.selectedLanguage?.levels
-    ? languageStore.selectedLanguage.levels.reduce(
-        (sum, _, i) => sum + (i + 1) * 20,
-        0,
-      )
-    : 0;
-};
+  // Sinon créer 3 niveaux par défaut pour l'affichage temporaire
+  return [
+    { id: "level-1", name: "Basique", description: "Niveau débutant" },
+    { id: "level-2", name: "Intermédiaire", description: "Niveau moyen" },
+    { id: "level-3", name: "Avancé", description: "Niveau expert" },
+  ];
+});
 </script>
+
+
+
 
 <style scoped>
 .levels-section {
