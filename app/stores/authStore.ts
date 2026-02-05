@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { useApiService } from '~/services/api';
 import type { LoginCredentials, User } from '~/types/auth';
-// import type { FetchError } from 'h3';
+
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
