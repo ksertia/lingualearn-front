@@ -29,20 +29,21 @@ class ApiService {
     return await this.api('v1/users/me');
   }
 
+  // =====================
   // USERS
   // =====================
   async getUsers(): Promise<ApiResponse<User[]>> {
-    return await this.api('/api/v1/users')
+    return await this.api('v1/users')
   }
 
   async createUser(data: {
-    firstName: string
-    lastName: string
+    nom: string
+    prenom: string
     email: string
     password: string
-    accountType: string
+    role: string
   }): Promise<ApiResponse<User>> {
-    return await this.api('/api/v1/users', {
+    return await this.api('v1/users', {
       method: 'POST',
       body: data
     })
@@ -58,19 +59,21 @@ class ApiService {
       role: string
     }>
   ): Promise<ApiResponse<User>> {
-    return await this.api(`/api/v1/users/${id}`, {
+    return await this.api(`v1/users/${id}`, {
       method: 'PUT',
       body: data
     })
   }
 
   async deleteUser(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`/api/v1/users/${id}`, {
+    return await this.api(`v1/users/${id}`, {
       method: 'DELETE'
     })
   }
 
-
+  // =====================
+  // LEARNING PATHS
+  // =====================
   async getLearningPaths(): Promise<ApiResponse<LearningPath[]>> {
     return await this.api('v1/learning-paths');
   }

@@ -53,6 +53,7 @@ import UserTable from '~/components/admin/UserTable.vue'
 import CreateNewUser from '~/components/admin/CreateNewUser.vue'
 import CreateUserDetails from '~/components/admin/CreateUserDetails.vue'
 
+
 definePageMeta({ layout: 'admin' })
 
 const userStore = useUserStore()
