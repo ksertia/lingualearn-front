@@ -8,30 +8,55 @@ import type { moduleResponse, moduleRequest } from '~/types/modules';
 import { Title } from 'chart.js';
 
 class ApiService {
-  private api;
+  private api: ReturnType<typeof $fetch.create>;
 
   constructor() {
     const config = useRuntimeConfig();
+
     this.api = $fetch.create({
       baseURL: config.public.apiBase,
       onRequest({ options }) {
-        const token = useCookie('token').value;
-        if (token) options.headers.set('Authorization', `Bearer ${token}`);
+        const token = useCookie("token").value;
+
+        if (!options.headers) {
+          options.headers = new Headers();
+        }
+
+        if (token) {
+          (options.headers as Headers).set(
+            "Authorization",
+            `Bearer ${token}`,
+          );
+        }
       },
     });
   }
 
   /* ================= AUTH ================= */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    return await this.api('v1/auth/login', { method: 'POST', body: credentials });
+    return await this.api("/v1/auth/login", {
+      method: "POST",
+      body: credentials,
+    });
   }
 
   async getMe(): Promise<{ data: User }> {
-    return await this.api('v1/users/me');
+    return await this.api("/v1/users/me");
   }
 
+  async createUser(
+    payload: CreateUserPayload,
+  ): Promise<ApiResponse<User>> {
+    return await this.api("/v1/auth/register", {
+      method: "POST",
+      body: payload,
+    });
+  }
+
+  /* ===================== USERS ===================== */
+
   async getUsers(): Promise<ApiResponse<User[]>> {
-    return await this.api('v1/users');
+    return await this.api("/v1/users");
   }
 
   /* ================= PARCOURS ================= */
@@ -71,17 +96,21 @@ class ApiService {
     return await this.api(`v1/learning-paths/${id}`, { method: 'PUT', body: data });
   }
 
-  async deleteLearningPath(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`v1/learning-paths/${id}`, { method: 'DELETE' });
+  async deleteUser(id: string): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/users/${id}`, {
+      method: "DELETE",
+    });
   }
+
+  /* ===================== LANGUAGES ===================== */
 
   /* ================= NIVEAUX ================= */
   async getLevels(learningPathId?: string): Promise<ApiResponse<Level[]>> {
     return await this.api('v1/levels', { query: learningPathId ? { learningPathId } : {} });
   }
 
-  async getLevel(id: string): Promise<ApiResponse<Level>> {
-    return await this.api(`v1/levels/${id}`);
+  async getLanguage(id: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/languages/${id}`);
   }
 
   async createLevel(data: any): Promise<ApiResponse<Level>> {
@@ -113,9 +142,13 @@ class ApiService {
     return await this.api(`v1/steps/${id}`, { method: 'PUT', body: data });
   }
 
-  async deleteStep(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`v1/steps/${id}`, { method: 'DELETE' });
+  async deleteLanguage(id: string): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/languages/${id}`, {
+      method: "DELETE",
+    });
   }
+
+  /* ===================== LEVELS ===================== */
 
   /* ================= EXERCICES ================= */
   async getExercises(id?: string): Promise<ApiResponse<Exercise[]>> {
@@ -151,12 +184,22 @@ class ApiService {
     return await this.api('v1/courses', { method: 'POST', body: data });
   }
 
-  async updateCourse(id: string, data: Partial<Course>): Promise<ApiResponse<Course>> {
-    return await this.api(`v1/courses/${id}`, { method: 'PUT', body: data });
+  async updateLevelForLanguage(
+    levelId: string,
+    data: Partial<CreateLevelPayload>,
+  ): Promise<ApiResponse<Level>> {
+    return await this.api(`/v1/levels/${levelId}`, {
+      method: "PUT",
+      body: data,
+    });
   }
 
-  async deleteCourse(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`v1/courses/${id}`, { method: 'DELETE' });
+  async deleteLevelForLanguage(
+    levelId: string,
+  ): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/levels/${levelId}`, {
+      method: "DELETE",
+    });
   }
 
   /* ================= MODULES ================= */
@@ -229,7 +272,10 @@ async deleteStepQuiz(id: string): Promise<ApiResponse<void>> {
 
 
 let instance: ApiService;
+
 export const useApiService = () => {
-  if (!instance) instance = new ApiService();
+  if (!instance) {
+    instance = new ApiService();
+  }
   return instance;
 }

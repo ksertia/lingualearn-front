@@ -13,7 +13,7 @@ export const useExerciseStore = defineStore('exercise', () => {
         isLoading.value = true;
         error.value = null;
         try {
-            const response: any = await apiService.getExercises(lessonId);
+            const response: any = await apiService.getExercises(quizId);
             const data = response.data || (Array.isArray(response) ? response : null);
             if (data) {
                 exercises.value = data;

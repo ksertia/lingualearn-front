@@ -1,7 +1,7 @@
 export interface User {
     id: string
     parentId?: string
-    accountType: 'parent' | 'child' | 'teacher' | 'admin'
+    accountType: 'admin' | 'plateform_manager' | 'teacher'
     email?: string
     phone?: string
     username: string
@@ -12,6 +12,8 @@ export interface User {
     createdAt: Date
     lastLogin?: Date
     lastActive?: Date
+    firstName: string
+    lastName: string
 
     profile: {
         firstName: string
