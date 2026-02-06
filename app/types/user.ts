@@ -7,12 +7,14 @@ export interface CreateUserPayload {
   lastName: string
   email: string
   password: string
-  accountType: 'admin' | 'plateform_manager' | 'teacher'
+  accountType: AccountType
 }
+export type AccountType = 'admin' | 'plateform_manager' | 'teacher'
 
 export interface UpdateUserPayload {
   firstName?: string
   lastName?: string
+  phone?: string
   email?: string
-  accountType?: 'admin' | 'plateform_manager' | 'teacher'
+  accountType: AccountType
 }

@@ -48,6 +48,20 @@
           </p>
         </div>
 
+        <!-- Téléphone -->
+        <div>
+          <label class="block text-sm font-medium mb-1">Téléphone</label>
+          <input
+            v-model="form.phone"
+            placeholder="Ex: +226 00000000 "
+            class="w-full border px-3 py-2 rounded"
+            :class="{ 'border-red-500': errors.phone }"
+          />
+          <p v-if="errors.phone" class="text-red-500 text-sm mt-1">
+            {{ errors.phone }}
+          </p>
+        </div>
+
         <!-- Mot de passe -->
         <div>
           <label class="block text-sm font-medium mb-1">Mot de passe</label>
@@ -67,7 +81,7 @@
         <div>
           <label class="block text-sm font-medium mb-1">Rôle</label>
           <select
-            v-model="form.role"
+            v-model="form.accountType"
             class="w-full border px-3 py-2 rounded"
           >
             <option value="admin">Admin</option>
@@ -99,29 +113,33 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useUserStore } from '~/stores/userStore'
 
 const emit = defineEmits<{
   (e: 'close'): void
-  (e: 'create', payload: any): void
 }>()
+
+const userStore = useUserStore()
 
 const form = ref({
   prenom: '',
   nom: '',
   email: '',
   password: '',
-  role: 'admin'
+  phone: '',
+  accountType: 'teacher'
 })
 
 const errors = ref({
   prenom: '',
   nom: '',
   email: '',
-  password: ''
+  password: '',
+  phone: ''
 })
 
 const validateForm = () => {
-  errors.value = { prenom: '', nom: '', email: '', password: '' }
+  errors.value = { prenom: '', nom: '', email: '', password: '', phone: '' }
   let isValid = true
 
   if (!form.value.prenom.trim()) {
@@ -154,21 +172,29 @@ const validateForm = () => {
   return isValid
 }
 
-const submit = () => {
+const submit = async () => {
   if (!validateForm()) return
 
-  const payload = {
-    firstName: form.value.prenom,
-    lastName: form.value.nom,
+  await userStore.createUser({
+    prenom: form.value.prenom,
+    nom: form.value.nom,
     email: form.value.email,
     password: form.value.password,
-    accountType: form.value.role,
-    // phone: null,
-    // username: null,
-    // parentId: null
-  }
+    phone: form.value.phone,
+    accountType: form.value.accountType
+  })
 
-  console.log('Payload envoyé au backend :', payload)
-  emit('create', payload)
+  if (!userStore.error) {
+    // Si création réussie, fermer la modal et réinitialiser le formulaire
+    form.value = {
+      prenom: '',
+      nom: '',
+      email: '',
+      password: '',
+      phone: '',
+      accountType: 'teacher'
+    }
+    emit('close')
+  }
 }
 </script>

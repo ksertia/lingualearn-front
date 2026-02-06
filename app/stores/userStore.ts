@@ -2,7 +2,16 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useApiService } from '~/services/api'
 import type { User } from '~/types/user'
-
+  const createUserData = ref<CreateUserPayload>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    phone: null,
+    username: null,
+    parentId: null,
+    accountType: 'teacher'
+  })
 export const useUserStore = defineStore('user', () => {
   const apiService = useApiService()
 
@@ -74,7 +83,7 @@ export const useUserStore = defineStore('user', () => {
         lastName: userData.nom,
         email: userData.email,
         password: userData.password,
-        phone: null,
+        phone: userData.phone,
         username: null,
         accountType: mapRole(userData.role),
         parentId: null
