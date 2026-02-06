@@ -1,142 +1,103 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { useApiService } from '~/services/api';
-import type { CreateLearningPathRequest, LearningPath } from '~/types/learning';
-import type { parcours } from '~/types/parcours';
-
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import { useApiService } from '~/services/api'
+import type { LearningPath } from '~/types/learning'
+import type{parcours} from '~/types/parcours'
 export const useParcoursStore = defineStore('parcours', () => {
-    const apiService = useApiService();
-    const parcours = ref<parcours | null>(null);
-    const isLoading = ref(false);
-    const error = ref<string | null>(null);
-    const hasParcours = computed(() => !!parcours.value);
+  const apiService = useApiService()
 
-    const allParcours = ref<LearningPath[]>([]);
+  /* ================= ÉTAT ================= */
+  const allParcours = ref<parcours[]>([])
+  const isLoading = ref(false)
+  const error = ref<string | null>(null)
 
-    function setParcours(newParcours: parcours) {
-        parcours.value = newParcours;
+  // Computed pour récupérer tous les parcours
+  const parcours = computed(() => allParcours.value)
+
+  /* ================= CHARGEMENT ================= */
+  const fetchAll = async () => {
+    isLoading.value = true
+    error.value = null
+    try {
+      const response: any = await apiService.getLearningPaths()
+      allParcours.value = response.data || (Array.isArray(response) ? response : [])
+    } catch (err: any) {
+      console.error("Erreur fetchAll:", err)
+      error.value = "Impossible de charger les parcours"
+    } finally {
+      isLoading.value = false
     }
+  }
 
-    function clearParcours() {
-        parcours.value = null;
+  /* ================= CRÉATION ================= */
+  const create = async (pathData: {
+    moduleId: string
+    title: string
+    description: string
+    // index?: number
+    tempResaListime?: number
+    thumbnailUrl?: string
+    difficulty?: string
+    estimatedHours?: number
+    isActive?: boolean
+  }) => {
+    isLoading.value = true
+    error.value = null
+    try {
+      // Envoi du payload exact attendu par le backend (sans steps)
+      const response: any = await apiService.createLearningPath(pathData)
+      const created = response.data || response
+
+      if (created) {
+        allParcours.value.push(created)
+        return created
+      } else {
+        throw new Error(response.message || 'Erreur lors de la création')
+      }
+    } catch (err: any) {
+      console.error("Erreur create:", err)
+      error.value = err.message || 'Impossible de créer le parcours'
+      throw err
+    } finally {
+      isLoading.value = false
     }
+  }
 
-    async function createParcours(credentials: CreateLearningPathRequest) {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            // Le backend n'accepte pas isPublished à la création
-            const { isPublished, ...postData } = credentials;
+  /* ================= SUPPRESSION ================= */
+  const removePath = async (id: string) => {
+    isLoading.value = true
+    error.value = null
+    try {
+      const response: any = await apiService.deleteLearningPath(id)
 
-            const response: any = await apiService.createLearningPath(postData);
-            console.log("Response API createLearningPath:", response);
-
-            const createdPath = response.data || (response.id ? response : null);
-
-            if (createdPath) {
-                const pathId = createdPath.id;
-
-                // Si on a demandé de publier, on fait un deuxième appel (PUT)
-                if (isPublished && pathId) {
-                    try {
-                        await apiService.updateLearningPath(pathId, { isPublished: true });
-                        createdPath.isPublished = true;
-                    } catch (updateErr) {
-                        console.error("Erreur lors de la publication automatique:", updateErr);
-                    }
-                }
-
-                allParcours.value.push(createdPath);
-                return true;
-            } else {
-                error.value = response.message || 'Le serveur a renvoyé une erreur sans message.';
-                return false;
-            }
-        } catch (err: any) {
-            console.error("Erreur création parcours:", err);
-            error.value = err.data?.message || err.message || "Erreur lors de la création";
-            return false;
-        } finally {
-            isLoading.value = false;
-        }
+      if (response.success || response === true || !response) {
+        allParcours.value = allParcours.value.filter(p => p.moduleId !== id)
+        return true
+      } else {
+        throw new Error(response.message || 'Suppression échouée')
+      }
+    } catch (err: any) {
+      console.error("Erreur removePath:", err)
+      error.value = err.message || 'Impossible de supprimer le parcours'
+      return false
+    } finally {
+      isLoading.value = false
     }
+  }
 
-    async function fetchParcours() {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            const response: any = await apiService.getLearningPaths();
-            const data = response.data || (Array.isArray(response) ? response : null);
+  /* ================= UTILITAIRES ================= */
+  const getByModule = (moduleId: string) => {
+    return allParcours.value.filter(p => p.moduleId === moduleId)
+  }
 
-            if (data) {
-                allParcours.value = data;
-            } else {
-                error.value = response.message || 'Échec du chargement des parcours';
-            }
-        } catch (err: any) {
-            console.error("Fetch parcours error:", err);
-            error.value = "Impossible de charger les parcours";
-        } finally {
-            isLoading.value = false;
-        }
-    }
-
-    async function updateParcours(id: string, data: any) {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            const { isPublished, ...textData } = data;
-            const response: any = await apiService.updateLearningPath(id, textData);
-            const pathData = response.data || (response.id ? response : null);
-
-            if (pathData) {
-                if (isPublished !== undefined) {
-                    await apiService.updateLearningPath(id, { isPublished });
-                }
-                await fetchParcours();
-                return true;
-            } else {
-                error.value = response.message || 'Mise à jour échouée';
-                return false;
-            }
-        } catch (err: any) {
-            error.value = err.data?.message || err.message || "Erreur lors de la mise à jour";
-            return false;
-        } finally {
-            isLoading.value = false;
-        }
-    }
-
-    async function deleteParcours(id: string) {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            const response: any = await apiService.deleteLearningPath(id);
-            if (response.success || response === true || !response || Object.keys(response).length === 0) {
-                allParcours.value = allParcours.value.filter(p => p.id !== id);
-                return true;
-            } else {
-                error.value = response.message || 'Suppression échouée';
-                return false;
-            }
-        } catch (err: any) {
-            error.value = err.data?.message || "Erreur lors de la suppression";
-            return false;
-        } finally {
-            isLoading.value = false;
-        }
-    }
-
-    return {
-        parcours,
-        isLoading,
-        error,
-        hasParcours,
-        createParcours,
-        fetchParcours,
-        updateParcours,
-        deleteParcours,
-        clearParcours,
-        allParcours
-    };
-});
+  return {
+    allParcours,
+    parcours,
+    isLoading,
+    error,
+    fetchAll,
+    create,
+    removePath,
+    getByModule,
+  }
+})

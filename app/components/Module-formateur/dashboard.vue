@@ -78,7 +78,7 @@ const languages = ref<Language[]>([])
 
 // Redirection vers les modules d’une langue
   const goToModules = (languageId: string) => {
-  const url = `module-formateur/moduleCrea/${languageId}`
+  const url = `moduleCrea/${languageId}`
   console.log('URL finale =', url)
   navigateTo(url)
 }

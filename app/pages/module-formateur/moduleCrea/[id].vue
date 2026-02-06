@@ -180,6 +180,7 @@ const selectedLevelId = ref('')
 
 onMounted(async () => {
   await levelStore.fetchLevels()
+  await moduleStore.fetchModule(levelId)
 })
 
 /* ================= DATA ================= */
@@ -197,9 +198,9 @@ const isLoading = ref(false)
 const currentLevelLabel = 'Niveau sélectionné'
 
 /* ================= CHARGEMENT INITIAL ================= */
-onMounted(async () => {
-  await moduleStore.fetchModule(levelId)
-})
+// onMounted(async () => {
+//   await moduleStore.fetchModule(levelId)
+// })
 
 /* ================= NAVIGATION ================= */
 /**
@@ -209,7 +210,7 @@ onMounted(async () => {
  */
 const goToParcours = (moduleId: string) => {
   router.push({
-    path: `/module-formateur/parcours/${moduleId}`
+    path: `/module-formateur/parcours/${levelId}`
   })
 }
 
