@@ -110,7 +110,6 @@
             </div>
 
             <button
-            @click="onSubmit"
               type="submit"
               :disabled="isLoading"
               class="w-full rounded-md bg-[#2D5BFF] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#FFA500]/90 disabled:cursor-not-allowed disabled:opacity-60"
@@ -165,14 +164,16 @@ const onSubmit = async () => {
   const success = await authStore.login({
     loginInfo: email.value,
     password: password.value,
-  });
+  },
+  remember.value
+);
  
  console.log(email.value, password.value);
   if (success) {
     
     loginSuccess.value = 'Connexion reussie';
     if (remember.value) {
-      // Mettre en place la logique 
+
     }
     setTimeout(() => {
       loginSuccess.value = '';
