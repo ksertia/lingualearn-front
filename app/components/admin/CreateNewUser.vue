@@ -1,7 +1,9 @@
 <template>
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-      <h2 class="text-xl font-bold mb-4 text-[rgb(0,0,153)]">Créer un utilisateur</h2>
+      <h2 class="text-xl font-bold mb-4 text-[rgb(0,0,153)]">
+        Créer un utilisateur
+      </h2>
 
       <div class="space-y-3">
         <!-- Prénom -->
@@ -13,7 +15,9 @@
             class="w-full border px-3 py-2 rounded"
             :class="{ 'border-red-500': errors.prenom }"
           />
-          <p v-if="errors.prenom" class="text-red-500 text-sm mt-1">{{ errors.prenom }}</p>
+          <p v-if="errors.prenom" class="text-red-500 text-sm mt-1">
+            {{ errors.prenom }}
+          </p>
         </div>
 
         <!-- Nom -->
@@ -25,7 +29,9 @@
             class="w-full border px-3 py-2 rounded"
             :class="{ 'border-red-500': errors.nom }"
           />
-          <p v-if="errors.nom" class="text-red-500 text-sm mt-1">{{ errors.nom }}</p>
+          <p v-if="errors.nom" class="text-red-500 text-sm mt-1">
+            {{ errors.nom }}
+          </p>
         </div>
 
         <!-- Email -->
@@ -37,7 +43,9 @@
             class="w-full border px-3 py-2 rounded"
             :class="{ 'border-red-500': errors.email }"
           />
-          <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
+          <p v-if="errors.email" class="text-red-500 text-sm mt-1">
+            {{ errors.email }}
+          </p>
         </div>
 
         <!-- Mot de passe -->
@@ -50,25 +58,38 @@
             class="w-full border px-3 py-2 rounded"
             :class="{ 'border-red-500': errors.password }"
           />
-          <p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
+          <p v-if="errors.password" class="text-red-500 text-sm mt-1">
+            {{ errors.password }}
+          </p>
         </div>
 
         <!-- Rôle -->
         <div>
           <label class="block text-sm font-medium mb-1">Rôle</label>
-          <select v-model="form.role" class="w-full border px-3 py-2 rounded">
-            <option value="ADMINISTRATEUR">Administrateur</option>
-            <option value="GESTIONNAIRE">Gestionnaire</option>
-            <option value="FORMATEUR">Formateur</option>
+          <select
+            v-model="form.role"
+            class="w-full border px-3 py-2 rounded"
+          >
+            <option value="admin">Admin</option>
+            <option value="platform_manager">Platform manager</option>
+            <option value="teacher">Teacher</option>
           </select>
         </div>
       </div>
 
+      <!-- Actions -->
       <div class="flex justify-end mt-4 gap-2">
-        <button @click="$emit('close')" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">
+        <button
+          @click="$emit('close')"
+          class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+        >
           Annuler
         </button>
-        <button @click="submit" class="px-4 py-2 bg-[rgb(0,206,209)] text-[rgb(0,0,153)] rounded hover:brightness-90">
+
+        <button
+          @click="submit"
+          class="px-4 py-2 bg-[rgb(0,206,209)] text-[rgb(0,0,153)] rounded hover:brightness-90"
+        >
           Créer
         </button>
       </div>
@@ -78,14 +99,18 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-const emit = defineEmits(['close', 'create'])
+
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'create', payload: any): void
+}>()
 
 const form = ref({
   prenom: '',
   nom: '',
   email: '',
   password: '',
-  role: 'ADMINISTRATEUR'
+  role: 'admin'
 })
 
 const errors = ref({
@@ -111,7 +136,7 @@ const validateForm = () => {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!form.value.email.trim()) {
-    errors.value.email = 'L\'email est requis'
+    errors.value.email = "L'email est requis"
     isValid = false
   } else if (!emailRegex.test(form.value.email)) {
     errors.value.email = 'Email invalide'
@@ -130,8 +155,20 @@ const validateForm = () => {
 }
 
 const submit = () => {
-  if (validateForm()) {
-    emit('create', { ...form.value })
+  if (!validateForm()) return
+
+  const payload = {
+    firstName: form.value.prenom,
+    lastName: form.value.nom,
+    email: form.value.email,
+    password: form.value.password,
+    accountType: form.value.role,
+    // phone: null,
+    // username: null,
+    // parentId: null
   }
+
+  console.log('Payload envoyé au backend :', payload)
+  emit('create', payload)
 }
 </script>

@@ -1,14 +1,5 @@
 <template>
   <div class="space-y-6">
-    <!-- Bouton créer utilisateur -->
-    <button
-      @click="openModal = true"
-      class="px-4 py-2 rounded font-semibold"
-      style="background-color: rgb(0,206,209); color: rgb(0,0,153);"
-    >
-      Créer un utilisateur
-    </button>
-
     <!-- Modal création -->
     <CreateNewUser v-if="openModal" @close="openModal = false" @create="addUser"/>
 
@@ -27,6 +18,7 @@
     <UserTable
       v-else-if="userStore.users.length > 0"
       :users="userStore.users"
+      @create="openModal = true"
       @edit="editUser"
       @delete="deleteUser"
       @show-details="showUserDetails"
@@ -58,7 +50,7 @@ definePageMeta({ layout: 'admin' })
 
 const userStore = useUserStore()
 const openModal = ref(false)
-const selectedUser = ref<any>(null)
+const selectedUser = ref<User | null>(null)
 
 onMounted(() => {
   userStore.fetchUsers()
@@ -69,9 +61,19 @@ onMounted(() => {
 // -------------------
 const addUser = async (newUser: any) => {
   try {
-    await userStore.createUser(newUser)
+    // Transformer les données pour correspondre à l'API
+    const userData = {
+      firstName: newUser.prenom,
+      lastName: newUser.nom,
+      email: newUser.email,
+      password: newUser.password,
+      accountType: newUser.role
+    }
+    console.log('Sending user data:', userData)
+    await userStore.createUser(userData)
     openModal.value = false
-  } catch {
+  } catch (err) {
+    console.error('Error creating user:', err)
     alert('Erreur lors de la création')
   }
 }
@@ -79,11 +81,11 @@ const addUser = async (newUser: any) => {
 // -------------------
 // Modifier un utilisateur
 // -------------------
-const editUser = async (user: any) => {
-  const newNom = prompt('Modifier le nom :', user.nom)
+const editUser = async (user: User) => {
+  const newNom = prompt('Modifier le nom :', user.profile.lastName)
   if (newNom) {
     try {
-      await userStore.updateUser(user.id, { nom: newNom })
+      await userStore.updateUser(user.id, { lastName: newNom })
     } catch {
       alert('Erreur lors de la modification')
     }
@@ -93,8 +95,8 @@ const editUser = async (user: any) => {
 // -------------------
 // Supprimer un utilisateur
 // -------------------
-const deleteUser = async (user: any) => {
-  if (confirm(`Supprimer ${user.prenom} ${user.nom} ?`)) {
+const deleteUser = async (user: User) => {
+  if (confirm(`Supprimer ${user.profile.firstName} ${user.profile.lastName} ?`)) {
     try {
       await userStore.deleteUser(user.id)
     } catch {
@@ -106,7 +108,7 @@ const deleteUser = async (user: any) => {
 // -------------------
 // Afficher les détails
 // -------------------
-const showUserDetails = (user: any) => {
+const showUserDetails = (user: User) => {
   selectedUser.value = user
 }
 </script>

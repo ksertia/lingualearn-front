@@ -1,102 +1,137 @@
 <template>
-  <div class="bg-white rounded-2xl shadow-sm p-4">
+  <div class="bg-white rounded-2xl shadow-sm p-6 space-y-6">
 
-    <!-- Recherche + filtre -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-      <input
-        v-model="search"
-        type="text"
-        placeholder="Search by name or email"
-        class="w-full md:w-1/3 px-4 py-2 text-sm bg-gray-50 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
-      />
+    <!-- Top bar -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
-      <select
-        v-model="selectedRole"
-        class="px-4 py-2 text-sm bg-gray-50 rounded-full focus:outline-none"
+      <div class="flex gap-3 w-full md:w-auto">
+        <!-- Search -->
+        <input
+          v-model="search"
+          type="text"
+          placeholder="Rechercher par nom ou email"
+          class="w-full md:w-64 px-4 py-2 text-sm bg-gray-200 rounded-full focus:ring-2 focus:ring-[#00ced1] outline-none"
+        />
+
+        <!-- Role filter -->
+        <select
+          v-model="selectedRole"
+          class="px-4 py-2 text-sm bg-gray-200 rounded-full outline-none"
+        >
+          <option value="">Tous les rôles</option>
+          <option value="learner">Learner</option>
+          <option value="sub_account_learner">Sub learner</option>
+          <option value="teacher">Teacher</option>
+          <option value="platform_manager">Platform manager</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <!-- Create button -->
+      <button
+        @click="$emit('create')"
+        class="flex items-center gap-2 px-5 py-2 rounded-full bg-[#00ced1] text-[#000099] font-medium shadow-sm hover:bg-[#00b6b9] transition"
       >
-        <option value="">All roles</option>
-        <option value="ADMIN">Admin</option>
-        <option value="TEACHER">Teacher</option>
-        <option value="PARENT">Parent</option>
-        <option value="CHILD">Child</option>
-      </select>
+        <span class="text-lg font-bold">+</span>
+        Créer utilisateur
+      </button>
     </div>
 
     <!-- Header -->
-    <div class="grid grid-cols-5 text-xs text-gray-400 px-4 mb-2">
-      <span>Prénom</span>
-      <span>Nom</span>
+    <div
+      class="grid grid-cols-[2fr_3fr_1.5fr_1.5fr] px-6 text-xs font-semibold text-gray-500"
+    >
+      <span>Utilisateur</span>
       <span>Email</span>
       <span>Rôle</span>
       <span class="text-right">Actions</span>
     </div>
 
     <!-- Rows -->
-    <div class="space-y-2">
+    <div class="space-y-3">
       <div
         v-for="user in paginatedUsers"
         :key="user.id"
-        class="grid grid-cols-5 items-center bg-gray-50 hover:bg-yellow-200/80 transition rounded-xl px-4 py-3 cursor-pointer"
+        class="grid grid-cols-[2fr_3fr_1.5fr_1.5fr] items-center bg-white border border-gray-200 hover:border-[#ff7f00] hover:shadow-sm transition rounded-xl px-6 py-4 group"
       >
-        <span class="font-medium text-gray-800">{{ user.firstName }}</span>
-        <span class="text-gray-700">{{ user.lastName }}</span>
-        <span class="text-gray-500 text-sm truncate">{{ user.email }}</span>
+        <!-- User -->
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-full bg-[#00ced1] text-[#000099] flex items-center justify-center text-sm font-bold"
+          >
+            {{ user.profile.firstName[0] }}{{ user.profile.lastName[0] }}
+          </div>
+          <div class="leading-tight">
+            <p class="text-sm font-medium text-black">
+              {{ user.profile.firstName }} {{ user.profile.lastName }}
+            </p>
+          </div>
+        </div>
 
-        <!-- Badge rôle -->
+        <!-- Email -->
         <span
-          class="w-fit px-3 py-1 rounded-full text-xs font-medium cursor-pointer"
-          :class="roleBadge(user.accountType)"
-          @click="$emit('show-details', user)"
+          class="text-sm text-black break-all"
+          :title="user.email"
         >
-          {{ user.accountType }}
+          {{ user.email }}
         </span>
 
+        <!-- Role -->
+        <button
+          @click="$emit('show-details', user)"
+          class="w-fit px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition transform group-hover:scale-105"
+          :class="roleBadge(user.accountType)"
+        >
+          {{ roleLabel(user.accountType) }}
+        </button>
+
         <!-- Actions -->
-        <div class="flex justify-end gap-3 text-sm">
+        <div class="flex justify-end gap-2">
           <button
             @click="$emit('edit', user)"
-            class="text-gray-600 hover:text-black"
+            class="px-3 py-1 text-xs rounded-full bg-[#000099] text-[#00ced1] font-semibold hover:bg-opacity-90 transition"
           >
             Modifier
           </button>
           <button
             @click="$emit('delete', user)"
-            class="text-red-500 hover:text-red-700"
+            class="px-3 py-1 text-xs rounded-full bg-[#ff7f00] text-black font-semibold hover:bg-opacity-90 transition"
           >
             Supprimer
           </button>
         </div>
       </div>
 
+      <!-- Empty state -->
       <div
         v-if="paginatedUsers.length === 0"
-        class="text-center text-gray-400 py-8"
+        class="text-center text-gray-400 py-10"
       >
         Aucun utilisateur trouvé
       </div>
     </div>
 
     <!-- Pagination -->
-    <div class="flex justify-between items-center mt-6 text-sm">
-      <span class="text-gray-400">
+    <div class="flex justify-between items-center pt-4 text-sm text-[#000099]">
+      <span>
         Page {{ currentPage }} / {{ totalPages }}
       </span>
 
-      <div class="flex gap-2">
+      <div class="flex gap-1">
         <button
           @click="currentPage--"
           :disabled="currentPage === 1"
-          class="px-3 py-1 rounded-full bg-gray-100 disabled:opacity-40"
+          class="px-3 py-1 rounded-full bg-gray-200 disabled:opacity-40"
         >
           ←
         </button>
 
         <button
-          v-for="page in Array.from({ length: totalPages }, (_, i) => i + 1)"
+          v-for="page in totalPages"
           :key="page"
           @click="currentPage = page"
           class="px-3 py-1 rounded-full"
-          :class="page === currentPage ? 'bg-yellow-400 text-black' : 'bg-gray-100'"
+          :class="page === currentPage ? 'bg-[#00ced1] text-[#000099]' : 'bg-gray-200'"
         >
           {{ page }}
         </button>
@@ -104,7 +139,7 @@
         <button
           @click="currentPage++"
           :disabled="currentPage === totalPages"
-          class="px-3 py-1 rounded-full bg-gray-100 disabled:opacity-40"
+          class="px-3 py-1 rounded-full bg-gray-200 disabled:opacity-40"
         >
           →
         </button>
@@ -116,63 +151,60 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import type { User } from '~/types/auth'
 
-interface User {
-  id: string
-  firstName: string
-  lastName: string
-  email: string
-  accountType: string
-}
-
-interface Props {
-  users: User[]
-}
-
-const props = defineProps<Props>()
+const props = defineProps<{ users: User[] }>()
 
 const search = ref('')
 const selectedRole = ref('')
 const currentPage = ref(1)
-const itemsPerPage = 10
+const itemsPerPage = 8
 
 const filteredUsers = computed(() => {
-  let filtered = props.users
-
-  if (search.value) {
-    filtered = filtered.filter(user =>
-      user.firstName.toLowerCase().includes(search.value.toLowerCase()) ||
-      user.lastName.toLowerCase().includes(search.value.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.value.toLowerCase())
-    )
-  }
-
-  if (selectedRole.value) {
-    filtered = filtered.filter(user => user.accountType === selectedRole.value)
-  }
-
-  return filtered
+  return props.users.filter(user => {
+    const searchValue = search.value.toLowerCase()
+    const matchSearch =
+      user.profile.firstName.toLowerCase().includes(searchValue) ||
+      user.profile.lastName.toLowerCase().includes(searchValue) ||
+      (user.email || '').toLowerCase().includes(searchValue)
+    const matchRole = selectedRole.value
+      ? user.accountType === selectedRole.value
+      : true
+    return matchSearch && matchRole
+  })
 })
 
-const totalPages = computed(() => Math.ceil(filteredUsers.value.length / itemsPerPage))
+const totalPages = computed(() =>
+  Math.ceil(filteredUsers.value.length / itemsPerPage)
+)
 
 const paginatedUsers = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage
-  const end = start + itemsPerPage
-  return filteredUsers.value.slice(start, end)
+  return filteredUsers.value.slice(start, start + itemsPerPage)
 })
 
 const roleBadge = (role: string) => {
-  const badges = {
-    ADMIN: 'bg-red-100 text-red-800',
-    TEACHER: 'bg-blue-100 text-blue-800',
-    PARENT: 'bg-green-100 text-green-800',
-    CHILD: 'bg-yellow-100 text-yellow-800'
+  const map = {
+    learner: 'bg-[#00ced1] text-[#000099] hover:bg-[#00b6b9]',
+    sub_account_learner: 'bg-[#000099] text-[#00ced1] hover:bg-[#000066]',
+    teacher: 'bg-[#ff7f00] text-black hover:bg-[#e67300]',
+    platform_manager: 'bg-gray-200 text-[#000099] hover:bg-gray-300',
+    admin: 'bg-[#000099] text-[#00ced1] hover:bg-[#000066]'
   }
-  return badges[role as keyof typeof badges] || 'bg-gray-100 text-gray-800'
+  return map[role as keyof typeof map] || 'bg-gray-100 text-gray-700'
 }
 
-// Reset to first page when filters change
+const roleLabel = (role: string) => {
+  const labels = {
+    learner: 'Learner',
+    sub_account_learner: 'Sub learner',
+    teacher: 'Teacher',
+    platform_manager: 'Platform manager',
+    admin: 'Admin'
+  }
+  return labels[role as keyof typeof labels] || role
+}
+
 watch([search, selectedRole], () => {
   currentPage.value = 1
 })
