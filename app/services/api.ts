@@ -13,7 +13,6 @@ class ApiService {
   constructor() {
     const config = useRuntimeConfig();
 
-    // BaseURL corrigé : port 4000 et /api
     this.api = $fetch.create({
       baseURL: config.public.apiBase,
       onRequest({ options }) {
@@ -25,7 +24,6 @@ class ApiService {
     });
   }
 
-  /** Auth */
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     return await this.api("v1/auth/login", {
       method: "POST",
@@ -233,6 +231,7 @@ class ApiService {
   // async createStepQuiz(data: CreateStepQuizRequest): Promise<ApiResponse<StepQuiz>> {
   //   return await this.api('v1/step-quizzes', { method: 'POST', body: data });
   // }
+  
   /** Supprimer un niveau d'une langue */
   async deleteLevelForLanguage(
     languageId: string,
