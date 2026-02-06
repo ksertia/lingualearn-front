@@ -108,10 +108,14 @@ export const useAuthStore = defineStore('auth', () => {
         const response = await apiService.getMe();
         setUser(response.data);
       } catch (err) {
-        clearAuth();
+        const e = err as FetchError
+        const status =  e.statusCode
+        if(status === 401 || status === 403){
+          clearAuth()
+        }
       }
     }
-  }
+  } 
   initAuth();
 
   return {

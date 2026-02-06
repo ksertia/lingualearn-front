@@ -71,7 +71,7 @@
             class="w-full border px-3 py-2 rounded"
           >
             <option value="admin">Admin</option>
-            <option value="platform_manager">Platform manager</option>
+            <option value="plateform_manager">Plateform manager</option>
             <option value="teacher">Teacher</option>
           </select>
         </div>

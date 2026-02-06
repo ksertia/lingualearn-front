@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware((  to, from  ) => {
+export default defineNuxtRouteMiddleware(async(  to, from  ) => {
  
  const protections = {
     '/admin': 'admin',
@@ -8,6 +8,14 @@ export default defineNuxtRouteMiddleware((  to, from  ) => {
   
     
  const authStore = useAuthStore();
+ 
+ if(authStore.token && !authStore.user) {
+    await authStore.initAuth()
+ }
+
+ if(!authStore.user) {
+    return
+ }
 
   for (const [pathPrefix, requiredRole]
     of Object.entries(protections)) {

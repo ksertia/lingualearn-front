@@ -22,7 +22,7 @@
           <option value="learner">Learner</option>
           <option value="sub_account_learner">Sub learner</option>
           <option value="teacher">Teacher</option>
-          <option value="platform_manager">Platform manager</option>
+          <option value="plateform_manager">Plateform manager</option>
           <option value="admin">Admin</option>
         </select>
       </div>
@@ -199,7 +199,7 @@ const roleLabel = (role: string) => {
     learner: 'Learner',
     sub_account_learner: 'Sub learner',
     teacher: 'Teacher',
-    platform_manager: 'Platform manager',
+    plateform_manager: 'Plateform manager',
     admin: 'Admin'
   }
   return labels[role as keyof typeof labels] || role

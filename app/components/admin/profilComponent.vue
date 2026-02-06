@@ -3,6 +3,8 @@
 
     <h1 class="text-2xl font-bold text-[rgb(0,0,153)]">Profil Administrateur</h1>
 
+    <button type="submit" @click="returnTo()">Retour</button>
+
     <div class="bg-white shadow rounded-lg p-6 space-y-6">
 
       <div class="flex items-center gap-6">
@@ -53,6 +55,10 @@ const authStore = useAuthStore()
 const profile = computed(() => authStore.user?.profile)
 
 // const token = useCookie('token')
+
+function returnTo() {
+  navigateTo('/admin/users')
+};
 
 onMounted(async () => {
  if(!authStore.user){
