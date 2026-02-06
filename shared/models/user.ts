@@ -12,6 +12,8 @@ export interface User {
     createdAt: Date
     lastLogin?: Date
     lastActive?: Date
+    firstName: string
+    lastName: string
 
     profile: {
         firstName: string
