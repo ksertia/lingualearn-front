@@ -133,6 +133,9 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useParcoursStore } from '~/stores/parcoursStore'
 
+definePageMeta({
+  layout:'formateur'
+})
 /* ================= ROUTER ================= */
 const route = useRoute()
 const router = useRouter()

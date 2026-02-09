@@ -162,6 +162,10 @@ import { useRoute, useRouter } from 'vue-router'
 import { useModuleStore } from '~/stores/moduleStore'
 import { useLevelStore } from '~/stores/levelStore'
 
+definePageMeta({
+  layout:'formateur'
+})
+
 /* ================= ROUTER ================= */
 const route = useRoute()
 const router = useRouter()

@@ -1,3 +1,5 @@
+import type { CreateUserPayload } from './../types/user';
+import type { CreateLevelPayload } from '~/types/language-level';
 import type { LoginCredentials, AuthResponse, User } from '~/types/auth';
 import type { DashboardResponse } from '~/types/dashboard';
 import type {
@@ -58,6 +60,11 @@ class ApiService {
   async getUsers(): Promise<ApiResponse<User[]>> {
     return await this.api("/v1/users");
   }
+   async deleteUser(id: string): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/users/${id}`, {
+      method: "DELETE",
+    });
+  }
 
   /* ================= PARCOURS ================= */
   async getLearningPaths(): Promise<ApiResponse<LearningPath[]>> {
@@ -81,6 +88,8 @@ class ApiService {
   }): Promise<ApiResponse<LearningPath>> {
     // Définition des valeurs par défaut pour le backend
     const payload = {
+      CreateLevelPayload:'',
+      CreateUserPayload:'',
       index: 0,
       tempResaListime: 0,
       thumbnailUrl: '',
@@ -96,23 +105,39 @@ class ApiService {
     return await this.api(`v1/learning-paths/${id}`, { method: 'PUT', body: data });
   }
 
-  async deleteUser(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`/v1/users/${id}`, {
-      method: "DELETE",
+ 
+
+  /* ===================== LANGUAGES ===================== */
+  async getLanguage(id: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/languages/${id}`);
+  }
+  async updateLevelForLanguage(
+    levelId: string,
+    data: Partial<CreateLevelPayload>,
+  ): Promise<ApiResponse<Level>> {
+    return await this.api(`/v1/levels/${levelId}`, {
+      method: "PUT",
+      body: data,
     });
   }
 
-  /* ===================== LANGUAGES ===================== */
+  async deleteLevelForLanguage(
+    levelId: string,
+  ): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/levels/${levelId}`, {
+      method: "DELETE",
+    });
+  }
+  async deleteLanguage(id: string): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/languages/${id}`, {
+      method: "DELETE",
+    });
+  }
 
   /* ================= NIVEAUX ================= */
   async getLevels(learningPathId?: string): Promise<ApiResponse<Level[]>> {
     return await this.api('v1/levels', { query: learningPathId ? { learningPathId } : {} });
   }
-
-  async getLanguage(id: string): Promise<ApiResponse<any>> {
-    return await this.api(`/v1/languages/${id}`);
-  }
-
   async createLevel(data: any): Promise<ApiResponse<Level>> {
     return await this.api('v1/levels', { method: 'POST', body: data });
   }
@@ -141,12 +166,11 @@ class ApiService {
   async updateStep(id: string, data: Partial<Step>): Promise<ApiResponse<Step>> {
     return await this.api(`v1/steps/${id}`, { method: 'PUT', body: data });
   }
-
-  async deleteLanguage(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`/v1/languages/${id}`, {
-      method: "DELETE",
-    });
+  async deleteStep(id:string, data:Promise<Step>):Promise<ApiResponse<Step>>{
+    return await this.api(`v1/step/${id}`, { method: 'DELETE', body: data});
   }
+
+  
 
   /* ===================== LEVELS ===================== */
 
@@ -183,24 +207,14 @@ class ApiService {
   async createCourse(data: any): Promise<ApiResponse<Course>> {
     return await this.api('v1/courses', { method: 'POST', body: data });
   }
-
-  async updateLevelForLanguage(
-    levelId: string,
-    data: Partial<CreateLevelPayload>,
-  ): Promise<ApiResponse<Level>> {
-    return await this.api(`/v1/levels/${levelId}`, {
-      method: "PUT",
-      body: data,
-    });
+  async updateCourse(id: string, data: Partial<Course>): Promise<ApiResponse<Course>> {
+    return await this.api(`v1/courses/${id}`, { method: 'PUT', body: data });
+  }
+  async deleteCourse(id: string): Promise<ApiResponse<void>> {
+    return await this.api(`v1/courses/${id}`, { method: 'DELETE' });
   }
 
-  async deleteLevelForLanguage(
-    levelId: string,
-  ): Promise<ApiResponse<void>> {
-    return await this.api(`/v1/levels/${levelId}`, {
-      method: "DELETE",
-    });
-  }
+  
 
   /* ================= MODULES ================= */
   async getModule(levelId?: string): Promise<ApiResponse<moduleResponse[]>> {
@@ -232,12 +246,10 @@ async getStepQuizzes(stepId?: string): Promise<ApiResponse<StepQuiz[]>> {
     query: stepId ? { stepId } : {}
   })
 }
-
 // 🔹 Récupérer un quiz par son ID
 async getStepQuiz(id: string): Promise<ApiResponse<StepQuiz>> {
   return await this.api(`v1/step-quizzes/${id}`)
 }
-
 // 🔹 Créer un quiz pour une étape
 async createStepQuiz(
   data: CreateStepQuizRequest
@@ -247,7 +259,6 @@ async createStepQuiz(
     body: data
   })
 }
-
 // 🔹 Mettre à jour un quiz
 async updateStepQuiz(
   id: string,
@@ -258,7 +269,6 @@ async updateStepQuiz(
     body: data
   })
 }
-
 // 🔹 Supprimer un quiz
 async deleteStepQuiz(id: string): Promise<ApiResponse<void>> {
   return await this.api(`v1/step-quizzes/${id}`, {
