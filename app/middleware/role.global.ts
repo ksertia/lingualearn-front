@@ -3,7 +3,7 @@ export default defineNuxtRouteMiddleware(async(  to, from  ) => {
     const protections = {
         '/admin': 'admin',
         '/gestionnaire': 'plateform_manager',
-        '/formateur': 'teacher'
+        '/module-formateur': 'teacher'
     }   
 
     
