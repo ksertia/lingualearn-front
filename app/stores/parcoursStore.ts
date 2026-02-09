@@ -2,12 +2,12 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useApiService } from '~/services/api'
 import type { LearningPath } from '~/types/learning'
-import type{parcours} from '~/types/parcours'
+
 export const useParcoursStore = defineStore('parcours', () => {
   const apiService = useApiService()
 
   /* ================= ÉTAT ================= */
-  const allParcours = ref<parcours[]>([])
+  const allParcours = ref<LearningPath[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
 
@@ -15,12 +15,18 @@ export const useParcoursStore = defineStore('parcours', () => {
   const parcours = computed(() => allParcours.value)
 
   /* ================= CHARGEMENT ================= */
-  const fetchAll = async () => {
+  const fetchAll = async (moduleId?: string) => {
     isLoading.value = true
     error.value = null
     try {
-      const response: any = await apiService.getLearningPaths()
-      allParcours.value = response.data || (Array.isArray(response) ? response : [])
+      const response: any = await apiService.getLearningPaths(moduleId)
+      if (response && response.data) {
+        allParcours.value = response.data
+      } else if (Array.isArray(response)) {
+        allParcours.value = response
+      } else {
+        allParcours.value = []
+      }
     } catch (err: any) {
       console.error("Erreur fetchAll:", err)
       error.value = "Impossible de charger les parcours"
@@ -44,7 +50,7 @@ export const useParcoursStore = defineStore('parcours', () => {
     isLoading.value = true
     error.value = null
     try {
-      // Envoi du payload exact attendu par le backend (sans steps)
+      // Envoi du payload exact attendu par le backend
       const response: any = await apiService.createLearningPath(pathData)
       const created = response.data || response
 
@@ -70,8 +76,8 @@ export const useParcoursStore = defineStore('parcours', () => {
     try {
       const response: any = await apiService.deleteLearningPath(id)
 
-      if (response.success || response === true || !response) {
-        allParcours.value = allParcours.value.filter(p => p.moduleId !== id)
+      if (response.success || response === true || !response || Object.keys(response).length === 0) {
+        allParcours.value = allParcours.value.filter(p => p.id !== id)
         return true
       } else {
         throw new Error(response.message || 'Suppression échouée')
@@ -87,7 +93,9 @@ export const useParcoursStore = defineStore('parcours', () => {
 
   /* ================= UTILITAIRES ================= */
   const getByModule = (moduleId: string) => {
-    return allParcours.value.filter(p => p.moduleId === moduleId)
+    // Note: LearningPath type might not have moduleId strictly typed in some definitions, but it should be there.
+    // Casting to any to avoid strict TS if type is missing moduleId property.
+    return allParcours.value.filter((p: any) => p.moduleId === moduleId)
   }
 
   return {

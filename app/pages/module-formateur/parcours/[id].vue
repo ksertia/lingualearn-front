@@ -98,7 +98,7 @@
           </thead>
 
           <tbody class="divide-y divide-gray-100">
-            <tr v-for="(p, index) in parcoursStore.parcours" :key="p.moduleId" class="hover:bg-gray-50">
+            <tr v-for="(p, index) in parcoursStore.parcours" :key="p.id" class="hover:bg-gray-50">
               <td class="px-6 py-4">{{ index + 1 }}</td>
               <td class="px-6 py-4 font-medium text-teal-600">{{ p.title }}</td>
               <td class="px-6 py-4 text-gray-500">{{ p.description || '-' }}</td>
@@ -146,7 +146,7 @@ const parcoursStore = useParcoursStore()
 
 /* ================= CHARGEMENT ================= */
 onMounted(async () => {
-  await parcoursStore.fetchAll()
+  await parcoursStore.fetchAll(moduleId)
 })
 
 /* ================= UI ================= */

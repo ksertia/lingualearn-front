@@ -25,9 +25,14 @@ export const useLevelStore = defineStore("level", () => {
 
     try {
       const res = await api.getLevels();
-      if (!res.success || !res.data) throw new Error(res.message);
-
-      levels.value = res.data;
+      // Adaptation: l'API semble renvoyer directement le tableau parfois
+      if (Array.isArray(res)) {
+        levels.value = res;
+      } else if (res.success && res.data) {
+        levels.value = res.data;
+      } else {
+        throw new Error(res.message || "Réponse API invalide");
+      }
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Erreur chargement niveaux";
     } finally {
@@ -43,12 +48,18 @@ export const useLevelStore = defineStore("level", () => {
     error.value = null;
 
     try {
-      const res = await api.getLevels();
-      if (!res.success || !res.data) throw new Error(res.message);
+      const res = await api.getLevels(languageId);
 
-      // filtrer par languageId
-      levels.value = res.data.filter(lvl => lvl.languageId === languageId);
+      // Adaptation: l'API semble renvoyer directement le tableau parfois
+      if (Array.isArray(res)) {
+        levels.value = res;
+      } else if (res.success && res.data) {
+        levels.value = res.data;
+      } else {
+        throw new Error(res.message || "Réponse API invalide");
+      }
     } catch (e) {
+      console.error('Store: fetchLevelsByLanguage error:', e);
       error.value = e instanceof Error ? e.message : "Erreur chargement niveaux";
     } finally {
       loading.value = false;
@@ -66,11 +77,19 @@ export const useLevelStore = defineStore("level", () => {
       // Vérifier index obligatoire
       if (payload.index === undefined || payload.index === null) payload.index = 0;
 
-      const res = await api.createLevelForLanguage(payload.languageId, payload);
-      if (!res.success || !res.data) throw new Error(res.message);
+      const res: any = await api.createLevelForLanguage(payload.languageId, payload);
 
-      levels.value.push(res.data);
-      return res.data;
+      let newLevel;
+      if (res && res.id) {
+        newLevel = res;
+      } else if (res.success && res.data) {
+        newLevel = res.data;
+      } else {
+        throw new Error(res.message || "Erreur inconnue");
+      }
+
+      levels.value.push(newLevel);
+      return newLevel;
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Erreur création niveau";
       throw e;
@@ -90,13 +109,21 @@ export const useLevelStore = defineStore("level", () => {
       // ⚡ transformer index undefined si nécessaire
       const payloadToSend = { ...payload };
 
-      const res = await api.updateLevelForLanguage(payload.languageId!, id, );
-      if (!res.success || !res.data) throw new Error(res.message);
+      const res: any = await api.updateLevelForLanguage(id, payloadToSend);
+
+      let updatedLevel;
+      if (res && res.id) {
+        updatedLevel = res;
+      } else if (res.success && res.data) {
+        updatedLevel = res.data;
+      } else {
+        throw new Error(res.message || "Erreur inconnue");
+      }
 
       const index = levels.value.findIndex(l => l.id === id);
-      if (index !== -1) levels.value[index] = { ...levels.value[index], ...res.data };
+      if (index !== -1) levels.value[index] = { ...levels.value[index], ...updatedLevel };
 
-      return res.data;
+      return updatedLevel;
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Erreur mise à jour niveau";
       throw e;
@@ -113,10 +140,15 @@ export const useLevelStore = defineStore("level", () => {
     error.value = null;
 
     try {
-      const res = await api.deleteLevelForLanguage(languageId, );
-      if (!res.success) throw new Error(res.message);
+      // Correction: passer l'ID du niveau, pas le languageId
+      const res: any = await api.deleteLevelForLanguage(id);
 
-      levels.value = levels.value.filter(l => l.id !== id);
+      // Accepter true, success:true, ou objet vide
+      if (res === true || res?.success || (res && !res.error)) {
+        levels.value = levels.value.filter(l => l.id !== id);
+      } else {
+        throw new Error(res?.message || "Erreur suppression");
+      }
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Erreur suppression niveau";
       throw e;

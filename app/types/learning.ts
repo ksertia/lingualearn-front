@@ -17,18 +17,20 @@ export interface LearningPath {
 }
 
 export interface Level {
-  id: string
-  learningPathId: string
-  name: string
-  description: string
-  levelNumber?: number
-  estimatedDurationHours?: number
-  isPublished?: boolean
-  sortOrder?: number
-  isActive?: boolean
-  createdAt?: Date
-  updatedAt?: Date
-  steps?: Step[]
+  id: string;                // fourni par le backend
+  languageId: string;        // lien vers la langue
+  code: string;
+  name: string;
+  description?: string;
+  index: number;             // ordre du niveau
+  isActive: boolean;
+  stats?: {
+    coursesCount: number;
+    exercisesCount: number;
+    stepsCount: number;
+  };
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Step {

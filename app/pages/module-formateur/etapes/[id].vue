@@ -153,6 +153,10 @@ import { useCourseStore } from '~/stores/courseStore';
 import { useExerciseStore } from '~/stores/exerciseStore';
 import { useQuizStore } from '~/stores/quizStore';
 
+definePageMeta({
+  layout: 'formateur'
+});
+
 // script étapes du parcours
 const route = useRoute();
 const router = useRouter();

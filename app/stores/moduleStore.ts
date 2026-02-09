@@ -19,10 +19,10 @@ export const useModuleStore = defineStore('module', () => {
             if (data) {
                 module.value = data;
             } else {
-                error.value = response.message || 'Failed to load modules';
+                error.value = response.message || 'Impossible de charger les modules';
             }
         } catch (err: any) {
-            error.value = 'Error retrieving modules';
+            error.value = 'Erreur lors de la récupération des modules';
         } finally {
             isLoading.value = false;
         }
@@ -62,11 +62,11 @@ export const useModuleStore = defineStore('module', () => {
                 }
                 return true;
             } else {
-                error.value = response.message || "Failed to update module";
+                error.value = response.message || "Impossible de mettre à jour le module";
                 return false;
             }
         } catch (err: any) {
-            error.value = err.data?.message || "Error updating module";
+            error.value = err.data?.message || "Erreur lors de la mise à jour du module";
             return false;
         } finally {
             isLoading.value = false;

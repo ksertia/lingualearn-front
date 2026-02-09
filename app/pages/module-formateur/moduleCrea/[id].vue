@@ -175,20 +175,23 @@ const moduleStore = useModuleStore()
 const levelStore = useLevelStore()
 
 /* ================= PARAMÈTRES ================= */
-// ID DU NIVEAU (vient de l'URL)
-const levelId = route.params.id as string
+// ID DU NIVEAU -> C'est en fait l'ID DE LA LANGUE !
+const languageId = route.params.id as string
 
 /* ================= LEVELS ================= */
 const levels = computed(() => levelStore.levels)
 const selectedLevelId = ref('')
 
 onMounted(async () => {
-  await levelStore.fetchLevels()
-  await moduleStore.fetchModule(levelId)
+  // On récupère les modules de cette langue (si fetchModule supporte le filtre par langue)
+  await moduleStore.fetchModule(languageId)
+  
+  // On récupère les niveaux de cette langue
+  await levelStore.fetchLevelsByLanguage(languageId)
 })
 
 /* ================= DATA ================= */
-// Modules appartenant au niveau courant
+// Modules appartenant au niveau courant (ou langue courante)
 const modules = computed(() => moduleStore.module)
 
 /* ================= UI STATE ================= */
@@ -214,7 +217,7 @@ const currentLevelLabel = 'Niveau sélectionné'
  */
 const goToParcours = (moduleId: string) => {
   router.push({
-    path: `/module-formateur/parcours/${levelId}`
+    path: `/module-formateur/parcours/${moduleId}`
   })
 }
 
@@ -255,7 +258,7 @@ const onSubmit = async () => {
       isActive: true,
     })
 
-    await moduleStore.fetchModule(levelId)
+    await moduleStore.fetchModule(languageId)
     closeModal()
   } catch (e) {
     error.value = 'Erreur lors de la création du module'
@@ -268,7 +271,7 @@ const onSubmit = async () => {
 const removeModule = async (id: string) => {
   if (!confirm('Supprimer ce module ?')) return
   await moduleStore.deleteModule(id)
-  await moduleStore.fetchModule(levelId)
+  await moduleStore.fetchModule(languageId)
 }
 </script>
 
