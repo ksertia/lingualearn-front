@@ -175,14 +175,15 @@ const validateForm = () => {
 const submit = async () => {
   if (!validateForm()) return
 
-  await userStore.createUser({
-    prenom: form.value.prenom,
-    nom: form.value.nom,
-    email: form.value.email,
-    password: form.value.password,
-    phone: form.value.phone,
-    accountType: form.value.accountType
-  })
+ // app/components/admin/CreateNewUser.vue
+await userStore.createUser({
+  firstName: form.value.prenom,
+  lastName: form.value.nom,
+  email: form.value.email,
+  password: form.value.password,
+  accountType: form.value.accountType,
+});
+
 
   if (!userStore.error) {
     // Si création réussie, fermer la modal et réinitialiser le formulaire

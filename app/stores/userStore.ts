@@ -1,17 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { useApiService } from '~/services/api'
-import type { User } from '~/types/user'
-  const createUserData = ref<CreateUserPayload>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    phone: null,
-    username: null,
-    parentId: null,
-    accountType: 'teacher'
-  })
+import type { CreateUserPayload, User } from '~/types/user'
+
 export const useUserStore = defineStore('user', () => {
   const apiService = useApiService()
 
@@ -56,54 +47,58 @@ export const useUserStore = defineStore('user', () => {
         console.log('Extracted users data:', data.length, 'users found')
         users.value = data
       } else {
-        error.value = 'Format de réponse invalide'
+        error.value = 'Format de rÃ©ponse invalide'
       }
     } catch (err: any) {
       console.error('Fetch users error:', err)
       error.value =
         err?.data?.message ||
         err?.message ||
-        'Erreur lors de la récupération des utilisateurs'
+        'Erreur lors de la rÃ©cupÃ©ration des utilisateurs'
     } finally {
       isLoading.value = false
     }
   }
 
   /* =========================
-     CREATE USER (FIXED)
+     CREATE USER
   ========================= */
-  async function createUser(userData: any) {
+  async function createUser(userData: CreateUserPayload) {
     isLoading.value = true
     error.value = null
 
     try {
-      // 🔁 Mapping FRONT → BACK (Swagger)
-      const payload = {
-        firstName: userData.prenom,
-        lastName: userData.nom,
-        email: userData.email,
+      const payload: CreateUserPayload = {
+        firstName: userData.firstName.trim(),
+        lastName: userData.lastName.trim(),
+        email: userData.email.trim(),
         password: userData.password,
-        phone: userData.phone,
-        username: null,
-        accountType: mapRole(userData.role),
-        parentId: null
+        accountType: userData.accountType ?? 'teacher'
       }
 
-      console.log('Payload envoyé au backend :', payload)
+      if (userData.phone?.trim()) {
+        payload.phone = userData.phone.trim()
+      }
+      if (userData.username) {
+        payload.username = userData.username
+      }
+      if (userData.parentId) {
+        payload.parentId = userData.parentId
+      }
+
+      console.log('Payload envoyÃ© au backend :', payload)
 
       const response: any = await apiService.createUser(payload)
 
       if (response?.success !== false) {
         await fetchUsers()
       } else {
-        error.value = response.message || 'Erreur lors de la création'
+        error.value = response.message || 'Erreur lors de la crÃ©ation'
       }
     } catch (err: any) {
       console.error('Create user error:', err)
       error.value =
-        err?.data?.message ||
-        err?.message ||
-        'Erreur lors de la création'
+        err?.data?.message || err?.message || 'Erreur lors de la crÃ©ation'
     } finally {
       isLoading.value = false
     }
@@ -121,13 +116,13 @@ export const useUserStore = defineStore('user', () => {
       if (response.success) {
         await fetchUsers()
       } else {
-        error.value = response.message || 'Erreur lors de la mise à jour'
+        error.value = response.message || 'Erreur lors de la mise Ã  jour'
       }
     } catch (err: any) {
       error.value =
         err?.data?.message ||
         err?.message ||
-        'Erreur lors de la mise à jour'
+        'Erreur lors de la mise Ã  jour'
     } finally {
       isLoading.value = false
     }
@@ -155,19 +150,6 @@ export const useUserStore = defineStore('user', () => {
     } finally {
       isLoading.value = false
     }
-  }
-
-  /* =========================
-     ROLE MAPPING (IMPORTANT)
-  ========================= */
-  function mapRole(role: string) {
-    const map: Record<string, string> = {
-      ADMINISTRATEUR: 'admin',
-      GESTIONNAIRE: 'plateform_manager',
-      FORMATEUR: 'teacher'
-    }
-
-    return map[role] ?? 'teacher'
   }
 
   return {
