@@ -1,7 +1,8 @@
+// import type { Language } from "~/types/language-level";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { useApiService } from "~/services/api";
-import type { Level, CreateLevelPayload, UpdateLevelPayload } from "~/types/language-level";
+import type { Level, CreateLevelPayload, UpdateLevelPayload, Language } from "~/types/language-level";
 
 export const useLevelStore = defineStore("level", () => {
   const api = useApiService();
@@ -89,7 +90,7 @@ export const useLevelStore = defineStore("level", () => {
       // ⚡ transformer index undefined si nécessaire
       const payloadToSend = { ...payload };
 
-      const res = await api.updateLevelForLanguage(payload.languageId!, id, payloadToSend);
+      const res = await api.updateLevelForLanguage(payload.languageId!, id, );
       if (!res.success || !res.data) throw new Error(res.message);
 
       const index = levels.value.findIndex(l => l.id === id);
@@ -112,7 +113,7 @@ export const useLevelStore = defineStore("level", () => {
     error.value = null;
 
     try {
-      const res = await api.deleteLevelForLanguage(languageId, id);
+      const res = await api.deleteLevelForLanguage(languageId, );
       if (!res.success) throw new Error(res.message);
 
       levels.value = levels.value.filter(l => l.id !== id);

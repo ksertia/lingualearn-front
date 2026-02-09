@@ -17,9 +17,14 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   runtimeConfig: {
-  public: {
-    apiBase: 'http://213.32.120.11:4000/api'
+    public: {
+      apiBase: 'https://213.32.120.11:4000/api',
+    },
+    apiSecret: '',
   },
-  apiSecret: ''
-}
+
+  // Redirects for deprecated routes
+  routeRules: {
+    "/pageSetting/**": { redirect: "/settings" },
+  },
 });
