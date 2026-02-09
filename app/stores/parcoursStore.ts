@@ -20,13 +20,23 @@ export const useParcoursStore = defineStore('parcours', () => {
     error.value = null
     try {
       const response: any = await apiService.getLearningPaths(moduleId)
+      let data;
       if (response && response.data) {
-        allParcours.value = response.data
+        data = response.data;
       } else if (Array.isArray(response)) {
-        allParcours.value = response
+        data = response;
       } else {
-        allParcours.value = []
+        data = [];
       }
+
+      // Si moduleId est fourni, on s'assure de ne garder que ceux-là (fallback si l'API ne filtre pas)
+      if (moduleId && data.length > 0) {
+        // Vérifier si un des éléments a la propriété moduleId
+        if (data[0].moduleId) {
+          data = data.filter((p: any) => p.moduleId === moduleId);
+        }
+      }
+      allParcours.value = data;
     } catch (err: any) {
       console.error("Erreur fetchAll:", err)
       error.value = "Impossible de charger les parcours"
