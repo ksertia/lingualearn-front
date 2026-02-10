@@ -9,44 +9,61 @@
           </button>
           <div>
             <h2 class="section-title">{{ languageStore.selectedLanguage.name }}</h2>
-            <p class="section-subtitle">{{ languageStore.selectedLanguage.nativeLanguage }}</p>
+            <p class="section-subtitle">
+              {{ languageStore.selectedLanguage.nativeLanguage }}
+            </p>
           </div>
         </div>
       </div>
 
       <!-- Levels Grid -->
       <div class="levels-grid">
-  <div
-    v-for="(level, index) in displayedLevels"
-    :key="level.id || index"
-    :class="['level-card', `level-${index + 1}`]"
-  >
-    <div class="level-icon">
-      <span>{{ getLevelIcon(level.name) }}</span>
-    </div>
+        <div
+          v-for="(level, index) in displayedLevels"
+          :key="level.id"
+          :class="['level-card', `level-${index + 1}`]"
+        >
+          <div class="level-icon">
+            <span>{{ getLevelIcon(level.name) }}</span>
+          </div>
 
-    <h3 class="level-name">{{ level.name }}</h3>
-    <p class="level-description">{{ level.description }}</p>
+          <h3 class="level-name">{{ level.name }}</h3>
+          <p class="level-description">{{ level.description }}</p>
 
-    <button class="btn-access">Accéder →</button>
-  </div>
-</div>
+          <div class="level-actions">
+            <button class="btn-access">Accéder →</button>
+
+            <button
+              :class="[
+                'btn-toggle',
+                level.isActive ? 'btn-deactivate' : 'btn-activate'
+              ]"
+              @click="toggleLevel(level)"
+            >
+              {{ level.isActive ? "Désactiver" : "Activer" }}
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Footer -->
-<div class="levels-footer">
-  <div class="footer-info">
-    <p class="info-text">
-      Cette langue compte <strong>{{ displayedLevels.length }} niveaux</strong>
-    </p>
-  </div>
-</div>
+      <div class="levels-footer">
+        <div class="footer-info">
+          <p class="info-text">
+            Cette langue compte
+            <strong>{{ displayedLevels.length }} niveaux</strong>
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- No selection -->
     <div v-else class="no-selection">
       <p class="no-selection-icon">🔍</p>
       <p class="no-selection-text">Sélectionnez une langue</p>
-      <p class="no-selection-subtext">Cliquez sur une langue pour voir ses niveaux</p>
+      <p class="no-selection-subtext">
+        Cliquez sur une langue pour voir ses niveaux
+      </p>
     </div>
   </div>
 </template>
@@ -54,6 +71,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useLanguageStore } from "../../stores/languageStore";
+import type { Level } from "~/types/language-level";
 
 const languageStore = useLanguageStore();
 
@@ -68,24 +86,40 @@ const getLevelIcon = (levelName: string) => {
     Basique: "🌱",
     Intermédiaire: "🌿",
     Avancé: "🌳",
+    Débutant: "🌱",
   };
   return icons[levelName] || "📚";
 };
 
-// Niveaux affichés (réels ou par défaut)
-const displayedLevels = computed(() => {
+// Niveaux affichés (uniquement depuis l’API)
+const displayedLevels = computed<Level[]>(() => {
   const lang = languageStore.selectedLanguage;
   if (!lang) return [];
 
-  if (lang.levelsLoaded && lang.levels.length > 0) return lang.levels;
-
-  // Sinon créer 3 niveaux par défaut pour l'affichage temporaire
-  return [
-    { id: "level-1", name: "Basique", description: "Niveau débutant" },
-    { id: "level-2", name: "Intermédiaire", description: "Niveau moyen" },
-    { id: "level-3", name: "Avancé", description: "Niveau expert" },
-  ];
+  return lang.levels || [];
 });
+
+// Activer / désactiver un niveau
+const toggleLevel = async (level: Level) => {
+  try {
+    const selectedLang = languageStore.selectedLanguage;
+    if (!selectedLang) return;
+
+    await languageStore.updateLevel(
+      selectedLang.id,
+      level.id,
+      {
+        isActive: !level.isActive,
+      }
+    );
+
+    // Mise à jour locale
+    level.isActive = !level.isActive;
+  } catch (error) {
+    console.error("Erreur changement statut niveau", error);
+    alert("Impossible de modifier le statut du niveau");
+  }
+};
 </script>
 
 
@@ -602,5 +636,38 @@ const displayedLevels = computed(() => {
   .no-selection-text {
     font-size: 16px;
   }
+}
+
+.level-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.btn-toggle {
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+}
+
+.btn-activate {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: #fff;
+}
+
+.btn-deactivate {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: #fff;
+}
+
+.btn-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 </style>

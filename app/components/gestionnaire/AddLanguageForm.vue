@@ -10,48 +10,80 @@
             </div>
 
             <form @submit.prevent="submitForm" class="form">
+              <!-- Nom langue -->
               <div class="form-group">
-                <label for="language-name" class="form-label">
-                  Nom de la langue
-                </label>
+                <label class="form-label">Nom de la langue</label>
                 <input
-                  id="language-name"
                   v-model="formData.name"
                   type="text"
                   class="form-input"
-                  placeholder="Ex: Fulfuldé"
+                  placeholder="Ex: Mooré"
                   required
                 />
               </div>
 
+              <!-- Nom natif -->
               <div class="form-group">
-                <label for="native-language" class="form-label">
-                  Nom natif / Traduction
-                </label>
+                <label class="form-label">Nom natif / traduction</label>
                 <input
-                  id="native-language"
                   v-model="formData.nativeLanguage"
                   type="text"
                   class="form-input"
-                  placeholder="Ex: Lingualearn Fulfuldé"
+                  placeholder="Ex: Lingualearn Mooré"
                   required
                 />
               </div>
 
-              <div class="form-info">
-                <span class="info-icon">ℹ️</span>
-                <p class="info-text">
-                  Cette langue sera créée avec 3 niveaux : Basique,
-                  Intermédiaire et Avancé.
-                </p>
-              </div>
+              <!-- Sélection des niveaux -->
+               <div
+  v-for="(level, index) in formData.levels"
+  :key="index"
+  class="level-row"
+>
+  <input
+    v-model="level.enabled"
+    type="checkbox"
+  />
+
+  <span class="level-name">
+    {{ level.name }}
+  </span>
+</div>
+
+              <!-- <div class="form-group">
+                <label class="form-label">Niveaux à créer</label>
+
+                <div
+                  v-for="(level, index) in formData.levels"
+                  :key="index"
+                  class="level-row"
+                >
+                  <input
+                    v-model="level.enabled"
+                    type="checkbox"
+                  />
+
+                  <span class="level-name">
+                    {{ level.name }}
+                  </span>
+
+                  <label class="switch">
+                    <input
+                      type="checkbox"
+                      v-model="level.isActive"
+                      :disabled="!level.enabled"
+                    />
+                    <span class="slider"></span>
+                  </label>
+
+                  <span class="status-text">
+                    {{ level.isActive ? "Actif" : "Inactif" }}
+                  </span>
+                </div>
+              </div> -->
 
               <div class="form-actions">
-                <button
-                  type="button"
-                  class="btn btn-secondary"
-                  @click="closeModal"
-                >
+                <button type="button" class="btn btn-secondary" @click="closeModal">
                   Annuler
                 </button>
                 <button type="submit" class="btn btn-primary">
@@ -78,14 +110,27 @@ import { useLanguageStore } from "~/stores/languageStore";
 const languageStore = useLanguageStore();
 
 const isOpen = ref(false);
+
+const defaultLevels = () => [
+  { name: "Debutant", code: "debutant", enabled: true },
+  { name: "Intermédiaire", code: "intermediate", enabled: true },
+  { name: "Avancé", code: "advanced", enabled: true },
+];
+
+
+// const defaultLevels = () => [
+//   { name: "Debutant", code: "debutant", enabled: true, isActive: true },
+//   { name: "Intermédiaire", code: "intermediate", enabled: true, isActive: true },
+//   { name: "Avancé", code: "advanced", enabled: true, isActive: true },
+// ];
+
 const formData = ref({
   name: "",
   nativeLanguage: "",
+  levels: defaultLevels(),
 });
 
-const openModal = () => {
-  isOpen.value = true;
-};
+const openModal = () => (isOpen.value = true);
 
 const closeModal = () => {
   isOpen.value = false;
@@ -96,6 +141,7 @@ const resetForm = () => {
   formData.value = {
     name: "",
     nativeLanguage: "",
+    levels: defaultLevels(),
   };
 };
 
@@ -106,31 +152,40 @@ const submitForm = async () => {
   }
 
   try {
-    // Générer un code unique basé sur le nom
+    // Code langue
     const baseCode = formData.value.name.substring(0, 2).toLowerCase();
     const uniqueSuffix = Date.now().toString().slice(-3);
-    const code = `${baseCode}${uniqueSuffix}`; // Ex: "mo123"
+    const code = `${baseCode}${uniqueSuffix}`;
 
-    // ⚡ TypeScript safe : iconUrl ne peut pas être null, on utilise undefined
+    // 1️⃣ créer la langue
     const newLanguage = await languageStore.addLanguage({
       name: formData.value.name.trim(),
-      code: code,
+      code,
       description: formData.value.nativeLanguage.trim(),
-      iconUrl: undefined, // safe pour TS
+      iconUrl: undefined,
       isActive: true,
     });
 
-    // fermer modal et réinitialiser
-    closeModal();
+    // 2️⃣ créer les niveaux sélectionnés
+    const selectedLevels = formData.value.levels.filter(l => l.enabled);
 
-    console.log("Langue créée :", newLanguage);
+    for (const [i, level] of selectedLevels.entries()) {
+      await languageStore.createLevelForLanguage(newLanguage.id, {
+        name: level.name,
+        code: level.code,
+        description: "",
+        index: i,
+        isActive: true,
+      });
+    }
+
+    closeModal();
   } catch (error) {
-    console.error("Erreur lors de l'ajout de la langue:", error);
-    alert("Erreur lors de l'ajout de la langue");
+    console.error(error);
+    alert("Erreur lors de la création");
   }
 };
 </script>
-
 
 <style scoped>
 .add-language-form {

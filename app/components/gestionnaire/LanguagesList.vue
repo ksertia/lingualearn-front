@@ -31,7 +31,7 @@
         </div>
 
         <p class="language-meta">
-          3 niveaux • Créé le {{ formatDate(language.createdAt) }}
+          {{ language.levels.length }} niveau(s) • Créé le {{ formatDate(language.createdAt) }}
         </p>
 
         <div class="card-action">
@@ -78,6 +78,7 @@ const formatDate = (date: string | undefined) => {
   }
 };
 </script>
+
 
 <style scoped>
 .languages-section {

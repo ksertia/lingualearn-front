@@ -190,7 +190,7 @@ class ApiService {
     const defaultLevels: CreateLevelPayload[] = [
       {
         languageId,
-        name: "Basique",
+        name: "Débutant",
         code: "beginner",
         description: "Niveau pour les débutants",
         index: 0,

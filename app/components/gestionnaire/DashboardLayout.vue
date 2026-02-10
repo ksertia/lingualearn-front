@@ -65,20 +65,18 @@ onMounted(async () => {
 <style scoped>
 .dashboard-layout {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
   background: #f8f9fa;
-  overflow: hidden;
 }
+
 
 .dashboard-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
   min-width: 0;
-  max-height: 100vh;
 }
+
 
 .dashboard-header {
   padding: 32px 40px;
@@ -117,10 +115,10 @@ onMounted(async () => {
 
 .dashboard-content {
   flex: 1;
-  overflow: visible;
   padding: 32px 40px;
   min-width: 0;
 }
+
 
 .content-left {
   width: 100%;
