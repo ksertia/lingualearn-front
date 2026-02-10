@@ -175,7 +175,7 @@ const validateForm = () => {
 const submit = async () => {
   if (!validateForm()) return
 
- // app/components/admin/CreateNewUser.vue
+
 await userStore.createUser({
   firstName: form.value.prenom,
   lastName: form.value.nom,
