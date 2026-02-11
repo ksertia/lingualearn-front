@@ -23,8 +23,5 @@ export default defineNuxtConfig({
     apiSecret: '',
   },
 
-  // Redirects for deprecated routes
-  routeRules: {
-    "/pageSetting/**": { redirect: "/settings" },
-  },
+  
 });

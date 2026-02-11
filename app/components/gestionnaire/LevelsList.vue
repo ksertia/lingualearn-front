@@ -1,6 +1,6 @@
 <template>
   <div class="levels-section">
-    <div v-if="languageStore.selectedLanguage" class="levels-container">
+    <div v-if="currentLanguage" class="levels-container">
       <!-- Header -->
       <div class="levels-header">
         <div class="header-content">
@@ -8,9 +8,9 @@
             <span>←</span>
           </button>
           <div>
-            <h2 class="section-title">{{ languageStore.selectedLanguage.name }}</h2>
+            <h2 class="section-title">{{ currentLanguage.name }}</h2>
             <p class="section-subtitle">
-              {{ languageStore.selectedLanguage.nativeLanguage }}
+              {{ currentLanguage.nativeLanguage }}
             </p>
           </div>
         </div>
@@ -20,7 +20,7 @@
       <div class="levels-grid">
         <div
           v-for="(level, index) in displayedLevels"
-          :key="level.id"
+          :key="level.id || index"
           :class="['level-card', `level-${index + 1}`]"
         >
           <div class="level-icon">
@@ -31,7 +31,7 @@
           <p class="level-description">{{ level.description }}</p>
 
           <div class="level-actions">
-            <button class="btn-access">Accéder →</button>
+            <button class="btn-access">Accéder</button>
 
             <button
               :class="[
@@ -39,6 +39,7 @@
                 level.isActive ? 'btn-deactivate' : 'btn-activate'
               ]"
               @click="toggleLevel(level)"
+              :disabled="!level.id || level.id.startsWith('level-')"
             >
               {{ level.isActive ? "Désactiver" : "Activer" }}
             </button>
@@ -75,12 +76,12 @@ import type { Level } from "~/types/language-level";
 
 const languageStore = useLanguageStore();
 
-// Fonction locale pour vider la sélection
+// Fonction locale pour vider la selection
 const clearSelection = () => {
   languageStore.selectedLanguageId = null;
 };
 
-// Icônes pour chaque niveau
+// Icones pour chaque niveau
 const getLevelIcon = (levelName: string) => {
   const icons: Record<string, string> = {
     Basique: "🌱",
@@ -91,29 +92,40 @@ const getLevelIcon = (levelName: string) => {
   return icons[levelName] || "📚";
 };
 
-// Niveaux affichés (uniquement depuis l’API)
-const displayedLevels = computed<Level[]>(() => {
-  const lang = languageStore.selectedLanguage;
-  if (!lang) return [];
-
-  return lang.levels || [];
+// Langue actuellement selectionnee (avec tous ses niveaux)
+const currentLanguage = computed(() => {
+  return languageStore.languages.find(
+    l => l.id === languageStore.selectedLanguageId
+  );
 });
 
-// Activer / désactiver un niveau
-const toggleLevel = async (level: Level) => {
+// Niveaux affiches (tous les niveaux pour les gestionnaires)
+const displayedLevels = computed(() => {
+  const lang = currentLanguage.value;
+  if (!lang) return [];
+
+  // Retourner les niveaux reels charges depuis le backend
+  return lang.levels;
+});
+
+// Activer / desactiver un niveau
+const toggleLevel = async (level: any) => {
   try {
-    const selectedLang = languageStore.selectedLanguage;
-    if (!selectedLang) return;
+    const lang = currentLanguage.value;
+    if (!lang) return;
+
+    // Empeche l'appel API pour les niveaux fictifs
+    if (!level.id || level.id.startsWith("level-")) return;
 
     await languageStore.updateLevel(
-      selectedLang.id,
+      lang.id,
       level.id,
       {
         isActive: !level.isActive,
       }
     );
 
-    // Mise à jour locale
+    // Mise a jour locale pour feedback instantane
     level.isActive = !level.isActive;
   } catch (error) {
     console.error("Erreur changement statut niveau", error);
@@ -121,8 +133,6 @@ const toggleLevel = async (level: Level) => {
   }
 };
 </script>
-
-
 
 
 <style scoped>

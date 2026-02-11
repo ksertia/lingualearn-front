@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useApiService } from "~/services/api";
+import { useAuthStore } from "~/stores/authStore";
 import type {
   LanguageWithLevels,
   CreateLanguagePayload,
@@ -8,8 +9,12 @@ import type {
   Level,
 } from "~/types/language-level";
 
+// Configuration du polling
+// const POLLING_INTERVAL = 5000; // 5 secondes
+
 export const useLanguageStore = defineStore("language", () => {
   const api = useApiService();
+  const authStore = useAuthStore();
 
   // -----------------------------
   // STATE
@@ -19,14 +24,43 @@ export const useLanguageStore = defineStore("language", () => {
   const loading = ref(false);
   const error = ref<string | null>(null);
 
+  // State pour le polling
+  const pollingIntervals = ref<Map<string, number>>(new Map());
+  const isPolling = ref(false);
+
   // -----------------------------
   // GETTERS
   // -----------------------------
-  const selectedLanguage = computed(() =>
-    languages.value.find(l => l.id === selectedLanguageId.value) ?? null
-  );
+  const userRole = computed(() => authStore.user?.accountType);
 
-  const totalLanguages = computed(() => languages.value.length);
+  const visibleLanguages = computed(() => {
+    if (userRole.value === "plateform_manager" || userRole.value === "admin") {
+      return languages.value;
+    }
+
+    // Apprenant / formateur → seulement langues actives
+    return languages.value.filter(l => l.isActive);
+  });
+
+  const selectedLanguage = computed(() => {
+    const lang = languages.value.find(
+      l => l.id === selectedLanguageId.value
+    );
+    if (!lang) return null;
+
+    // Gestionnaire → tout voir
+    if (userRole.value === "plateform_manager" || userRole.value === "admin") {
+      return lang;
+    }
+
+    // Apprenant / formateur → seulement niveaux actifs
+    return {
+      ...lang,
+      levels: lang.levels.filter(level => level.isActive),
+    };
+  });
+
+  const totalLanguages = computed(() => visibleLanguages.value.length);
 
   // -----------------------------
   // UTILS
@@ -56,7 +90,8 @@ export const useLanguageStore = defineStore("language", () => {
         levelsLoaded: false,
       }));
     } catch (e) {
-      error.value = e instanceof Error ? e.message : "Erreur chargement langues";
+      error.value =
+        e instanceof Error ? e.message : "Erreur chargement langues";
     } finally {
       loading.value = false;
     }
@@ -85,7 +120,7 @@ export const useLanguageStore = defineStore("language", () => {
     }
   };
 
-  // 3️⃣ Ajouter une langue (sans niveaux automatiques)
+  // 3️⃣ Ajouter une langue
   const addLanguage = async (payload: CreateLanguagePayload) => {
     loading.value = true;
     error.value = null;
@@ -103,41 +138,63 @@ export const useLanguageStore = defineStore("language", () => {
       languages.value.push(newLang);
       return newLang;
     } catch (e) {
-      error.value = e instanceof Error ? e.message : "Erreur création langue";
+      error.value =
+        e instanceof Error ? e.message : "Erreur création langue";
       throw e;
     } finally {
       loading.value = false;
     }
   };
 
-  // 4️⃣ Ajouter un niveau à une langue
+  // 4️⃣ Ajouter un niveau
   const addLevelToLanguage = async (
-    languageId: string,
-    payload: CreateLevelPayload
-  ): Promise<Level | undefined> => {
-    const lang = languages.value.find(l => l.id === languageId);
-    if (!lang) return;
+  languageId: string,
+  payload: Omit<CreateLevelPayload, "languageId">
+): Promise<Level> => {
+  const lang = languages.value.find(l => l.id === languageId);
+  if (!lang) throw new Error("Langue introuvable");
 
-    try {
-      const res = await api.createLevelForLanguage(languageId, payload);
+  try {
+    const payloadWithId = { ...payload, languageId };
+    const res = await api.createLevelForLanguage(languageId, payloadWithId);
 
-      if (!res.data) {
-        throw new Error("Le niveau n'a pas été créé");
+    let newLevel: Level;
+
+    if (res && "data" in res && res.data) {
+      newLevel = res.data as Level;
+    } else if (res) {
+      // 🔹 Cast sûr : d'abord unknown puis on vérifie les champs obligatoires
+      const temp = res as unknown;
+      if (
+        typeof temp === "object" &&
+        temp !== null &&
+        "id" in temp &&
+        "languageId" in temp &&
+        "code" in temp &&
+        "name" in temp &&
+        "index" in temp &&
+        "isActive" in temp
+      ) {
+        newLevel = temp as Level;
+      } else {
+        throw new Error("Réponse API invalide pour le niveau");
       }
-      // ⚡ On récupère le Level depuis res.data
-      const newLevel: Level = res.data;
-
-      // On l’ajoute dans le store
-      lang.levels.push(newLevel);
-
-      return newLevel;
-    } catch (e) {
-      console.error("Erreur création niveau :", e);
-      throw e;
+    } else {
+      throw new Error("Impossible de créer le niveau, réponse inattendue de l'API");
     }
-  };
 
-  // 5️⃣ Mettre à jour un niveau (activation/désactivation ou autres)
+    const exists = lang.levels.some(l => l.id === newLevel.id);
+    if (!exists) lang.levels.push(newLevel);
+
+    return newLevel;
+  } catch (e) {
+    console.error("Erreur création niveau :", e);
+    throw e;
+  }
+};
+
+
+  // 5️⃣ Mettre à jour un niveau
   const updateLevel = async (
     languageId: string,
     levelId: string,
@@ -151,10 +208,7 @@ export const useLanguageStore = defineStore("language", () => {
 
     try {
       const res = await api.updateLevelForLanguage(levelId, payload);
-
-      // ⚡ On met à jour le niveau dans le store
       Object.assign(level, res.data);
-
       return level;
     } catch (e) {
       console.error("Erreur mise à jour niveau :", e);
@@ -162,7 +216,7 @@ export const useLanguageStore = defineStore("language", () => {
     }
   };
 
-  // 6️⃣ Supprimer un niveau d'une langue
+  // 6️⃣ Supprimer un niveau
   const deleteLevel = async (languageId: string, levelId: string) => {
     loading.value = true;
     error.value = null;
@@ -176,7 +230,8 @@ export const useLanguageStore = defineStore("language", () => {
       }
     } catch (e) {
       console.error("Erreur suppression niveau :", e);
-      error.value = e instanceof Error ? e.message : "Échec suppression niveau";
+      error.value =
+        e instanceof Error ? e.message : "Échec suppression niveau";
       throw e;
     } finally {
       loading.value = false;
@@ -207,12 +262,12 @@ export const useLanguageStore = defineStore("language", () => {
     error.value = null;
 
     try {
-      const payloadToSend = {
+      const cleanedPayload = {
         ...payload,
-        iconUrl: payload.iconUrl ?? undefined,
+        iconUrl: payload.iconUrl ?? undefined
       };
 
-      const res = await api.updateLanguage(id, payloadToSend);
+      const res = await api.updateLanguage(id, cleanedPayload);
       if (!res.success || !res.data) throw new Error(res.message);
 
       const index = languages.value.findIndex(l => l.id === id);
@@ -225,7 +280,8 @@ export const useLanguageStore = defineStore("language", () => {
 
       return res.data;
     } catch (e) {
-      error.value = e instanceof Error ? e.message : "Erreur mise à jour langue";
+      error.value =
+        e instanceof Error ? e.message : "Erreur mise à jour langue";
       throw e;
     } finally {
       loading.value = false;
@@ -245,77 +301,46 @@ export const useLanguageStore = defineStore("language", () => {
         selectedLanguageId.value = null;
       }
     } catch (e) {
-      error.value = e instanceof Error ? e.message : "Erreur suppression langue";
+      error.value =
+        e instanceof Error ? e.message : "Erreur suppression langue";
       throw e;
     } finally {
       loading.value = false;
     }
   };
 
-  // -----------------------------
-  // 10️⃣ créer un niveau pour une langue (utilisé dans le formulaire de création de niveau)
-// -----------------------------
-const createLevelForLanguage = async (
-  languageId: string,
-  payload: {
-    name: string;
-    code: string;
-    description?: string;
-    index: number;
-    isActive: boolean;
-  }
-): Promise<Level> => {
-  loading.value = true;
-  error.value = null;
-
-  try {
-    const res = await api.createLevelForLanguage(languageId, {
-      ...payload,
-      languageId,
-    });
-
-    // 🔹 Log complet pour debug
-    console.log("API createLevelForLanguage response:", res);
-
-    // Vérifier si on reçoit bien res.data ou fallback
-    const newLevel: Level | undefined =
-      res?.data ?? (res as unknown as Level);
-
-    if (!newLevel || !newLevel.id) {
-      throw new Error(
-        `Impossible de créer le niveau, réponse inattendue de l'API`
-      );
-    }
-
-    // Ajouter dans le store
+  // 🔟 Activer / désactiver une langue
+  const toggleLanguageStatus = async (languageId: string) => {
     const lang = languages.value.find(l => l.id === languageId);
-    if (lang) {
-      const exists = lang.levels.some(l => l.id === newLevel.id);
-      if (!exists) lang.levels.push(newLevel);
+    if (!lang) return;
+
+    try {
+      const newStatus = !lang.isActive;
+
+      const res = await api.updateLanguage(languageId, {
+        isActive: newStatus,
+      });
+
+      if (res?.data) {
+        lang.isActive = res.data.isActive;
+      } else {
+        lang.isActive = newStatus;
+      }
+    } catch (e) {
+      console.error("Erreur changement statut langue :", e);
     }
-
-    return newLevel;
-  } catch (e) {
-    console.error("Erreur création niveau :", e);
-    error.value =
-      e instanceof Error
-        ? e.message
-        : "Échec création niveau, voir console pour détails";
-    throw e;
-  } finally {
-    loading.value = false;
-  }
-};
-
-
+  };
 
   return {
     languages,
+    visibleLanguages,
     selectedLanguageId,
     selectedLanguage,
     totalLanguages,
     loading,
     error,
+    isPolling,
+    pollingIntervals,
     fetchLanguages,
     selectLanguage,
     clearSelection,
@@ -325,8 +350,8 @@ const createLevelForLanguage = async (
     loadLevelsForLanguage,
     addLevelToLanguage,
     updateLevel,
-    createLevelForLanguage,
     deleteLevel,
+    toggleLanguageStatus,
     api,
   };
 });
