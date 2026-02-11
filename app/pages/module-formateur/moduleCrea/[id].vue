@@ -11,7 +11,7 @@
         class="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md shadow-md"
         @click="openModal"
       >
-        + Nouveau module
+        + Nouveau
       </button>
     </div>
 
@@ -65,9 +65,8 @@
               <!-- On envoie l'ID DU MODULE, PAS DU NIVEAU -->
               <button
                 class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
-                @click="goToParcours(m.id)"
-              >
-                Voir parcours
+                @click="goToParcours(m.id)">
+                  Parcours
               </button>
 
               <button

@@ -39,8 +39,8 @@
                   <td class="px-6 py-4 text-sm text-gray-700">{{ s.exerciseFile?.name || '-' }}</td>
                   <td class="px-6 py-4 text-sm text-gray-700">{{ s.quizFile?.name || s.quizTitle || '-' }}</td>
                   <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
-                    <button v-if="s.courseFile" @click.prevent="viewFile(s.courseFile)" class="px-3 py-1 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm">Voir fichier</button>
-                    <button v-if="s.exerciseFile" @click.prevent="viewFile(s.exerciseFile)" class="px-3 py-1 rounded-md bg-teal-600 hover:bg-teal-700 text-white text-sm">Voir fichier</button>
+                    <!-- <button v-if="s.courseFile" @click.prevent="viewFile(s.courseFile)" class="px-3 py-1 rounded-md bg-blue-700 hover:bg-blue-800 text-white text-sm">Voir fichier</button> -->
+                    <!-- <button v-if="s.exerciseFile" @click.prevent="viewFile(s.exerciseFile)" class="px-3 py-1 rounded-md bg-teal-600 hover:bg-teal-700 text-white text-sm">Voir fichier</button> -->
                     <button @click.prevent="removeStep(s)" class="px-3 py-1 rounded-md bg-red-500 hover:bg-red-600 text-white text-sm">Supprimer</button>
                   </td>
                 </tr>
@@ -55,7 +55,7 @@
         <div class="mt-6 border-t pt-4">
           <div class="flex items-center justify-between mb-3">
             <!-- <h4 class="text-sm font-medium text-gray-700">Ajouter</h4> -->
-            <button @click.prevent="openAddStepModal" class="px-3 py-1 rounded-md bg-orange-500 hover:bg-orange-600 text-white text-sm">+ Ajouter l'étape</button>
+            <button @click.prevent="openAddStepModal" class="px-3 py-1 rounded-md bg-orange-500 hover:bg-orange-600 text-white text-sm">+ Nouveau</button>
           </div>
 
           <!-- Modal d'ajout -->
@@ -186,10 +186,10 @@ const newStep = ref<{ title: string; courseId?: string; exerciseId?: string; qui
 const error = ref('');
 
 // course / exercise stores
-const stepStore = useStepStore();
+// const stepStore = useStepStore();
 const courseStore = useCourseStore();
 const exerciseStore = useExerciseStore();
-const quizStore = useQuizStore();
+// const quizStore = useQuizStore();
 const { courses: coursesRef } = storeToRefs(courseStore);
 const { exercises: exercisesRef } = storeToRefs(exerciseStore);
 const coursesList = coursesRef;
@@ -199,8 +199,8 @@ const exercisesList = exercisesRef;
 if ((coursesList.value || []).length === 0) courseStore.fetchCourses();
 if ((exercisesList.value || []).length === 0) exerciseStore.fetchExercises();
 
-const findCourseName = (id?: string) => coursesList.value.find(c => c.stepId === id)?.title || '';
-const findExerciseTitle = (id?: string) => exercisesList.value.find(e => e.id === id)?.title || '';
+// const findCourseName = (id?: string) => coursesList.value.find(c => c.stepId === id)?.title || '';
+// const findExerciseTitle = (id?: string) => exercisesList.value.find(e => e.id === id)?.title || '';
 
 
 
@@ -214,9 +214,9 @@ const quizFileRef = ref<File | null>(null);
 const courseInputRef = ref<HTMLInputElement | null>(null);
 const exerciseInputRef = ref<HTMLInputElement | null>(null);
 const quizInputRef = ref<HTMLInputElement | null>(null);
-const showFileModal = ref(false);
-const filePreviewName = ref('');
-const filePreviewContent = ref('');
+// const showFileModal = ref(false);
+// const filePreviewName = ref('');
+// const filePreviewContent = ref('');
 
 const openAddStepModal = () => {
   error.value = '';
@@ -249,9 +249,9 @@ const onQuizFileChange = (e: Event) => {
   quizFileRef.value = f && f[0] ? f[0] : null;
 };
 
-const onCourseRemove = () => { courseFileRef.value = null; if (courseInputRef.value) courseInputRef.value.value = ''; };
-const onExerciseRemove = () => { exerciseFileRef.value = null; if (exerciseInputRef.value) exerciseInputRef.value.value = ''; };
-const onQuizRemove = () => { quizFileRef.value = null; if (quizInputRef.value) quizInputRef.value.value = ''; };
+// const onCourseRemove = () => { courseFileRef.value = null; if (courseInputRef.value) courseInputRef.value.value = ''; };
+// const onExerciseRemove = () => { exerciseFileRef.value = null; if (exerciseInputRef.value) exerciseInputRef.value.value = ''; };
+// const onQuizRemove = () => { quizFileRef.value = null; if (quizInputRef.value) quizInputRef.value.value = ''; };
 
 const readFileMeta = (file: File | null) => {
   if (!file) return Promise.resolve(null);
@@ -266,12 +266,12 @@ const readFileMeta = (file: File | null) => {
   });
 };
 
-const viewFile = (fileMeta: any) => {
-  if (!fileMeta) return;
-  filePreviewName.value = fileMeta.name || 'Fichier';
-  filePreviewContent.value = fileMeta.content || 'Aucun aperçu disponible.';
-  showFileModal.value = true;
-};
+// const viewFile = (fileMeta: any) => {
+//   if (!fileMeta) return;
+//   filePreviewName.value = fileMeta.name || 'Fichier';
+//   filePreviewContent.value = fileMeta.content || 'Aucun aperçu disponible.';
+//   showFileModal.value = true;
+// };
 
 const downloadFile = (fileMeta: any) => {
   if (!fileMeta || !fileMeta.content) return;
@@ -312,7 +312,9 @@ const removeStep = (s: { id: number; title?: string }) => {
 };
 
 const goToCourse = (id?: string) => { if (!id) return; router.push(`/courses/${id}`); };
-const goToExercise = (id?: string) => { if (!id) return; router.push(`/exercises/${id}`); }; //script étapes du parcours
+const goToExercise = (id?: string) => { if (!id) return; router.push(`/exercises/${id}`); }; 
+const goToQuiz = (id?: string) => { if (!id) return; router.push(`/quizzes/${id}`); };
+  //script étapes du parcours
 </script>
 
 <style scoped>
