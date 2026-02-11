@@ -29,10 +29,12 @@ export const useModuleStore = defineStore('module', () => {
     }
 
     async function createModule(data: moduleRequest) {
+        console.log("Creating module with data:", data);
         isLoading.value = true;
         error.value = null;
         try {
             const response: any = await apiService.createModule(data);
+            console.log("Response from createModule:", response);
             const moduleData = response.data || (response.id ? response : null);
             if (moduleData) {
                 module.value.push(moduleData);

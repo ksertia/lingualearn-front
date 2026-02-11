@@ -256,7 +256,7 @@ const onSubmit = async () => {
       title: name.value,
       description: description.value,
       iconUrl: '',
-      index: 0,
+      index: null,
       isActive: true,
     })
 
