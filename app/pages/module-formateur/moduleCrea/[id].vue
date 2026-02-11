@@ -49,8 +49,8 @@
 
             <!-- NIVEAU (INFO VISUELLE SEULEMENT) -->
             <td class="px-6 py-4">
-              <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded">
-                {{ currentLevelLabel }}
+              <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-semibold">
+                {{ getLevelName(m.levelId) }}
               </span>
             </td>
 
@@ -201,8 +201,11 @@ const description = ref('')
 const error = ref('')
 const isLoading = ref(false)
 
-/* ================= LABEL ================= */
-const currentLevelLabel = 'Niveau sélectionné'
+// Récupérer le nom du niveau via son ID
+const getLevelName = (levelId: string) => {
+  const level = levels.value.find((l: any) => l.id === levelId)
+  return level ? level.name : 'N/A'
+}
 
 /* ================= CHARGEMENT INITIAL ================= */
 // onMounted(async () => {
