@@ -288,6 +288,37 @@ class ApiService {
     });
   }
 
+    /* ===================== STEPS ===================== */
+    async getSteps(learningPathId: string): Promise<ApiResponse<any[]>> {
+      return await this.api("/v1/steps", {
+        query: { learningPathId },
+      });
+    }
+
+    async createStep(data: any): Promise<ApiResponse<any>> {
+      return await this.api("/v1/steps", {
+        method: "POST",
+        body: data,
+      });
+    }
+
+    async updateStep(
+      id: string,
+      data: any,
+    ): Promise<ApiResponse<any>> {
+      return await this.api(`/v1/steps/${id}`, {
+        method: "PUT",
+        body: data,
+      });
+    }
+
+    async deleteStep(id: string): Promise<ApiResponse<void>> {
+      return await this.api(`/v1/steps/${id}`, {
+        method: "DELETE",
+      });
+    }
+
+
   /* ===================== DASHBOARD ===================== */
 
   async getDashboardData(params?: {

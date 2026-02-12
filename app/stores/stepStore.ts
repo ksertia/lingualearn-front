@@ -1,7 +1,8 @@
+// import type { LearningPath } from './../types/learning';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useApiService } from '~/services/api';
-import type { Step, CreateStepRequest } from '~/types/learning';
+import type { Step, CreateStepRequest, LearningPath } from '~/types/learning';
 
 export const useStepStore = defineStore('step', () => {
     const apiService = useApiService();
@@ -9,11 +10,11 @@ export const useStepStore = defineStore('step', () => {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
 
-    async function fetchSteps(levelId?: string) {
+    async function fetchSteps(LearningPathId?: string) {
         isLoading.value = true;
         error.value = null;
         try {
-            const response: any = await apiService.getSteps(levelId);
+            const response: any = await apiService.getSteps(LearningPathId || '');
             const data = response.data || (Array.isArray(response) ? response : null);
             if (data) {
                 steps.value = data;

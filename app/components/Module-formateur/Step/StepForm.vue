@@ -69,12 +69,11 @@
 
     <!-- Submit -->
     <div v-if="mode" class="pt-4">
-      <button
-        @click="submitStep"
-        class="px-6 py-2 bg-orange-500 text-white rounded-md"
-      >
+      <button @click="submitStep"
+        class="px-6 py-2 bg-orange-500 text-white rounded-md">
         Publier l'étape
       </button>
+
     </div>
   </div>
 </template>
@@ -109,34 +108,55 @@ const reset = () => {
 };
 
 const submitStep = async () => {
-  if (!title.value || !type.value) return;
+  console.log("Bouton cliqué")
 
-  if (mode.value === "create") {
-    await $fetch("/api/steps", {
-      method: "POST",
-      body: {
-        parcoursId: props.parcoursId,
-        title: title.value,
-        type: type.value,
-        content: content.value,
-      },
-    });
+  if (!title.value || !type.value) {
+    console.log("Titre ou type manquant")
+    return;
   }
 
-  if (mode.value === "import" && selectedFile.value) {
-    const formData = new FormData();
-    formData.append("parcoursId", props.parcoursId);
-    formData.append("title", title.value);
-    formData.append("type", type.value);
-    formData.append("file", selectedFile.value);
+  try {
+    if (mode.value === "create") {
+      console.log("Mode CREATE")
+      console.log("Contenu:", content.value)
 
-    await $fetch("/api/steps", {
-      method: "POST",
-      body: formData,
-    });
+      const response = await $fetch('https://213.32.120.11:4000/api/v1/steps', {
+        method: "POST",
+        body: {
+          parcoursId: props.parcoursId,
+          title: title.value,
+          type: type.value,
+          content: content.value,
+        },
+      });
+
+      console.log("Réponse:", response);
+    }
+
+    if (mode.value === "import" && selectedFile.value) {
+      console.log("Mode IMPORT")
+
+      const formData = new FormData();
+      formData.append("parcoursId", props.parcoursId);
+      formData.append("title", title.value);
+      formData.append("type", type.value);
+      formData.append("file", selectedFile.value);
+
+      const response = await $fetch('https://213.32.120.11:4000/api/v1/steps', {
+        method: 'POST',
+        body: { title, content }
+      });
+
+
+      console.log("Réponse:", response);
+    }
+
+    emit("created");
+    reset();
+
+  } catch (error) {
+    console.error("Erreur lors de la création :", error);
   }
-
-  emit("created");
-  reset();
 };
+
 </script>
