@@ -130,6 +130,18 @@ class ApiService {
     });
   }
 
+  async activateLanguage(id: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/languages/${id}/activate`, {
+      method: "PATCH",
+    });
+  }
+
+  async deactivateLanguage(id: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/languages/${id}/deactivate`, {
+      method: "PATCH",
+    });
+  }
+
   /* ===================== LEVELS ===================== */
 
   async getLevels(languageId?: string): Promise<ApiResponse<Level[]>> {
@@ -181,6 +193,20 @@ class ApiService {
       method: "DELETE",
     });
   }
+
+  /* ==== ACTIVATE / DEACTIVATE LEVEL ==== */
+
+async activateLevel(id: string): Promise<ApiResponse<Level>> {
+  return await this.api(`/v1/levels/${id}/activate`, {
+    method: "PATCH",
+  });
+}
+
+async deactivateLevel(id: string): Promise<ApiResponse<Level>> {
+  return await this.api(`/v1/levels/${id}/deactivate`, {
+    method: "PATCH",
+  });
+}
 
   /* ===================== DEFAULT LEVELS ===================== */
 
