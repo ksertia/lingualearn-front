@@ -16,9 +16,8 @@
 
       <button
         @click="goBack"
-        class="text-sm px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200"
-      >
-        Retour
+        class="text-sm px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200">
+         Retour
       </button>
     </div>
 
@@ -72,7 +71,7 @@
             @click="addPath"
             class="px-4 py-2 rounded-md bg-teal-600 hover:bg-teal-700 text-white text-sm"
           >
-            Ajouter le parcours
+            + Nouveau
           </button>
         </div>
 

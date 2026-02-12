@@ -34,60 +34,20 @@
                 />
               </div>
 
-              <!-- Sélection des niveaux -->
-               <div
-  v-for="(level, index) in formData.levels"
-  :key="index"
-  class="level-row"
->
-  <input
-    v-model="level.enabled"
-    type="checkbox"
-  />
-
-  <span class="level-name">
-    {{ level.name }}
-  </span>
-</div>
-
-              <!-- <div class="form-group">
-                <label class="form-label">Niveaux à créer</label>
-
-                <div
-                  v-for="(level, index) in formData.levels"
-                  :key="index"
-                  class="level-row"
-                >
-                  <input
-                    v-model="level.enabled"
-                    type="checkbox"
-                  />
-
-                  <span class="level-name">
-                    {{ level.name }}
-                  </span>
-
-                  <label class="switch">
-                    <input
-                      type="checkbox"
-                      v-model="level.isActive"
-                      :disabled="!level.enabled"
-                    />
-                    <span class="slider"></span>
-                  </label>
-
-                  <span class="status-text">
-                    {{ level.isActive ? "Actif" : "Inactif" }}
-                  </span>
-                </div>
-              </div> -->
+              <!-- Info sur les niveaux par defaut -->
+              <div class="form-info">
+                <span class="info-icon">ℹ️</span>
+                <p class="info-text">
+                  3 niveaux seront automatiquement créés : Débutant, Intermédiaire, Avancé
+                </p>
+              </div>
 
               <div class="form-actions">
                 <button type="button" class="btn btn-secondary" @click="closeModal">
                   Annuler
                 </button>
-                <button type="submit" class="btn btn-primary">
-                  Ajouter la langue
+                <button type="submit" class="btn btn-primary" :disabled="loading">
+                  {{ loading ? "Création..." : "Ajouter la langue" }}
                 </button>
               </div>
             </form>
@@ -110,24 +70,11 @@ import { useLanguageStore } from "~/stores/languageStore";
 const languageStore = useLanguageStore();
 
 const isOpen = ref(false);
-
-const defaultLevels = () => [
-  { name: "Debutant", code: "debutant", enabled: true },
-  { name: "Intermédiaire", code: "intermediate", enabled: true },
-  { name: "Avancé", code: "advanced", enabled: true },
-];
-
-
-// const defaultLevels = () => [
-//   { name: "Debutant", code: "debutant", enabled: true, isActive: true },
-//   { name: "Intermédiaire", code: "intermediate", enabled: true, isActive: true },
-//   { name: "Avancé", code: "advanced", enabled: true, isActive: true },
-// ];
+const loading = ref(false);
 
 const formData = ref({
   name: "",
   nativeLanguage: "",
-  levels: defaultLevels(),
 });
 
 const openModal = () => (isOpen.value = true);
@@ -141,7 +88,6 @@ const resetForm = () => {
   formData.value = {
     name: "",
     nativeLanguage: "",
-    levels: defaultLevels(),
   };
 };
 
@@ -150,6 +96,8 @@ const submitForm = async () => {
     alert("Veuillez remplir tous les champs");
     return;
   }
+
+  loading.value = true;
 
   try {
     // Code langue
@@ -166,15 +114,19 @@ const submitForm = async () => {
       isActive: true,
     });
 
-    // 2️⃣ créer les niveaux sélectionnés
-    const selectedLevels = formData.value.levels.filter(l => l.enabled);
+    // 2️⃣ créer les 3 niveaux par defaut
+    const defaultLevels = [
+      { name: "Débutant", code: "debutant", description: "Niveau débutant", index: 0 },
+      { name: "Intermédiaire", code: "intermediate", description: "Niveau intermédiaire", index: 1 },
+      { name: "Avancé", code: "advanced", description: "Niveau avancé", index: 2 },
+    ];
 
-    for (const [i, level] of selectedLevels.entries()) {
-      await languageStore.createLevelForLanguage(newLanguage.id, {
+    for (const level of defaultLevels) {
+      await languageStore.addLevelToLanguage(newLanguage.id, {
         name: level.name,
         code: level.code,
-        description: "",
-        index: i,
+        description: level.description,
+        index: level.index,
         isActive: true,
       });
     }
@@ -183,6 +135,8 @@ const submitForm = async () => {
   } catch (error) {
     console.error(error);
     alert("Erreur lors de la création");
+  } finally {
+    loading.value = false;
   }
 };
 </script>
@@ -387,6 +341,12 @@ const submitForm = async () => {
 
 .btn-primary:active {
   transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-secondary {

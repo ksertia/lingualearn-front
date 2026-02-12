@@ -9,7 +9,8 @@
 
     <div class="languages-grid">
       <div
-        v-for="language in languageStore.languages"
+        v-for="language in languageStore.visibleLanguages"
+
         :key="language.id"
         :class="[
           'language-card',
@@ -19,10 +20,24 @@
       >
         <div class="card-header">
           <h3 class="language-name">{{ language.name }}</h3>
-          <button class="btn-delete" @click.stop="deleteLanguage(language.id)">
-            <span>✕</span>
-          </button>
+
+          <div class="header-actions">
+            <!-- Bouton publier / désactiver -->
+            <button
+              class="btn-toggle"
+              :class="{ active: language.isActive }"
+              @click.stop="toggleLanguage(language)"
+            >
+              {{ language.isActive ? "Désactiver" : "Publier" }}
+            </button>
+
+            <!-- Bouton supprimer -->
+            <button class="btn-delete" @click.stop="deleteLanguage(language.id)">
+              <span>✕</span>
+            </button>
+          </div>
         </div>
+
 
         <p class="language-subtitle">{{ language.nativeLanguage }}</p>
 
@@ -50,6 +65,7 @@
 
 <script setup lang="ts">
 import { useLanguageStore } from "../../stores/languageStore";
+import type { LanguageWithLevels } from "~/types/language-level";
 
 const languageStore = useLanguageStore();
 
@@ -57,6 +73,11 @@ const selectLanguage = (languageId: string | undefined) => {
   if (!languageId) return;
   languageStore.selectLanguage(languageId);
 };
+const toggleLanguage = (language: LanguageWithLevels) => {
+  if (!language?.id) return;
+  languageStore.toggleLanguageStatus(language.id);
+};
+
 
 const deleteLanguage = (languageId: string | undefined) => {
   if (!languageId) return;
@@ -81,6 +102,39 @@ const formatDate = (date: string | undefined) => {
 
 
 <style scoped>
+
+.header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-toggle {
+  background: #e0e0e0;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-toggle.active {
+  background: #4caf50;
+  color: white;
+}
+
+.btn-toggle:not(.active) {
+  background: #ff9800;
+  color: white;
+}
+
+.btn-toggle:hover {
+  opacity: 0.85;
+}
+
+
+
 .languages-section {
   width: 100%;
 }

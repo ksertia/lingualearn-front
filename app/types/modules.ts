@@ -4,7 +4,7 @@ export interface module {
     description: string;
     levelId:string;
     iconUrl:string;
-    index: 0;
+    index: null ;
     isActive:boolean;
 }
 
@@ -24,6 +24,6 @@ export interface moduleRequest {
     title: string;
     description: string;
     iconUrl:string;
-    index: 0;
+    index: null | number;
     isActive:boolean;
     }
