@@ -1,23 +1,21 @@
-export interface DashboardStats {
-  totalUsers: number;
-  newUsers: number;
-  inactiveUsers: number;
-}
-
-export interface LanguageData {
-  label: string;
-  data: number;
-  backgroundColor: string;
-}
-
-export interface UserLevelData {
-  label: string;
-  data: number[];
-  backgroundColor: string;
+export interface DashboardData {
+    users: {
+        total: number;
+        active: number;
+        verified: number;
+        admin: number;
+        subAccounts: number;
+        withSubscription: number;
+    };
+    learningPaths: number;
+    levels: number;
+    steps: number;
+    lessons: number;
+    exercises: number;
+    stepQuizzes: number;
 }
 
 export interface DashboardResponse {
-  stats: DashboardStats;
-  languages: LanguageData[];
-  userLevels: UserLevelData[];
+    success: boolean;
+    data: DashboardData;
 }

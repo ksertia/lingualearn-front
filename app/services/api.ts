@@ -7,6 +7,7 @@ import type {
 import type { ApiResponse } from "~/types/learning";
 import type { CreateUserPayload } from "~/types/user";
 import type { module, moduleRequest, moduleResponse } from "~/types/modules";
+import type { DashboardResponse } from "~/types/dashboard";
 
 class ApiService {
   private api: ReturnType<typeof $fetch.create>;
@@ -285,6 +286,35 @@ class ApiService {
     return await this.api(`/v1/learning-paths/${id}`, {
       method: "DELETE",
     });
+  }
+
+  /* ===================== DASHBOARD ===================== */
+
+  async getDashboardData(params?: {
+    startDate?: string;
+    endDate?: string;
+    userType?: string;
+    isActive?: boolean;
+    isVerified?: boolean;
+    withSubscription?: boolean;
+  }): Promise<DashboardResponse> {
+    return await this.api("/v1/admin/dashboard", {
+      query: params,
+    });
+  }
+
+  /* ===================== PROGRESSION ===================== */
+
+  async getProgression(userId: string, languageId: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/progression/user/${userId}/language/${languageId}`);
+  }
+
+  async getCompleteProgression(userId: string, languageId: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/progression/complete/${userId}/${languageId}`);
+  }
+
+  async getProgressionStats(userId: string, languageId: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/progression/stats/${userId}/${languageId}`);
   }
 }
 
