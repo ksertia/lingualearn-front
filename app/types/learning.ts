@@ -35,7 +35,7 @@ export interface Level {
 
 export interface Step {
   id: string
-  levelId: string
+  learningPathId: string
   title: string
   description?: string
   stepNumber: number
@@ -171,7 +171,11 @@ export interface CreateCourseRequest {
   isPublished?: boolean
   isActive?: boolean
 }
-
+ export interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  message?: string
+}
 // export type ProgressStatus = 'locked' | 'unlocked' | 'started' | 'completed'
 // export type ProgressStepType = 'lesson' | 'exercise' | 'quiz'
 
