@@ -1,7 +1,7 @@
 <template>
   <div class="add-language-form">
     <Teleport to="body">
-      <Transition name="fade">
+       <Transition name="fade">
         <div v-if="isOpen" class="modal-overlay" @click.self="closeModal">
           <div class="modal-content">
             <div class="modal-header">
@@ -34,16 +34,32 @@
                 />
               </div>
 
-              <!-- Info sur les niveaux par defaut -->
-              <div class="form-info">
-                <span class="info-icon">ℹ️</span>
-                <p class="info-text">
-                  3 niveaux seront automatiquement créés : Débutant, Intermédiaire, Avancé
-                </p>
+              <!-- Sélection des niveaux -->
+              <div class="form-group">
+                <label class="form-label">Niveaux à créer</label>
+
+                <div
+                  v-for="(level, index) in formData.levels"
+                  :key="index"
+                  class="level-row"
+                >
+                  <input
+                    v-model="level.enabled"
+                    type="checkbox"
+                  />
+
+                  <span class="level-name">
+                    {{ level.name }}
+                  </span>
+                </div>
               </div>
 
               <div class="form-actions">
-                <button type="button" class="btn btn-secondary" @click="closeModal">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  @click="closeModal"
+                >
                   Annuler
                 </button>
                 <button type="submit" class="btn btn-primary" :disabled="loading">
@@ -64,6 +80,7 @@
 </template>
 
 <script setup lang="ts">
+
 import { ref } from "vue";
 import { useLanguageStore } from "~/stores/languageStore";
 
@@ -72,9 +89,17 @@ const languageStore = useLanguageStore();
 const isOpen = ref(false);
 const loading = ref(false);
 
+// niveaux par défaut
+const defaultLevels = () => [
+  { name: "Débutant", code: "debutant", enabled: true },
+  { name: "Intermédiaire", code: "intermediate", enabled: true },
+  { name: "Avancé", code: "advanced", enabled: true },
+];
+
 const formData = ref({
   name: "",
   nativeLanguage: "",
+  levels: defaultLevels(),
 });
 
 const openModal = () => (isOpen.value = true);
@@ -88,6 +113,7 @@ const resetForm = () => {
   formData.value = {
     name: "",
     nativeLanguage: "",
+    levels: defaultLevels(),
   };
 };
 
@@ -114,19 +140,15 @@ const submitForm = async () => {
       isActive: true,
     });
 
-    // 2️⃣ créer les 3 niveaux par defaut
-    const defaultLevels = [
-      { name: "Débutant", code: "debutant", description: "Niveau débutant", index: 0 },
-      { name: "Intermédiaire", code: "intermediate", description: "Niveau intermédiaire", index: 1 },
-      { name: "Avancé", code: "advanced", description: "Niveau avancé", index: 2 },
-    ];
+    // 2️⃣ créer les niveaux cochés
+    const selectedLevels = formData.value.levels.filter(l => l.enabled);
 
-    for (const level of defaultLevels) {
+    for (const [i, level] of selectedLevels.entries()) {
       await languageStore.addLevelToLanguage(newLanguage.id, {
         name: level.name,
         code: level.code,
-        description: level.description,
-        index: level.index,
+        description: "",
+        index: i,
         isActive: true,
       });
     }

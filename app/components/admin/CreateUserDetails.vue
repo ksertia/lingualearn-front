@@ -1,4 +1,4 @@
-ce  <template>
+<template>
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
       <h2 class="text-xl font-bold mb-4 text-[rgb(0,0,153)]">Détails utilisateur</h2>

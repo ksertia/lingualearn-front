@@ -1,3 +1,4 @@
+
 export interface LearningPath {
   id: string
   title: string
@@ -35,7 +36,7 @@ export interface Level {
 
 export interface Step {
   id: string
-  levelId: string
+  learningPathId: string
   title: string
   description?: string
   stepNumber: number
@@ -171,20 +172,27 @@ export interface CreateCourseRequest {
   isPublished?: boolean
   isActive?: boolean
 }
-
-export interface ApiResponse<T> {
+ export interface ApiResponse<T> {
   success: boolean
   data?: T
   message?: string
 }
+// export type ProgressStatus = 'locked' | 'unlocked' | 'started' | 'completed'
+// export type ProgressStepType = 'lesson' | 'exercise' | 'quiz'
 
-export interface PaginatedResponse<T> {
-  success: boolean
-  data: T[]
-  pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-  }
-}
+// export interface ProgressionLanguaexport interface ApiResponse<T> {
+//   success: boolean
+//   data?: T
+//   message?: string
+// }
+
+// export interface PaginatedResponse<T> {
+//   success: boolean
+//   data: T[]
+//   pagination: {
+//     page: number
+//     limit: number
+//     total: number
+//     totalPages: number
+//   }
+// }

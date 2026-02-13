@@ -3,12 +3,12 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-blue: rgb(0, 0, 153);
-  --color-brand-cyan: rgb(0, 206, 209);
-  --color-brand-orange: rgb(255, 127, 0);
-  --color-brand-gray-light: rgb(192, 192, 192);
+    --color-brand-blue: rgb(0, 0, 153);
+    --color-brand-cyan: rgb(0, 206, 209);
+    --color-brand-orange: rgb(255, 127, 0);
+    --color-brand-gray-light: rgb(192, 192, 192);
 }
- 
+
 @layer base {
     body {
         font-family: "Inter", sans-serif;

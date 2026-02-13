@@ -84,7 +84,7 @@ export const useLanguageStore = defineStore("language", () => {
       const res = await api.getLanguages();
       if (!res.success || !res.data) throw new Error(res.message);
 
-      languages.value = res.data.map(l => ({
+      languages.value = res.data.map((l: LanguageWithLevels)  => ({
         ...l,
         levels: [],
         levelsLoaded: false,
@@ -315,19 +315,26 @@ export const useLanguageStore = defineStore("language", () => {
     if (!lang) return;
 
     try {
-      const newStatus = !lang.isActive;
-
-      const res = await api.updateLanguage(languageId, {
-        isActive: newStatus,
-      });
-
-      if (res?.data) {
-        lang.isActive = res.data.isActive;
+      if (lang.isActive) {
+        // Désactiver la langue
+        const res = await api.deactivateLanguage(languageId);
+        if (res?.data) {
+          lang.isActive = res.data.isActive;
+        } else {
+          lang.isActive = false;
+        }
       } else {
-        lang.isActive = newStatus;
+        // Activer la langue
+        const res = await api.activateLanguage(languageId);
+        if (res?.data) {
+          lang.isActive = res.data.isActive;
+        } else {
+          lang.isActive = true;
+        }
       }
     } catch (e) {
       console.error("Erreur changement statut langue :", e);
+      throw e;
     }
   };
 

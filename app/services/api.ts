@@ -307,18 +307,13 @@ import type { CreateLanguagePayload, CreateLevelPayload, Level } from "~/types/l
 import type { ApiResponse } from "~/types/learning";
 import type { CreateUserPayload } from "~/types/user";
 import type { module, moduleRequest, moduleResponse } from "~/types/modules";
+import type { StatTotalResponse, UsersTotalParams } from "~/types/dashboard";
+import type {
+  ProgressionResponse,
+  CompleteProgressionResponse,
+  ProgressionStatsResponse,
+} from "~/types/progression";
 
-// Payload pour updateUser
-export type UpdateUserPayload = Partial<{
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  accountType: string;
-  isActive: boolean;
-}>;
-
-// -------------------- CLASSE API SERVICE --------------------
 class ApiService {
   private api: ReturnType<typeof $fetch.create>;
 
@@ -429,7 +424,21 @@ async putUser(id: string, userData: { username: string; email: string }) {
   }
 
   async deleteLanguage(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`/v1/languages/${id}`, { method: "DELETE" });
+    return await this.api(`/v1/languages/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async activateLanguage(id: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/languages/${id}/activate`, {
+      method: "PATCH",
+    });
+  }
+
+  async deactivateLanguage(id: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/languages/${id}/deactivate`, {
+      method: "PATCH",
+    });
   }
 
   /* ===================== LEVELS ===================== */
@@ -456,9 +465,29 @@ async putUser(id: string, userData: { username: string; email: string }) {
     return await this.api(`/v1/levels/${levelId}`, { method: "PUT", body: data });
   }
 
-  async deleteLevelForLanguage(levelId: string): Promise<ApiResponse<void>> {
-    return await this.api(`/v1/levels/${levelId}`, { method: "DELETE" });
+  async deleteLevelForLanguage(
+    levelId: string,
+  ): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/levels/${levelId}`, {
+      method: "DELETE",
+    });
   }
+
+  /* ==== ACTIVATE / DEACTIVATE LEVEL ==== */
+
+async activateLevel(id: string): Promise<ApiResponse<Level>> {
+  return await this.api(`/v1/levels/${id}/activate`, {
+    method: "PATCH",
+  });
+}
+
+async deactivateLevel(id: string): Promise<ApiResponse<Level>> {
+  return await this.api(`/v1/levels/${id}/deactivate`, {
+    method: "PATCH",
+  });
+}
+
+  /* ===================== DEFAULT LEVELS ===================== */
 
   async createDefaultLevels(languageId: string): Promise<ApiResponse<Level[]>> {
     const defaultLevels: CreateLevelPayload[] = [
@@ -499,17 +528,115 @@ async putUser(id: string, userData: { username: string; email: string }) {
   }
 
   async createLearningPath(data: any): Promise<ApiResponse<any>> {
-    return await this.api("/v1/learning-paths", { method: "POST", body: data });
+    return await this.api("/v1/learning-paths", {
+      method: "POST",
+      body: data,
+    });
   }
 
-  async updateLearningPath(id: string, data: any): Promise<ApiResponse<any>> {
-    return await this.api(`/v1/learning-paths/${id}`, { method: "PUT", body: data });
+  async updateLearningPath(
+    id: string,
+    data: any,
+  ): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/learning-paths/${id}`, {
+      method: "PUT",
+      body: data,
+    });
   }
 
   async deleteLearningPath(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`/v1/learning-paths/${id}`, { method: "DELETE" });
+    return await this.api(`/v1/learning-paths/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+    /* ===================== STEPS ===================== */
+    async getSteps(learningPathId: string): Promise<ApiResponse<any[]>> {
+      return await this.api("/v1/steps", {
+        query: { learningPathId },
+      });
+    }
+
+    async createStep(data: any): Promise<ApiResponse<any>> {
+      return await this.api("/v1/steps", {
+        method: "POST",
+        body: data,
+      });
+    }
+
+    async updateStep(
+      id: string,
+      data: any,
+    ): Promise<ApiResponse<any>> {
+      return await this.api(`/v1/steps/${id}`, {
+        method: "PUT",
+        body: data,
+      });
+    }
+
+    async deleteStep(id: string): Promise<ApiResponse<void>> {
+      return await this.api(`/v1/steps/${id}`, {
+        method: "DELETE",
+      });
+    }
+
+
+
+
+  async getDashboardData(params?: UsersTotalParams): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/users/total", {
+      query: params,
+    });
+  }
+
+  async getAllLearningPathsDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/learning-paths/total")
+  }
+
+  async getAllStepsDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/steps/total")
+  }
+
+  async getAllLessonDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/lessons/total")
+  }
+
+  async getAllQuizzesDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/quizzes/total")
+  }
+
+  async getAllLevelsDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/levels/total")
+  }
+
+  async getAllUsersDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/users/total")
+  }
+
+  /* ===================== PROGRESSION ===================== */
+
+  async getProgression(
+    userId: string,
+    languageId: string,
+  ): Promise<ProgressionResponse> {
+    return await this.api(`/v1/progression/user/${userId}/language/${languageId}`);
+  }
+
+  async getCompleteProgression(
+    userId: string,
+    languageId: string,
+  ): Promise<CompleteProgressionResponse> {
+    return await this.api(`/v1/progression/complete/${userId}/${languageId}`);
+  }
+
+  async getProgressionStats(
+    userId: string,
+    languageId: string,
+  ): Promise<ProgressionStatsResponse> {
+    return await this.api(`/v1/progression/stats/${userId}/${languageId}`);
   }
 }
+
 
 /* ===================== SINGLETON ===================== */
 let instance: ApiService;
