@@ -19,7 +19,7 @@
               class="nav-item"
               :class="{ 'active': $route.path === item.path }">
 
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path :d="item.icon" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
               </svg> 
               <span class="nav-text">{{ item.label }}</span>
@@ -169,5 +169,32 @@ const logout = () => {
 
 .nav-item.active svg {
   transform: scale(1.05);
+}
+
+.nav-icon {
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.nav-item:hover .nav-icon {
+  filter: drop-shadow(0 0 6px rgba(0, 206, 209, 0.6))
+    drop-shadow(0 0 12px rgba(0, 206, 209, 0.35));
+}
+
+.nav-item.active .nav-icon {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.85))
+    drop-shadow(0 0 16px rgba(0, 206, 209, 0.7));
+  animation: icon-shine 1.8s ease-in-out infinite;
+}
+
+@keyframes icon-shine {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 </style>
