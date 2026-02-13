@@ -7,7 +7,12 @@ import type {
 import type { ApiResponse } from "~/types/learning";
 import type { CreateUserPayload } from "~/types/user";
 import type { module, moduleRequest, moduleResponse } from "~/types/modules";
-import type { DashboardResponse } from "~/types/dashboard";
+import type { StatTotalResponse, UsersTotalParams } from "~/types/dashboard";
+import type {
+  ProgressionResponse,
+  CompleteProgressionResponse,
+  ProgressionStatsResponse,
+} from "~/types/progression";
 
 class ApiService {
   private api: ReturnType<typeof $fetch.create>;
@@ -345,32 +350,58 @@ async deactivateLevel(id: string): Promise<ApiResponse<Level>> {
     }
 
 
-  /* ===================== DASHBOARD ===================== */
 
-  async getDashboardData(params?: {
-    startDate?: string;
-    endDate?: string;
-    userType?: string;
-    isActive?: boolean;
-    isVerified?: boolean;
-    withSubscription?: boolean;
-  }): Promise<DashboardResponse> {
-    return await this.api("/v1/admin/dashboard", {
+
+  async getDashboardData(params?: UsersTotalParams): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/users/total", {
       query: params,
     });
   }
 
+  async getAllLearningPathsDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/learning-paths/total")
+  }
+
+  async getAllStepsDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/steps/total")
+  }
+
+  async getAllLessonDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/lessons/total")
+  }
+
+  async getAllQuizzesDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/quizzes/total")
+  }
+
+  async getAllLevelsDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/levels/total")
+  }
+
+  async getAllUsersDashboard(): Promise<StatTotalResponse> {
+    return await this.api("/v1/admin/stats/users/total")
+  }
+
   /* ===================== PROGRESSION ===================== */
 
-  async getProgression(userId: string, languageId: string): Promise<ApiResponse<any>> {
+  async getProgression(
+    userId: string,
+    languageId: string,
+  ): Promise<ProgressionResponse> {
     return await this.api(`/v1/progression/user/${userId}/language/${languageId}`);
   }
 
-  async getCompleteProgression(userId: string, languageId: string): Promise<ApiResponse<any>> {
+  async getCompleteProgression(
+    userId: string,
+    languageId: string,
+  ): Promise<CompleteProgressionResponse> {
     return await this.api(`/v1/progression/complete/${userId}/${languageId}`);
   }
 
-  async getProgressionStats(userId: string, languageId: string): Promise<ApiResponse<any>> {
+  async getProgressionStats(
+    userId: string,
+    languageId: string,
+  ): Promise<ProgressionStatsResponse> {
     return await this.api(`/v1/progression/stats/${userId}/${languageId}`);
   }
 }

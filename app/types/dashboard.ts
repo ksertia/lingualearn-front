@@ -15,7 +15,20 @@ export interface DashboardData {
     stepQuizzes: number;
 }
 
-export interface DashboardResponse {
+export interface StatTotalData {
+    total: number;
+}
+
+export interface StatTotalResponse {
     success: boolean;
-    data: DashboardData;
+    data: StatTotalData | number;
+}
+
+export interface UsersTotalParams {
+    startDate?: string;
+    endDate?: string;
+    userType?: string;
+    isActive?: boolean;
+    isVerified?: boolean;
+    withSubscription?: boolean;
 }

@@ -84,7 +84,7 @@ export const useLanguageStore = defineStore("language", () => {
       const res = await api.getLanguages();
       if (!res.success || !res.data) throw new Error(res.message);
 
-      languages.value = res.data.map(l => ({
+      languages.value = res.data.map((l: LanguageWithLevels)  => ({
         ...l,
         levels: [],
         levelsLoaded: false,
