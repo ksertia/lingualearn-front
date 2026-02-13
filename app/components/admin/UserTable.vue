@@ -52,19 +52,49 @@
       <div
         v-for="user in paginatedUsers"
         :key="user.id"
-        class="grid grid-cols-[2fr_3fr_1.5fr_1.5fr] items-center bg-white border border-gray-200 hover:border-[#ff7f00] hover:shadow-sm transition rounded-xl px-6 py-4 group"
+        :class="[
+          'grid grid-cols-[2fr_3fr_1.5fr_1.5fr] items-center border rounded-xl px-6 py-4 group transition',
+          user.isActive
+            ? 'bg-white border-gray-200 hover:border-[#ff7f00] hover:shadow-sm'
+            : 'bg-gray-100 border-gray-200 opacity-70'
+        ]"
       >
         <!-- User -->
         <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-full bg-[#00ced1] text-[#000099] flex items-center justify-center text-sm font-bold"
-          >
-            {{ user.profile.firstName[0] }}{{ user.profile.lastName[0] }}
+
+          <!-- Avatar + Lock -->
+          <div class="relative">
+            <div
+              class="w-10 h-10 rounded-full bg-[#00ced1] text-[#000099] flex items-center justify-center text-sm font-bold"
+              :class="!user.isActive ? 'opacity-60' : ''"
+            >
+              {{ user.profile.firstName[0] }}{{ user.profile.lastName[0] }}
+            </div>
+
+            <!-- Lock icon -->
+            <div
+              v-if="!user.isActive"
+              class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#000099] text-[#00ced1] flex items-center justify-center text-[10px] shadow"
+            >
+              🔒
+            </div>
           </div>
-          <div class="leading-tight">
+
+          <!-- Name + Badge -->
+          <div class="leading-tight space-y-1">
             <p class="text-sm font-medium text-black">
               {{ user.profile.firstName }} {{ user.profile.lastName }}
             </p>
+
+            <!-- Status badge -->
+            <span
+              class="inline-block px-2 py-0.5 text-[10px] font-semibold rounded-full"
+              :class="user.isActive
+                ? 'bg-[#00ced1] text-[#000099]'
+                : 'bg-gray-300 text-gray-600'"
+            >
+              {{ user.isActive ? 'Actif' : 'Inactif' }}
+            </span>
           </div>
         </div>
 
@@ -85,20 +115,36 @@
           {{ roleLabel(user.accountType) }}
         </button>
 
-        <!-- Actions -->
-        <div class="flex justify-end gap-2">
-          <button
-            @click="$emit('edit', user)"
-            class="px-3 py-1 text-xs rounded-full bg-[#000099] text-[#00ced1] font-semibold hover:bg-opacity-90 transition"
-          >
-            Modifier
-          </button>
-          <button
-            @click="$emit('delete', user)"
-            class="px-3 py-1 text-xs rounded-full bg-[#ff7f00] text-black font-semibold hover:bg-opacity-90 transition"
-          >
-            Supprimer
-          </button>
+       <!-- Actions -->
+<div class="flex justify-end gap-2">
+  <!-- Modifier -->
+  <button
+  @click="$emit('edit', user)"
+  class="px-3 py-1 text-xs rounded-full bg-[#000099] text-[#00ced1] font-semibold hover:bg-opacity-90 transition"
+>
+  Modifier
+</button>
+
+
+  <!-- Activer / Désactiver -->
+  <button
+    @click="handleToggle(user)"
+    class="px-3 py-1 text-xs rounded-full font-semibold transition"
+    :class="user.isActive
+      ? 'bg-[#c0c0c0] text-[#000099] hover:bg-[#a0a0a0]'   /* Désactiver */
+      : 'bg-[#00ced1] text-[#000099] hover:bg-[#00b6b9]'    /* Activer */"
+  >
+    {{ user.isActive ? 'Désactiver' : 'Activer' }}
+  </button>
+
+  <!-- Supprimer -->
+  <button
+    @click="$emit('delete', user)"
+    class="px-3 py-1 text-xs rounded-full bg-[#ff7f00] text-black font-semibold hover:bg-opacity-90 transition"
+  >
+    Supprimer
+  </button>
+</div>
         </div>
       </div>
 
@@ -145,8 +191,6 @@
         </button>
       </div>
     </div>
-
-  </div>
 </template>
 
 <script setup lang="ts">
@@ -154,6 +198,14 @@ import { ref, computed, watch } from 'vue'
 import type { User } from '~/types/auth'
 
 const props = defineProps<{ users: User[] }>()
+
+const emit = defineEmits([
+  'create',
+  'edit',
+  'delete',
+  'show-details',
+  'toggle-status'
+])
 
 const search = ref('')
 const selectedRole = ref('')
@@ -167,9 +219,11 @@ const filteredUsers = computed(() => {
       user.profile.firstName.toLowerCase().includes(searchValue) ||
       user.profile.lastName.toLowerCase().includes(searchValue) ||
       (user.email || '').toLowerCase().includes(searchValue)
+
     const matchRole = selectedRole.value
       ? user.accountType === selectedRole.value
       : true
+
     return matchSearch && matchRole
   })
 })
@@ -203,6 +257,17 @@ const roleLabel = (role: string) => {
     admin: 'Admin'
   }
   return labels[role as keyof typeof labels] || role
+}
+
+const handleToggle = (user: User) => {
+  if (user.isActive) {
+    const confirmDeactivate = confirm(
+      `Voulez-vous vraiment désactiver le compte de ${user.profile.firstName} ${user.profile.lastName} ?`
+    )
+    if (!confirmDeactivate) return
+  }
+
+  emit('toggle-status', user)
 }
 
 watch([search, selectedRole], () => {

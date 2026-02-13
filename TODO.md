@@ -1,6 +1,14 @@
-# TODO: Correct moduleStore.ts and related files
+# TODO - Annulation des modifications pour connecter les boutons Modifier et Supprimer aux APIs
 
-## Tasks
-- [x] Fix types in app/types/modules.ts: rename interfaces to PascalCase, change integer to number, add index to CreateModuleRequest
-- [x] Update app/services/api.ts: import correct types, add levelId to getModule, update return types
-- [x] Correct app/stores/moduleStore.ts: fix imports, updateModule parameter, variable names, error messages
+## Tâches complétées
+- [x] Supprimer l'importation et l'utilisation du composant EditUser dans users.vue
+- [x] Retirer le modal d'édition du template dans users.vue
+- [x] Supprimer les références à editingUser, editUser, et onUserUpdated dans users.vue
+- [x] Retirer les gestionnaires d'événements @edit et @delete dans le composant UserTable de users.vue
+- [x] Supprimer le fichier EditUser.vue
+- [x] Mettre à jour le TODO.md pour refléter l'annulation des modifications
+
+## Notes
+- L'erreur 500 côté serveur pour PUT /v1/users/{id} nécessite l'annulation des modifications frontend
+- Les APIs restent disponibles pour les tests dans Swagger UI
+- Les boutons "Modifier" et "Supprimer" resteront visibles dans UserTable.vue mais ne feront rien
