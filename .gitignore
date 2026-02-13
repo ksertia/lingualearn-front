@@ -25,6 +25,6 @@ logs
 
 
 # Packages
-.package-lock.json
+package-lock.json
 
 
