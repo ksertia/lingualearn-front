@@ -6,19 +6,26 @@
       </h1>
       <button
         @click="router.back()"
-        class="text-sm px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200"
-      >
+        class="text-sm px-3 py-1 rounded-md bg-gray-100 hover:bg-gray-200">
         Retour
       </button>
     </div>
 
-    <!-- Liste des étapes -->
-    <StepList :parcoursId="parcoursId" />
+    <!-- <section class="p-6 max-w-5xl mx-auto space-y-14">
+      <StepForm :parcoursId="parcoursId" @created="refreshKey++" />
+      <StepList :parcoursId="parcoursId" :key="refreshKey" />
+    </section> -->
 
     <!-- Formulaire création -->
     <div class="mt-8">
       <StepForm :parcoursId="parcoursId" @created="refreshKey++" />
     </div>
+
+    <div class="mt-8">
+      <!-- Liste des étapes -->
+    <StepList :parcoursId="parcoursId" :key="refreshKey"/>
+    </div>
+    
   </section>
 </template>
 
