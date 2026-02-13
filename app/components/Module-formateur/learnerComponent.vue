@@ -142,7 +142,7 @@ const chartOptions = {
               <div class="grid grid-cols-1 gap-3">
                 <div class="p-4 bg-indigo-500 rounded-2xl text-white shadow-lg shadow-indigo-100">
                   <span class="text-[10px] font-bold opacity-80 uppercase block">Score Total (XP)</span>
-                  <span class="text-3xl font-black">{{ progStore.stats?.totalXp || 0 }}</span>
+                  <span class="text-3xl font-black">{{ progStore.totalXp }}</span>
                 </div>
               </div>
             </div>
@@ -159,7 +159,7 @@ const chartOptions = {
             <div v-else-if="charts" class="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="bg-slate-50 p-8 rounded-[2.5rem] relative flex flex-col items-center justify-center h-64">
-                  <span class="absolute top-8 left-8 text-[11px] font-black text-slate-400 uppercase tracking-widest">Score de Maîtrise</span>
+                  <span class="absolute top-4 text-[11px] font-black text-slate-400 uppercase tracking-widest">Score de maitrise</span>
                   <div class="h-48 w-48 relative">
                     <Doughnut :data="charts.doughnut" :options="chartOptions" />
                     <div class="absolute inset-0 flex flex-col items-center justify-center pt-2">
