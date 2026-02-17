@@ -17,13 +17,15 @@ import type {
 class ApiService {
   private api: ReturnType<typeof $fetch.create>;
 
+  private accessToken: string | null = null;
+
   constructor() {
     const config = useRuntimeConfig();
 
     this.api = $fetch.create({
       baseURL: config.public.apiBase,
-      onRequest({ options }) {
-        const token = useCookie("token").value;
+      onRequest: ({ options }) => {
+        const token = this.accessToken || useCookie("token").value;
 
         if (!options.headers) {
           options.headers = new Headers();
@@ -39,6 +41,10 @@ class ApiService {
     });
   }
 
+  setAccessToken(token: string | null) {
+    this.accessToken = token;
+  }
+
   /* ===================== AUTH ===================== */
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -48,7 +54,7 @@ class ApiService {
     });
   }
 
-  async getMe(): Promise<{ data: User }> {
+  async getMe(): Promise<{ data: { user: User } }> {
     return await this.api("/v1/users/me");
   }
 
@@ -202,17 +208,17 @@ class ApiService {
 
   /* ==== ACTIVATE / DEACTIVATE LEVEL ==== */
 
-async activateLevel(id: string): Promise<ApiResponse<Level>> {
-  return await this.api(`/v1/levels/${id}/activate`, {
-    method: "PATCH",
-  });
-}
+  async activateLevel(id: string): Promise<ApiResponse<Level>> {
+    return await this.api(`/v1/levels/${id}/activate`, {
+      method: "PATCH",
+    });
+  }
 
-async deactivateLevel(id: string): Promise<ApiResponse<Level>> {
-  return await this.api(`/v1/levels/${id}/deactivate`, {
-    method: "PATCH",
-  });
-}
+  async deactivateLevel(id: string): Promise<ApiResponse<Level>> {
+    return await this.api(`/v1/levels/${id}/deactivate`, {
+      method: "PATCH",
+    });
+  }
 
   /* ===================== DEFAULT LEVELS ===================== */
 
@@ -319,35 +325,35 @@ async deactivateLevel(id: string): Promise<ApiResponse<Level>> {
     });
   }
 
-    /* ===================== STEPS ===================== */
-    async getSteps(learningPathId: string): Promise<ApiResponse<any[]>> {
-      return await this.api("/v1/steps", {
-        query: { learningPathId },
-      });
-    }
+  /* ===================== STEPS ===================== */
+  async getSteps(learningPathId: string): Promise<ApiResponse<any[]>> {
+    return await this.api("/v1/steps", {
+      query: { learningPathId },
+    });
+  }
 
-    async createStep(data: any): Promise<ApiResponse<any>> {
-      return await this.api("/v1/steps", {
-        method: "POST",
-        body: data,
-      });
-    }
+  async createStep(data: any): Promise<ApiResponse<any>> {
+    return await this.api("/v1/steps", {
+      method: "POST",
+      body: data,
+    });
+  }
 
-    async updateStep(
-      id: string,
-      data: any,
-    ): Promise<ApiResponse<any>> {
-      return await this.api(`/v1/steps/${id}`, {
-        method: "PUT",
-        body: data,
-      });
-    }
+  async updateStep(
+    id: string,
+    data: any,
+  ): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/steps/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  }
 
-    async deleteStep(id: string): Promise<ApiResponse<void>> {
-      return await this.api(`/v1/steps/${id}`, {
-        method: "DELETE",
-      });
-    }
+  async deleteStep(id: string): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/steps/${id}`, {
+      method: "DELETE",
+    });
+  }
 
 
 

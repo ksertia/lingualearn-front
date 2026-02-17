@@ -106,7 +106,7 @@
                   @click="goToEtapes(p)"
                   class="px-3 py-1 bg-blue-700 hover:bg-blue-800 text-white rounded-md text-sm"
                 >
-                  Voir étapes
+                  Etapes
                 </button>
                 <button
                   @click="removePath(p)"
