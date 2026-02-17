@@ -9,7 +9,10 @@ export default defineNuxtConfig({
     port: Number(process.env.PORT) || 3200
   },
 
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+    "quill/dist/quill.snow.css"
+  ],
 
   modules: ['@pinia/nuxt'],
 

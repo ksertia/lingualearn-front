@@ -69,11 +69,12 @@
 
     <!-- Submit -->
     <div v-if="mode" class="pt-4">
-      <button @click="submitStep"
-        class="px-6 py-2 bg-orange-500 text-white rounded-md">
+      <button
+        @click="submitStep"
+        class="px-6 py-2 bg-orange-500 text-white rounded-md"
+      >
         Publier l'étape
       </button>
-
     </div>
   </div>
 </template>
@@ -83,17 +84,30 @@ import { ref } from "vue";
 import StepEditor from "./StepEditor.vue";
 import StepUploader from "./StepUploader.vue";
 
+/* =========================
+   Props / Emits
+========================= */
 const props = defineProps<{
   parcoursId: string;
 }>();
 
 const emit = defineEmits(["created"]);
 
+/* =========================
+   State
+========================= */
 const title = ref("");
 const type = ref("");
 const mode = ref<"create" | "import" | null>(null);
-const content = ref("");
+
+/* ⚠️ IMPORTANT : Quill renvoie un objet (Delta) */
+const content = ref<any>(null);
+
 const selectedFile = ref<File | null>(null);
+
+/* =========================
+   Handlers
+========================= */
 
 const handleFile = (file: File) => {
   selectedFile.value = file;
@@ -103,38 +117,50 @@ const reset = () => {
   title.value = "";
   type.value = "";
   mode.value = null;
-  content.value = "";
+  content.value = null;
   selectedFile.value = null;
 };
 
+/* =========================
+   Submit
+========================= */
+
 const submitStep = async () => {
-  console.log("Bouton cliqué")
+  console.log("Bouton cliqué");
 
   if (!title.value || !type.value) {
-    console.log("Titre ou type manquant")
+    console.log("Titre ou type manquant");
     return;
   }
 
   try {
+    /* ================= CREATE (éditeur Quill) ================= */
     if (mode.value === "create") {
-      console.log("Mode CREATE")
-      console.log("Contenu:", content.value)
 
-      const response = await $fetch('https://213.32.120.11:4000/api/v1/steps', {
-        method: "POST",
-        body: {
-          parcoursId: props.parcoursId,
-          title: title.value,
-          type: type.value,
-          content: content.value,
-        },
-      });
+      if (!content.value) {
+        console.log("Contenu vide");
+        return;
+      }
 
-      console.log("Réponse:", response);
+      const response = await $fetch(
+        "https://213.32.120.11:4000/api/v1/steps",
+        {
+          method: "POST",
+          body: {
+            parcoursId: props.parcoursId,
+            title: title.value,
+            type: type.value,
+            // 🔥 on envoie du JSON stringifié
+            content: JSON.stringify(content.value),
+          },
+        }
+      );
+
+      console.log("Réponse CREATE:", response);
     }
 
+    /* ================= IMPORT (fichier) ================= */
     if (mode.value === "import" && selectedFile.value) {
-      console.log("Mode IMPORT")
 
       const formData = new FormData();
       formData.append("parcoursId", props.parcoursId);
@@ -142,13 +168,15 @@ const submitStep = async () => {
       formData.append("type", type.value);
       formData.append("file", selectedFile.value);
 
-      const response = await $fetch('https://213.32.120.11:4000/api/v1/steps', {
-        method: 'POST',
-        body: { title, content }
-      });
+      const response = await $fetch(
+        "https://213.32.120.11:4000/api/v1/steps",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
-
-      console.log("Réponse:", response);
+      console.log("Réponse IMPORT:", response);
     }
 
     emit("created");
@@ -158,5 +186,4 @@ const submitStep = async () => {
     console.error("Erreur lors de la création :", error);
   }
 };
-
 </script>
