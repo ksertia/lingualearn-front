@@ -67,33 +67,45 @@ class ApiService {
     });
   }
 
+
   /* ===================== USERS ===================== */
 
-  async getUsers(): Promise<ApiResponse<User[]>> {
-    return await this.api("/v1/users");
-  }
+async getUsers(): Promise<
+  ApiResponse<{
+    users: User[]
+    pagination: {
+      page: number
+      limit: number
+      total: number
+    }
+  }>
+> {
+  return await this.api("/v1/users");
+}
 
-  async updateUser(
-    id: string,
-    data: Partial<{
-      firstName: string;
-      lastName: string;
-      email: string;
-      password: string;
-      accountType: string;
-    }>,
-  ): Promise<ApiResponse<User>> {
-    return await this.api(`/v1/users/${id}`, {
-      method: "PUT",
-      body: data,
-    });
-  }
+async updateUser(
+  id: string,
+  data: Partial<{
+    firstName: string
+    lastName: string
+    email: string
+    password: string
+    accountType: string
+    isActive: boolean   // ← ajouté pour pouvoir activer/désactiver
+  }>
+): Promise<ApiResponse<User>> {
+  return await this.api(`/v1/users/${id}`, {
+    method: "PUT",
+    body: data,
+  });
+}
 
-  async deleteUser(id: string): Promise<ApiResponse<void>> {
-    return await this.api(`/v1/users/${id}`, {
-      method: "DELETE",
-    });
-  }
+async deleteUser(id: string): Promise<ApiResponse<void>> {
+  return await this.api(`/v1/users/${id}`, {
+    method: "DELETE",
+  });
+}
+
 
   /* ===================== LANGUAGES ===================== */
 
@@ -141,6 +153,8 @@ class ApiService {
       method: "DELETE",
     });
   }
+
+  /* ==== ACTIVATE / DEACTIVATE LANGUAGE ==== */
 
   async activateLanguage(id: string): Promise<ApiResponse<any>> {
     return await this.api(`/v1/languages/${id}/activate`, {
@@ -220,49 +234,6 @@ class ApiService {
     });
   }
 
-  /* ===================== DEFAULT LEVELS ===================== */
-
-  async createDefaultLevels(
-    languageId: string,
-  ): Promise<ApiResponse<Level[]>> {
-    const defaultLevels: CreateLevelPayload[] = [
-      {
-        languageId,
-        name: "Débutant",
-        code: "beginner",
-        description: "Niveau pour les débutants",
-        index: 0,
-        isActive: true,
-      },
-      {
-        languageId,
-        name: "Intermédiaire",
-        code: "intermediate",
-        description: "Niveau pour les intermédiaires",
-        index: 1,
-        isActive: true,
-      },
-      {
-        languageId,
-        name: "Avancé",
-        code: "advanced",
-        description: "Niveau pour les avancés",
-        index: 2,
-        isActive: true,
-      },
-    ];
-
-    const createdLevels: Level[] = [];
-
-    for (const level of defaultLevels) {
-      const response = await this.createLevelForLanguage(languageId, level);
-      if (response.success && response.data) {
-        createdLevels.push(response.data);
-      }
-    }
-
-    return { success: true, data: createdLevels };
-  }
   /* ===================== MODULES ===================== */
 
   async getModule(levelId?: string): Promise<ApiResponse<module[]>> {
@@ -326,6 +297,7 @@ class ApiService {
   }
 
   /* ===================== STEPS ===================== */
+
   async getSteps(learningPathId: string): Promise<ApiResponse<any[]>> {
     return await this.api("/v1/steps", {
       query: { learningPathId },
@@ -339,10 +311,7 @@ class ApiService {
     });
   }
 
-  async updateStep(
-    id: string,
-    data: any,
-  ): Promise<ApiResponse<any>> {
+  async updateStep(id: string, data: any): Promise<ApiResponse<any>> {
     return await this.api(`/v1/steps/${id}`, {
       method: "PUT",
       body: data,
@@ -355,8 +324,7 @@ class ApiService {
     });
   }
 
-
-
+  /* ===================== DASHBOARD ===================== */
 
   async getDashboardData(params?: UsersTotalParams): Promise<StatTotalResponse> {
     return await this.api("/v1/admin/stats/users/total", {
@@ -365,27 +333,27 @@ class ApiService {
   }
 
   async getAllLearningPathsDashboard(): Promise<StatTotalResponse> {
-    return await this.api("/v1/admin/stats/learning-paths/total")
+    return await this.api("/v1/admin/stats/learning-paths/total");
   }
 
   async getAllStepsDashboard(): Promise<StatTotalResponse> {
-    return await this.api("/v1/admin/stats/steps/total")
+    return await this.api("/v1/admin/stats/steps/total");
   }
 
   async getAllLessonDashboard(): Promise<StatTotalResponse> {
-    return await this.api("/v1/admin/stats/lessons/total")
+    return await this.api("/v1/admin/stats/lessons/total");
   }
 
   async getAllQuizzesDashboard(): Promise<StatTotalResponse> {
-    return await this.api("/v1/admin/stats/quizzes/total")
+    return await this.api("/v1/admin/stats/quizzes/total");
   }
 
   async getAllLevelsDashboard(): Promise<StatTotalResponse> {
-    return await this.api("/v1/admin/stats/levels/total")
+    return await this.api("/v1/admin/stats/levels/total");
   }
 
   async getAllUsersDashboard(): Promise<StatTotalResponse> {
-    return await this.api("/v1/admin/stats/users/total")
+    return await this.api("/v1/admin/stats/users/total");
   }
 
   /* ===================== PROGRESSION ===================== */
@@ -394,24 +362,29 @@ class ApiService {
     userId: string,
     languageId: string,
   ): Promise<ProgressionResponse> {
-    return await this.api(`/v1/progression/user/${userId}/language/${languageId}`);
+    return await this.api(
+      `/v1/progression/user/${userId}/language/${languageId}`,
+    );
   }
 
   async getCompleteProgression(
     userId: string,
     languageId: string,
   ): Promise<CompleteProgressionResponse> {
-    return await this.api(`/v1/progression/complete/${userId}/${languageId}`);
+    return await this.api(
+      `/v1/progression/complete/${userId}/${languageId}`,
+    );
   }
 
   async getProgressionStats(
     userId: string,
     languageId: string,
   ): Promise<ProgressionStatsResponse> {
-    return await this.api(`/v1/progression/stats/${userId}/${languageId}`);
+    return await this.api(
+      `/v1/progression/stats/${userId}/${languageId}`,
+    );
   }
 }
-
 
 /* ===================== SINGLETON ===================== */
 

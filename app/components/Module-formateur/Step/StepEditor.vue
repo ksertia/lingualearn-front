@@ -1,92 +1,82 @@
 <template>
-  <div class="mt-6 border rounded-lg p-4 space-y-4">
-    <!-- Toolbar -->
-    <div class="flex flex-wrap gap-2 border-b pb-3">
-  <button @click="toggleBold"
-    class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-sm">
-    Gras
-  </button>
-  
-  <button @click="toggleItalic"
-    class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-sm">
-    Italique
-  </button>
-
-  <button @click="toggleHeading"
-    class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-sm">
-    Titre  
-  </button> 
-
-  <button @click="toggleBulletList"
-    class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-sm">
-    Liste à puces
-  </button>
-
-  <button @click="undo"
-    class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-sm">
-    Annuler
-  </button>
-
-  <button @click="redo"
-    class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-sm">
-    Refaire
-  </button>    
-</div>
-
-    <!-- Editor -->
-    <EditorContent
-      :editor="editor"
-      class="min-h-[200px] p-3 border rounded-md focus:outline-none"
-    />
+  <div class="mt-6 border rounded-lg p-4">
+    <div ref="editorEl" class="min-h-[250px]" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { watch } from "vue";
-import { Editor, EditorContent } from "@tiptap/vue-3";
-import StarterKit from "@tiptap/starter-kit";
+import { ref, onMounted, watch } from "vue";
 
 const props = defineProps<{
-  modelValue: string;
+  modelValue: any; // Delta object maintenant
 }>();
 
 const emit = defineEmits(["update:modelValue"]);
 
-const editor = new Editor({
-  extensions: [StarterKit],
-  content: props.modelValue || "",
-  onUpdate: ({ editor }) => {
-    emit("update:modelValue", editor.getHTML());
-  },
-});
+const editorEl = ref<HTMLDivElement | null>(null);
+let quill: any = null;
 
 /* =========================
-   Toolbar actions
+   Init Quill (Nuxt safe)
 ========================= */
+onMounted(async () => {
+  const Quill = (await import("quill")).default;
 
-const toggleBold = () => editor.chain().focus().toggleBold().run();
-const toggleItalic = () => editor.chain().focus().toggleItalic().run();
-const toggleHeading = () =>
-  editor.chain().focus().toggleHeading({ level: 2 }).run();
-const toggleBulletList = () =>
-  editor.chain().focus().toggleBulletList().run();
-const undo = () => editor.chain().focus().undo().run();
-const redo = () => editor.chain().focus().redo().run();
+  quill = new Quill(editorEl.value!, {
+    theme: "snow",
+    placeholder: "Écris le contenu de l'étape ici...",
+    modules: {
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ["bold", "italic", "underline", "strike"],
+        [{ color: [] }, { background: [] }],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["blockquote", "code-block"],
+        ["link", "image"],
+        ["clean"]
+      ],
+      history: {
+        delay: 500,
+        maxStack: 100,
+        userOnly: true
+      }
+    }
+  });
+
+  /* Charger contenu existant */
+  if (props.modelValue) {
+    quill.setContents(props.modelValue);
+  }
+
+  /* Sync vers parent (v-model) */
+  quill.on("text-change", () => {
+    emit("update:modelValue", quill.getContents());
+  });
+});
 
 /* =========================
    Sync si parent modifie valeur
 ========================= */
-
 watch(
   () => props.modelValue,
   (value) => {
-    if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || "");
+    if (!quill) return;
+
+    const current = quill.getContents();
+    if (JSON.stringify(current) !== JSON.stringify(value)) {
+      quill.setContents(value || []);
     }
   }
 );
 </script>
 
 <style scoped>
-
+/* améliore visibilité */
+:deep(.ql-toolbar) {
+  border-radius: 8px 8px 0 0;
+}
+:deep(.ql-container) {
+  min-height: 220px;
+  border-radius: 0 0 8px 8px;
+}
 </style>
