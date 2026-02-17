@@ -55,9 +55,9 @@ export type AccountType =
 export interface UpdateUserPayload {
   firstName?: string
   lastName?: string
-  // phone?: string
-  // email?: string
-  // password?: string
-  // accountType?: AccountType
-  // isActive?: boolean
+   phone?: string
+  email?: string
+   password?: string
+  accountType?: AccountType
+   isActive?: boolean
 }

@@ -16,8 +16,8 @@
 
     <!-- Tableau utilisateurs -->
     <UserTable
-      v-else-if="userStore.users.length > 0"
-      :users="userStore.users"
+      v-else
+        :users="userStore.users"
       @create="openModal = true"
       @delete="deleteUser"
       @show-details="showUserDetails"
@@ -26,9 +26,10 @@
     />
 
     <!-- Message si aucun utilisateur -->
-    <div v-else class="text-center py-4">
+    <!-- <div v-else class="text-center py-4">
+      {{ users }}
       <p class="text-gray-500">Aucun utilisateur trouvé.</p>
-    </div>
+    </div> -->
 
     <!-- Modal détails -->
     <CreateUserDetails
@@ -124,6 +125,7 @@
 import { ref, onMounted } from 'vue'
 import { useUserStore } from '~/stores/userStore'
 import type { User } from '~/types/user'
+
 import UserTable from '~/components/admin/UserTable.vue'
 import CreateNewUser from '~/components/admin/CreateNewUser.vue'
 import CreateUserDetails from '~/components/admin/CreateUserDetails.vue'
@@ -135,24 +137,31 @@ const openModal = ref(false)
 const selectedUser = ref<User | null>(null)
 const editingUser = ref<User | null>(null)
 
-onMounted(() => {
-  userStore.fetchUsers()
+// -------------------
+// FETCH USERS ON MOUNT
+// -------------------
+onMounted(async () => {
+  await userStore.fetchUsers()
 })
 
 // -------------------
-// Ajouter un utilisateur depuis le modal
+// Ajouter un utilisateur
 // -------------------
 const addUser = async (newUser: any) => {
   try {
     const userData = {
-      firstName: newUser.prenom,
-      lastName: newUser.nom,
-      email: newUser.email,
-      password: newUser.password,
-      accountType: newUser.role
+      firstName: newUser.prenom ?? '',
+      lastName: newUser.nom ?? '',
+      email: newUser.email ?? '',
+      phone: newUser.phone ?? '',
+      password: newUser.password ?? '',
+      username: newUser.username ?? null,
+      accountType: newUser.role ?? 'learner',
+      parentId: null
     }
     await userStore.createUser(userData)
     openModal.value = false
+    await userStore.fetchUsers()
   } catch (err) {
     console.error('Error creating user:', err)
     alert('Erreur lors de la création')
@@ -163,10 +172,14 @@ const addUser = async (newUser: any) => {
 // Supprimer un utilisateur
 // -------------------
 const deleteUser = async (user: User) => {
+  if (!user?.id) return
   if (confirm(`Supprimer ${user.profile.firstName} ${user.profile.lastName} ?`)) {
     try {
       await userStore.deleteUser(user.id)
-    } catch {
+      // Mise à jour locale
+      userStore.users = userStore.users.filter(u => u.id !== user.id)
+    } catch (err) {
+      console.error('Delete user error:', err)
       alert('Erreur lors de la suppression')
     }
   }
@@ -179,37 +192,45 @@ const showUserDetails = (user: User) => {
   selectedUser.value = user
 }
 
+// -------------------
+// Toggle status direct depuis le tableau
+// -------------------
 const toggleUserStatus = async (user: User) => {
   try {
     const newStatus = !user.isActive
     await userStore.putUser(user.id, { isActive: newStatus })
     user.isActive = newStatus
-  } catch (error) {
-    console.error(error)
-    alert("Erreur lors de la mise à jour du statut")
+  } catch (err) {
+    console.error(err)
+    alert('Erreur lors de la mise à jour du statut')
   }
 }
 
 // -------------------
 // Édition popup
 // -------------------
+
+// Ouvrir le modal d'édition (clone de l'utilisateur)
+const editUser = (user: User) => {
+  editingUser.value = { ...user }
+}
+
+// Toggle Actif/Inactif dans le popup
+const toggleStatusInPopup = () => {
+  if (!editingUser.value) return
+  editingUser.value.isActive = !editingUser.value.isActive
+}
+
+// Sauvegarder les modifications depuis le popup
 const saveEdit = async () => {
   if (!editingUser.value) return
 
-  // Assurez-vous d'envoyer uniquement username et email
-  const username = editingUser.value.username ?? editingUser.value.profile?.firstName 
-  const email = editingUser.value.email
-
-  if (!username || !email) {
-    alert('Username et email sont obligatoires')
-    return
-  }
+  const { id, username, accountType, isActive } = editingUser.value
+  const payload = { username, accountType, isActive }
 
   try {
-    await userStore.putUser(editingUser.value.id, {
-      username: username.trim(),
-      email: email.trim()
-    })
+    await userStore.putUser(id, payload)
+
     alert('Utilisateur mis à jour !')
     editingUser.value = null
   } catch (err) {
@@ -218,10 +239,4 @@ const saveEdit = async () => {
   }
 }
 
-
-
-const toggleStatusInPopup = () => {
-  if (!editingUser.value) return
-  editingUser.value.isActive = !editingUser.value.isActive
-}
 </script>
