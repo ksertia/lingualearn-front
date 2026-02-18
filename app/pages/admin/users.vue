@@ -22,7 +22,7 @@
       @delete="deleteUser"
       @show-details="showUserDetails"
       @toggle-status="toggleUserStatus"
-      @edit="editingUser = $event"
+      @edit="editUser"
     />
 
     <!-- Message si aucun utilisateur -->
@@ -69,6 +69,24 @@
             <label class="block text-sm font-medium">Email</label>
             <input
               v-model="editingUser.email"
+              class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#00ced1] outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Username</label>
+            <input
+              v-model="editingUser.username"
+              class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#00ced1] outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium">Mot de passe (laisser vide pour ne pas changer)</label>
+            <input
+              v-model="editingUser.password"
+              type="password"
+              placeholder="••••••"
               class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#00ced1] outline-none"
             />
           </div>
@@ -198,7 +216,22 @@ const showUserDetails = (user: User) => {
 const toggleUserStatus = async (user: User) => {
   try {
     const newStatus = !user.isActive
-    await userStore.putUser(user.id, { isActive: newStatus })
+    const { email, accountType, profile, username, phone } = user
+    const payload = { 
+      firstName: profile.firstName, 
+      lastName: profile.lastName, 
+      email, 
+      username,
+      phone,
+      accountType, 
+      isActive: newStatus,
+      profile: {
+        ...profile,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+      }
+    }
+    await userStore.putUser(user.id, payload)
     user.isActive = newStatus
   } catch (err) {
     console.error(err)
@@ -210,9 +243,9 @@ const toggleUserStatus = async (user: User) => {
 // Édition popup
 // -------------------
 
-// Ouvrir le modal d'édition (clone de l'utilisateur)
+// Ouvrir le modal d'édition (clone profond pour éviter les effets de bord)
 const editUser = (user: User) => {
-  editingUser.value = { ...user }
+  editingUser.value = JSON.parse(JSON.stringify(user))
 }
 
 // Toggle Actif/Inactif dans le popup
@@ -225,12 +258,34 @@ const toggleStatusInPopup = () => {
 const saveEdit = async () => {
   if (!editingUser.value) return
 
-  const { id, username, accountType, isActive } = editingUser.value
-  const payload = { username, accountType, isActive }
+  const { id, accountType, isActive, email, profile, username, phone } = editingUser.value
+  
+  // On envoie à la fois à la racine et dans l'objet profile
+  // pour maximiser les chances de compatibilité avec le backend
+  const payload: any = { 
+    firstName: profile.firstName, 
+    lastName: profile.lastName, 
+    email, 
+    username,
+    phone,
+    accountType, 
+    isActive,
+    profile: {
+      ...profile,
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+    }
+  }
+
+  // On n'envoie le mot de passe que s'il a été saisi
+  if (editingUser.value.password) {
+    payload.password = editingUser.value.password
+  }
 
   try {
     await userStore.putUser(id, payload)
-
+    
+    // Si on est ici, c'est que ça a marché
     alert('Utilisateur mis à jour !')
     editingUser.value = null
   } catch (err) {

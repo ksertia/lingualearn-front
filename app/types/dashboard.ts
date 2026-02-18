@@ -5,6 +5,7 @@ export interface DashboardData {
         verified: number;
         admin: number;
         subAccounts: number;
+        user: number;
         withSubscription: number;
     };
     learningPaths: number;

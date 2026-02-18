@@ -22,7 +22,6 @@ onMounted(async () => {
   if (langStore.languages.length) languageId.value = langStore.languages[0].id
 })
 
-// REQ 1: Strict learner filtering
 const learners = computed(() => {
   const q = search.value.toLowerCase()
   return userStore.users.filter(u => {
@@ -44,7 +43,6 @@ const loadStats = () => {
   }
 }
 
-// REQ 2: Progression Graphs
 const charts = computed(() => {
   const s = progStore.stats
   if (!s || progStore.isLoading) return null
@@ -115,7 +113,7 @@ const chartOptions = {
       </div>
     </div>
 
-    <!-- Modal Détails -->
+    
     <Teleport to="body">
       <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-slate-900/60 backdrop-blur-md transition-all" @click.self="showModal = false">
         <div class="bg-white w-full max-w-5xl h-full max-h-[850px] rounded-[3rem] shadow-2xl overflow-hidden flex flex-col md:flex-row">

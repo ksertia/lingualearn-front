@@ -32,6 +32,7 @@ import type { User as BaseUser } from '../../shared/models/user'
 
 export type User = BaseUser & {
   isActive: boolean
+  password?: string
 }
 
 export interface CreateUserPayload {
@@ -55,9 +56,15 @@ export type AccountType =
 export interface UpdateUserPayload {
   firstName?: string
   lastName?: string
-   phone?: string
+  phone?: string
+  username?: string
   email?: string
-   password?: string
+  password?: string
   accountType?: AccountType
-   isActive?: boolean
+  isActive?: boolean
+  profile?: {
+    firstName?: string
+    lastName?: string
+    [key: string]: any
+  }
 }
