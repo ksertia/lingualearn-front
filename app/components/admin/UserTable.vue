@@ -137,13 +137,13 @@
     {{ user.isActive ? 'Désactiver' : 'Activer' }}
   </button>
 
-  <!-- Supprimer -->
+  <!-- Supprimer
   <button
     @click="$emit('delete', user)"
     class="px-3 py-1 text-xs rounded-full bg-[#ff7f00] text-black font-semibold hover:bg-opacity-90 transition"
   >
     Supprimer
-  </button>
+  </button>  -->
 </div>
         </div>
       </div>

@@ -19,7 +19,7 @@
       v-else
         :users="userStore.users"
       @create="openModal = true"
-      @delete="deleteUser"
+      @delete="deleteUser" 
       @show-details="showUserDetails"
       @toggle-status="toggleUserStatus"
       @edit="editingUser = $event"
