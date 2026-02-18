@@ -7,38 +7,25 @@ import type { LoginCredentials, User } from '~/types/auth';
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
   const apiService = useApiService();
-  const cookieBaseOptions = {
-    sameSite: 'lax',
-    secure: import.meta.env.PROD,
-    path: '/'
-  }
-  const token = useCookie<string | null>('token', cookieBaseOptions);
+  const token = useCookie<string | null>('token');
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const isAuthenticated = computed(() => !!token.value);
-  const REMEMBER_DAYS = 30
 
   function setUser(newUser: User) {
     user.value = newUser;
   }
 
-  function setToken(newToken: string, remember = false) {
-    token.value = newToken
-
-    if (remember) {
-      const cookie = useCookie<string | null>('token', {
-        ...cookieBaseOptions,
-        maxAge: REMEMBER_DAYS * 24 * 60 * 60,
-      })
-      cookie.value = newToken
-    }
+  function setToken(newToken: string) {
+    token.value = newToken;
   }
 
   function clearAuth() {
-    const cookie = useCookie<string | null>('token', cookieBaseOptions)
+    const cookie = useCookie<string | null>('token')
     cookie.value = null
     user.value = null
     token.value = null
+    apiService.setAccessToken(null);
   }
 
 
@@ -47,8 +34,16 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   const fullname = computed(() => {
-    if (!user.value?.profile) return 'invité';
-    return `${user.value.profile.firstName} ${user.value.profile.lastName}`
+    if (!user.value) return 'Invité';
+
+    const firstName = user.value.profile?.firstName || user.value.firstName;
+    const lastName = user.value.profile?.lastName || user.value.lastName;
+
+    if (firstName || lastName) {
+      return `${firstName || ''} ${lastName || ''}`.trim();
+    }
+
+    return user.value.username || 'Utilisateur';
   })
 
   const dashboardRoute = computed(() => {
@@ -76,8 +71,11 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await apiService.login(credentials);
       if (response.success && response.data && dashboardRoute) {
-        setToken(response.data.tokens.accessToken, remember);
-        setUser(response.data.user);
+        setToken(response.data.tokens.accessToken);
+        apiService.setAccessToken(response.data.tokens.accessToken);
+
+        const userResp = await apiService.getMe();
+        setUser(userResp.data.user);
         return true;
       } else {
         error.value = response.message || 'Connexion echouée';
@@ -115,7 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
   async function initAuth() {
     if (user.value) return
 
-    const cookieToken = useCookie<string | null>('token', cookieBaseOptions).value
+    const cookieToken = useCookie<string | null>('token').value
     if (!cookieToken) return
 
     if (!token.value) {
@@ -124,7 +122,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     try {
       const response = await apiService.getMe()
-      setUser(response.data)
+      setUser(response.data.user)
     } catch (err) {
       const e = err as FetchError
       const status = e.statusCode

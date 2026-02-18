@@ -66,26 +66,20 @@ export const useProgressionStore = defineStore('progression', () => {
         stats.value = null
         completeProgression.value = null
         baseProgression.value = null
+
         try {
             baseProgression.value = await initBaseProgression(userId, languageId)
 
-            let statsRes: any = null
-            try {
-                statsRes = await api.getProgressionStats(userId, languageId)
-            } catch (e) {
-                if (ENABLE_BASE_PROGRESSION) {
-                    baseProgression.value = baseProgression.value ?? (await initBaseProgression(userId, languageId))
-                    try {
-                        statsRes = await api.getProgressionStats(userId, languageId)
-                    } catch (err) {
-                        console.warn('Progression stats failed after init retry.', err)
-                    }
-                }
+            if (!baseProgression.value) {
+                stats.value = EMPTY_STATS
+                return
             }
 
+            const statsRes = await api.getProgressionStats(userId, languageId)
             stats.value = statsRes?.success ? normalizeStats(statsRes.data) : EMPTY_STATS
+
         } catch (e) {
-            console.error('Error fetching progression:', e)
+            console.warn('Erreur lors du chargement des stats (peut être normal pour un nouveau profil):', e)
             stats.value = EMPTY_STATS
         } finally {
             isLoading.value = false

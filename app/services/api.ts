@@ -17,13 +17,15 @@ import type {
 class ApiService {
   private api: ReturnType<typeof $fetch.create>;
 
+  private accessToken: string | null = null;
+
   constructor() {
     const config = useRuntimeConfig();
 
     this.api = $fetch.create({
       baseURL: config.public.apiBase,
-      onRequest({ options }) {
-        const token = useCookie("token").value;
+      onRequest: ({ options }) => {
+        const token = this.accessToken || useCookie("token").value;
 
         if (!options.headers) {
           options.headers = new Headers();
@@ -39,6 +41,10 @@ class ApiService {
     });
   }
 
+  setAccessToken(token: string | null) {
+    this.accessToken = token;
+  }
+
   /* ===================== AUTH ===================== */
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -48,7 +54,7 @@ class ApiService {
     });
   }
 
-  async getMe(): Promise<{ data: User }> {
+  async getMe(): Promise<{ data: { user: User } }> {
     return await this.api("/v1/users/me");
   }
 
