@@ -10,6 +10,7 @@ const DEMO_STATS: DashboardData = {
         verified: 1100,
         admin: 5,
         subAccounts: 45,
+        user: 16,
         withSubscription: 156
     },
     learningPaths: 12,
@@ -21,9 +22,13 @@ const DEMO_STATS: DashboardData = {
 }
 
 const toTotal = (response?: StatTotalResponse) => {
-    const data = response?.data as { total?: number } | number | undefined
-    if (typeof data === 'number' && Number.isFinite(data)) return data
-    if (typeof data?.total === 'number' && Number.isFinite(data.total)) return data.total
+    const data = response?.data
+    if (typeof data === 'number') {
+        return Number.isFinite(data) ? data : 0
+    }
+    if (data && typeof data === 'object' && 'total' in data && typeof data.total === 'number') {
+        return Number.isFinite(data.total) ? data.total : 0
+    }
     return 0
 }
 
@@ -57,6 +62,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
                 usersVerified,
                 usersAdmin,
                 usersSubAccounts,
+                usersUser,
                 usersWithSubscription,
                 learningPaths,
                 steps,
@@ -68,7 +74,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
                 getUsersTotal({ isActive: true }),
                 getUsersTotal({ isVerified: true }),
                 getUsersTotal({ userType: 'admin' }),
-                getUsersTotal({ userType: 'sub_account_learner' }),
+                getUsersTotal({ userType: 'sub_account' }),
+                getUsersTotal({ userType: 'user'}),
                 getUsersTotal({ withSubscription: true }),
                 safeTotal(apiService.getAllLearningPathsDashboard()),
                 safeTotal(apiService.getAllStepsDashboard()),
@@ -84,6 +91,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
                     verified: usersVerified,
                     admin: usersAdmin,
                     subAccounts: usersSubAccounts,
+                    user: usersUser,
                     withSubscription: usersWithSubscription
                 },
                 learningPaths,

@@ -5,7 +5,7 @@ import type {
   Level,
 } from "~/types/language-level";
 import type { ApiResponse } from "~/types/learning";
-import type { CreateUserPayload } from "~/types/user";
+import type { CreateUserPayload, UpdateUserPayload } from "~/types/user";
 import type { module, moduleRequest, moduleResponse } from "~/types/modules";
 import type { StatTotalResponse, UsersTotalParams } from "~/types/dashboard";
 import type {
@@ -70,41 +70,34 @@ class ApiService {
 
   /* ===================== USERS ===================== */
 
-async getUsers(): Promise<
-  ApiResponse<{
-    users: User[]
-    pagination: {
-      page: number
-      limit: number
-      total: number
-    }
-  }>
-> {
-  return await this.api("/v1/users");
-}
+  async getUsers(): Promise<
+    ApiResponse<{
+      users: User[]
+      pagination: {
+        page: number
+        limit: number
+        total: number
+      }
+    }>
+  > {
+    return await this.api("/v1/users");
+  }
 
-async updateUser(
-  id: string,
-  data: Partial<{
-    firstName: string
-    lastName: string
-    email: string
-    password: string
-    accountType: string
-    isActive: boolean   // ← ajouté pour pouvoir activer/désactiver
-  }>
-): Promise<ApiResponse<User>> {
-  return await this.api(`/v1/users/${id}`, {
-    method: "PUT",
-    body: data,
-  });
-}
+  async updateUser(
+    id: string,
+    data: UpdateUserPayload,
+  ): Promise<ApiResponse<User>> {
+    return await this.api(`/v1/users/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  }
 
-async deleteUser(id: string): Promise<ApiResponse<void>> {
-  return await this.api(`/v1/users/${id}`, {
-    method: "DELETE",
-  });
-}
+  async deleteUser(id: string): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/users/${id}`, {
+      method: "DELETE",
+    });
+  }
 
 
   /* ===================== LANGUAGES ===================== */

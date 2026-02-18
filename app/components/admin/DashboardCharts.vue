@@ -32,11 +32,11 @@ const props = defineProps<{
 }>()
 
 const userChartData = computed(() => ({
-  labels: ['Admin', 'Sous-comptes', 'Avec Abonnement'],
+  labels: ['Admin', 'Sous-comptes', 'Avec Abonnement', 'Utilisateurs'],
   datasets: [
     {
-      backgroundColor: ['#6366f1', '#10b981', '#f59e0b'],
-      data: [props.stats.users.admin, props.stats.users.subAccounts, props.stats.users.withSubscription]
+      backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#0bf59e'],
+      data: [props.stats.users.admin, props.stats.users.subAccounts, props.stats.users.withSubscription, props.stats.users.user]
     }
   ]
 }))

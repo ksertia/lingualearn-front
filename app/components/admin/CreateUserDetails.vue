@@ -7,7 +7,8 @@
         <p><strong>Prénom:</strong> {{ user.profile.firstName }}</p>
         <p><strong>Nom:</strong> {{ user.profile.lastName }}</p>
         <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Mot de passe:</strong> {{ user.password }}</p>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Mot de passe:</strong> {{ user.password || '********' }}</p>
         <p><strong>Date d'inscription:</strong> {{ formattedDate }}</p>
         <p><strong>Rôle:</strong> {{ user.accountType }}</p>
       </div>
