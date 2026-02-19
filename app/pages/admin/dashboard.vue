@@ -50,7 +50,7 @@ onMounted(() => {
 
       <div v-else-if="dashboardStore.stats" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <DashboardStats :stats="dashboardStore.stats" />
-        <DashboardCharts :stats="dashboardStore.stats" />
+        <!-- <DashboardCharts :stats="dashboardStore.stats" /> -->
       </div>
     </div>
   </div>

@@ -22,6 +22,7 @@
       @delete="deleteUser" 
       @show-details="showUserDetails"
       @toggle-status="toggleUserStatus"
+      @verify="verifyUser"
       @edit="editUser"
     />
 
@@ -208,6 +209,34 @@ const deleteUser = async (user: User) => {
 // -------------------
 const showUserDetails = (user: User) => {
   selectedUser.value = user
+}
+
+// -------------------
+// Vérifier un utilisateur
+// -------------------
+const verifyUser = async (user: User) => {
+  try {
+    const { email, accountType, profile, username, phone, isActive } = user
+    const payload = { 
+      firstName: profile.firstName, 
+      lastName: profile.lastName, 
+      email, 
+      username,
+      phone,
+      accountType, 
+      isActive,
+      isVerified: true,
+      profile: {
+        ...profile,
+      }
+    }
+    await userStore.putUser(user.id, payload)
+    user.isVerified = true
+    alert(`L'utilisateur ${profile.firstName} ${profile.lastName} a été vérifié.`)
+  } catch (err) {
+    console.error(err)
+    alert('Erreur lors de la vérification')
+  }
 }
 
 // -------------------

@@ -23,13 +23,13 @@ const formatNumber = (num: number) => {
         </div>
       </div>
       <div class="mt-4 flex items-center gap-4 text-xs text-indigo-100">
-        <span>Active: {{ stats.users.active }}</span>
+        <span>Actifs: {{ stats.users.active }}</span>
         <span class="w-1 h-1 bg-white/40 rounded-full"></span>
-        <span>Verified: {{ stats.users.verified }}</span>
+        <span>Verifiés: {{ stats.users.verified }}</span>
       </div>
     </div>
 
-    <div class="stat-card bg-gradient-to-br from-emerald-500 to-teal-600">
+    <!-- <div class="stat-card bg-gradient-to-br from-emerald-500 to-teal-600">
       <div class="flex justify-between items-start">
         <div>
           <p class="text-emerald-100 text-sm font-medium">Parcours d'apprentissage</p>
@@ -66,7 +66,7 @@ const formatNumber = (num: number) => {
         </div>
       </div>
       <p class="mt-4 text-xs text-orange-100">{{ stats.stepQuizzes }} Quiz de validation</p>
-    </div>
+    </div> -->
   </div>
 </template>
 
