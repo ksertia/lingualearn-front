@@ -9,6 +9,23 @@ definePageMeta({
 
 const dashboardStore = useDashboardStore()
 
+const handleKpiDetail = (kpi: string) => {
+  const query: Record<string, string> = {}
+  
+  if (kpi === 'users') {
+    // Par défaut, voir tous les utilisateurs
+  } else if (kpi === 'subscriptions') {
+    query.status = 'premium'
+  } else if (kpi === 'verification') {
+    query.status = 'unverified'
+  }
+
+  navigateTo({
+    path: '/admin/users',
+    query
+  })
+}
+
 onMounted(() => {
   dashboardStore.fetchDashboardData()
 })
@@ -49,8 +66,16 @@ onMounted(() => {
       </div>
 
       <div v-else-if="dashboardStore.stats" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <DashboardStats :stats="dashboardStore.stats" />
-        <!-- <DashboardCharts :stats="dashboardStore.stats" /> -->
+        <DashboardStats 
+          :stats="dashboardStore.stats"
+          :engagement-rate="dashboardStore.engagementRate"
+          :conversion-rate="dashboardStore.conversionRate"
+          :verification-rate="dashboardStore.verificationRate"
+          :content-density="dashboardStore.contentDensity"
+          @select="handleKpiDetail"
+        />
+
+        <DashboardCharts :stats="dashboardStore.stats" />
       </div>
     </div>
   </div>
@@ -59,6 +84,17 @@ onMounted(() => {
 <style scoped>
 @reference "~/assets/css/main.css";
 
+.detail-item {
+  @apply p-6 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col;
+}
+
+.detail-label {
+  @apply text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1;
+}
+
+.detail-value {
+  @apply text-2xl font-bold;
+}
 
 ::-webkit-scrollbar {
   width: 6px;

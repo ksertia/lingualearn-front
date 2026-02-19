@@ -109,7 +109,7 @@ const contentChartOptions = {
     </div>
 
     <!-- Content Bar Chart -->
-    <div class="chart-container">
+    <!-- <div class="chart-container">
       <div class="flex items-center justify-between mb-6">
         <h3 class="text-lg font-semibold text-slate-800">Production de Contenu</h3>
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" viewBox="0 0 256 256"><path fill="currentColor" d="M232 208a8 8 0 0 1-8 8H32a8 8 0 0 1-8-8v-32a8 8 0 0 1 8-16h48v-24a8 8 0 0 1 8-8h48v-24a8 8 0 0 1 8-8h48v-24a8 8 0 0 1 16 0v104h24a8 8 0 0 1 8 8Z"/></svg>
@@ -117,7 +117,7 @@ const contentChartOptions = {
       <div class="h-[300px]">
         <Bar :data="contentChartData" :options="contentChartOptions" />
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 

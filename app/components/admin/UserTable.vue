@@ -48,6 +48,7 @@
             <option value="inactive">INACTIF</option>
             <option value="verified">VÉRIFIÉ</option>
             <option value="unverified">NON VÉRIFIÉ</option>
+            <option value="premium">PREMIUM</option>
           </select>
           <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -300,7 +301,11 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type { User } from '~/types/auth'
 
-const props = defineProps<{ users: User[] }>()
+const props = defineProps<{ 
+  users: User[],
+  initialRole?: string,
+  initialStatus?: string
+}>()
 
 const emit = defineEmits([
   'create',
@@ -312,8 +317,8 @@ const emit = defineEmits([
 ])
 
 const search = ref('')
-const selectedRole = ref('')
-const selectedStatus = ref('')
+const selectedRole = ref(props.initialRole || '')
+const selectedStatus = ref(props.initialStatus || '')
 const currentPage = ref(1)
 const itemsPerPage = 8
 const openMenuId = ref<string | null>(null)
@@ -359,7 +364,8 @@ const filteredUsers = computed(() => {
       (selectedStatus.value === 'active' && user.isActive) ||
       (selectedStatus.value === 'inactive' && !user.isActive) ||
       (selectedStatus.value === 'verified' && user.isVerified) ||
-      (selectedStatus.value === 'unverified' && !user.isVerified)
+      (selectedStatus.value === 'unverified' && !user.isVerified) ||
+      (selectedStatus.value === 'premium' && (user as any).withSubscription)
 
     return matchSearch && matchRole && matchStatus
   })

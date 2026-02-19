@@ -18,6 +18,8 @@
     <UserTable
       v-else
         :users="userStore.users"
+        :initial-role="route.query.role as string"
+        :initial-status="route.query.status as string"
       @create="openModal = true"
       @delete="deleteUser" 
       @show-details="showUserDetails"
@@ -142,6 +144,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useUserStore } from '~/stores/userStore'
 import type { User } from '~/types/user'
 
@@ -152,6 +155,7 @@ import CreateUserDetails from '~/components/admin/CreateUserDetails.vue'
 definePageMeta({ layout: 'admin' })
 
 const userStore = useUserStore()
+const route = useRoute()
 const openModal = ref(false)
 const selectedUser = ref<User | null>(null)
 const editingUser = ref<User | null>(null)

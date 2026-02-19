@@ -75,7 +75,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
                 getUsersTotal({ isVerified: true }),
                 getUsersTotal({ userType: 'admin' }),
                 getUsersTotal({ userType: 'sub_account' }),
-                getUsersTotal({ userType: 'user'}),
+                getUsersTotal({ userType: 'user' }),
                 getUsersTotal({ withSubscription: true }),
                 safeTotal(apiService.getAllLearningPathsDashboard()),
                 safeTotal(apiService.getAllStepsDashboard()),
@@ -109,10 +109,34 @@ export const useDashboardStore = defineStore('dashboard', () => {
         }
     }
 
+    const engagementRate = computed(() => {
+        if (!stats.value || stats.value.users.total === 0) return 0
+        return Math.round((stats.value.users.active / stats.value.users.total) * 100)
+    })
+
+    const conversionRate = computed(() => {
+        if (!stats.value || stats.value.users.total === 0) return 0
+        return Math.round((stats.value.users.withSubscription / stats.value.users.total) * 100)
+    })
+
+    const verificationRate = computed(() => {
+        if (!stats.value || stats.value.users.total === 0) return 0
+        return Math.round((stats.value.users.verified / stats.value.users.total) * 100)
+    })
+
+    const contentDensity = computed(() => {
+        if (!stats.value || stats.value.learningPaths === 0) return '0'
+        return (stats.value.lessons / stats.value.learningPaths).toFixed(1)
+    })
+
     return {
         stats,
         isLoading,
         error,
-        fetchDashboardData
+        fetchDashboardData,
+        engagementRate,
+        conversionRate,
+        verificationRate,
+        contentDensity
     }
 })
