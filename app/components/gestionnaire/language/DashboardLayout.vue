@@ -43,8 +43,8 @@ import { onMounted } from "vue";
 import Sidebar from "./Sidebar.vue";
 import LanguagesList from "./LanguagesList.vue";
 import LevelsList from "./LevelsList.vue";
-import AddLanguageForm from "./AddLanguageForm.vue";
-import { useLanguageStore } from "../../stores/languageStore";
+import AddLanguageForm from "~/components/gestionnaire/language/AddLanguageForm.vue";
+import { useLanguageStore } from "../../../stores/languageStore";
 
 const languageStore = useLanguageStore();
 

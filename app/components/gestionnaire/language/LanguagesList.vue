@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { useLanguageStore } from "../../stores/languageStore";
+import { useLanguageStore } from "../../../stores/languageStore";
 import type { LanguageWithLevels } from "~/types/language-level";
 
 const languageStore = useLanguageStore();
