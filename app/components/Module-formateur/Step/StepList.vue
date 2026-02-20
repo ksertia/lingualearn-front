@@ -139,10 +139,15 @@ const stepStore = useStepStore();
 const { steps, isLoading } = storeToRefs(stepStore);
 const router = useRouter();
 
-// Fetch steps on mount
-onMounted(() => {
-  stepStore.fetchSteps(props.pathId);
-});
+// Fetch steps on mount or when pathId changes
+const loadSteps = () => {
+  if (props.pathId) {
+    stepStore.fetchSteps(props.pathId);
+  }
+};
+
+onMounted(loadSteps);
+watch(() => props.pathId, loadSteps);
 
 const stepTypeLabel = (type: string) => {
   const labels: Record<string, string> = {

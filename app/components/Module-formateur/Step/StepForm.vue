@@ -146,6 +146,7 @@ const handleSubmit = async () => {
 
   const success = await stepStore.createStep({
     pathId: props.pathId,
+    learningPathId: props.pathId, // Alias de compatibilité
     ...form,
     index: nextIndex
   });

@@ -13,11 +13,16 @@ export const useStepStore = defineStore('step', () => {
     async function fetchSteps(pathId?: string) {
         isLoading.value = true;
         error.value = null;
+        steps.value = []; 
         try {
             const response: any = await apiService.getSteps(pathId || '');
             const data = response.data || (Array.isArray(response) ? response : null);
             if (data) {
-                steps.value = data;
+                steps.value = data.filter((s: any) =>
+                    s.pathId === pathId ||
+                    s.learningPathId === pathId ||
+                    s.parcoursId === pathId
+                );
             } else {
                 error.value = response.message || 'Échec du chargement des étapes';
             }

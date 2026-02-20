@@ -50,10 +50,12 @@ export interface Step {
 
 export interface CreateStepRequest {
   pathId: string
+  learningPathId?: string 
   title: string
   description?: string
   stepType: 'lesson' | 'exercise' | 'quiz'
   index?: number
+  stepNumber?: number 
   estimatedMinutes?: number
   isActive?: boolean
   content?: any
