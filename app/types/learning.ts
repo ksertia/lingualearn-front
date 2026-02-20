@@ -36,18 +36,27 @@ export interface Level {
 
 export interface Step {
   id: string
-  learningPathId: string
+  pathId: string
   title: string
   description?: string
-  stepNumber: number
-  estimatedDurationMinutes?: number
-  isPublished?: boolean
-  sortOrder?: number
+  stepType: 'lesson' | 'exercise' | 'quiz'
+  index: number
+  estimatedMinutes: number
+  isActive: boolean
+  content?: any
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface CreateStepRequest {
+  pathId: string
+  title: string
+  description?: string
+  stepType: 'lesson' | 'exercise' | 'quiz'
+  index?: number
+  estimatedMinutes?: number
   isActive?: boolean
-  createdAt?: Date
-  updatedAt?: Date
-  exercises?: Exercise[]
-  stepQuiz?: StepQuiz
+  content?: any
 }
 
 export interface Exercise {
@@ -125,11 +134,7 @@ export interface CreateLevelRequest {
   learningPathId: string
 }
 
-export interface CreateStepRequest {
-  levelId: string
-  title: string
-  stepNumber: number
-}
+
 
 export interface CreateExerciseRequest {
   lessonId: string
@@ -172,7 +177,7 @@ export interface CreateCourseRequest {
   isPublished?: boolean
   isActive?: boolean
 }
- export interface ApiResponse<T> {
+export interface ApiResponse<T> {
   success: boolean
   data?: T
   message?: string

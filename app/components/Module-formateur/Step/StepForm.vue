@@ -1,189 +1,158 @@
 <template>
-  <div class="bg-white shadow rounded-lg p-6 space-y-4">
-    <h3 class="text-lg font-semibold text-blue-900">
-      Nouvelle étape
-    </h3>
-
-    <!-- Titre -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700">
-        Titre de l'étape
-      </label>
-      <input
-        v-model="title"
-        type="text"
-        class="mt-1 w-full rounded-md border px-3 py-2"
-      />
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+    <div class="flex items-center gap-3 mb-8">
+      <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-xl font-bold text-slate-800">Nouvelle étape</h3>
+        <p class="text-slate-500 text-sm">Définissez les bases de votre nouvelle leçon ou quiz</p>
+      </div>
     </div>
 
-    <!-- Type -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700">
-        Type de l'étape
-      </label>
-      <select
-        v-model="type"
-        class="mt-1 w-full rounded-md border px-3 py-2"
-      >
-        <option disabled value="">Choisir un type</option>
-        <option value="cours">Cours</option>
-        <option value="exercice">Exercice</option>
-        <option value="quiz">Quiz</option>
-      </select>
-    </div>
+    <form @submit.prevent="handleSubmit" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Titre -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-bold text-slate-700 mb-2">Titre de l'étape *</label>
+        <input
+          v-model="form.title"
+          type="text"
+          placeholder="ex: Introduction à la grammaire"
+          class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none"
+          required
+        />
+      </div>
 
-    <!-- Boutons principaux -->
-    <div class="flex gap-3">
-      <button
-        @click="mode = 'create'"
-        class="px-4 py-2 bg-blue-600 text-white rounded-md"
-      >
-        Créer
-      </button>
+      <!-- Description -->
+      <div class="md:col-span-2">
+        <label class="block text-sm font-bold text-slate-700 mb-2">Description</label>
+        <textarea
+          v-model="form.description"
+          placeholder="Bref résumé de ce que l'étudiant va apprendre..."
+          rows="2"
+          class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none resize-none"
+        ></textarea>
+      </div>
 
-      <button
-        @click="mode = 'import'"
-        class="px-4 py-2 bg-teal-600 text-white rounded-md"
-      >
-        Importer
-      </button>
+      <!-- Type -->
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-2">Type d'étape *</label>
+        <div class="grid grid-cols-3 gap-3">
+          <button 
+            v-for="type in types" 
+            :key="type.id"
+            type="button"
+            @click="form.stepType = type.id"
+            :class="[
+              'px-3 py-2.5 rounded-xl border text-xs font-bold transition-all flex flex-col items-center gap-2',
+              form.stepType === type.id 
+                ? 'bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-100' 
+                : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-200 hover:bg-slate-50'
+            ]"
+          >
+            <span class="text-lg">{{ type.icon }}</span>
+            {{ type.label }}
+          </button>
+        </div>
+      </div>
 
-      <button
-        @click="reset"
-        class="px-4 py-2 border rounded-md"
-      >
-        Annuler
-      </button>
-    </div>
+      <!-- Durée -->
+      <div>
+        <label class="block text-sm font-bold text-slate-700 mb-2">Durée estimée (minutes)</label>
+        <div class="relative">
+          <input
+            v-model.number="form.estimatedMinutes"
+            type="number"
+            class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 transition-all outline-none"
+          />
+          <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
 
-    <!-- Zone dynamique -->
-    <StepEditor
-      v-if="mode === 'create'"
-      v-model="content"
-    />
-
-    <StepUploader
-      v-if="mode === 'import'"
-      @file-selected="handleFile"
-    />
-
-    <!-- Submit -->
-    <div v-if="mode" class="pt-4">
-      <button
-        @click="submitStep"
-        class="px-6 py-2 bg-orange-500 text-white rounded-md"
-      >
-        Publier l'étape
-      </button>
-    </div>
+      <!-- Submit -->
+      <div class="md:col-span-2 pt-4 flex justify-end gap-3">
+        <button
+          type="button"
+          @click="reset"
+          class="px-6 py-3 rounded-xl text-slate-600 font-bold hover:bg-slate-100 transition-colors"
+        >
+          Réinitialiser
+        </button>
+        <button
+          type="submit"
+          :disabled="isLoading"
+          class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transform hover:-translate-y-0.5 transition-all disabled:bg-slate-300 disabled:shadow-none"
+        >
+          <span v-if="isLoading" class="flex items-center gap-2">
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Création...
+          </span>
+          <span v-else>Créer l'étape</span>
+        </button>
+      </div>
+    </form>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import StepEditor from "./StepEditor.vue";
-import StepUploader from "./StepUploader.vue";
+import { ref, reactive } from "vue";
+import { useStepStore } from '~/stores/stepStore';
+import { storeToRefs } from 'pinia';
 
-/* =========================
-   Props / Emits
-========================= */
 const props = defineProps<{
-  parcoursId: string;
+  pathId: string;
 }>();
 
 const emit = defineEmits(["created"]);
 
-/* =========================
-   State
-========================= */
-const title = ref("");
-const type = ref("");
-const mode = ref<"create" | "import" | null>(null);
+const stepStore = useStepStore();
+const { isLoading } = storeToRefs(stepStore);
 
-/* ⚠️ IMPORTANT : Quill renvoie un objet (Delta) */
-const content = ref<any>(null);
+const types: { id: 'lesson' | 'quiz' | 'exercise'; label: string; icon: string }[] = [
+  { id: 'lesson', label: 'Cours', icon: '📖' },
+  { id: 'quiz', label: 'Quiz', icon: '📝' },
+  { id: 'exercise', label: 'Exercice', icon: '🏋️' }
+];
 
-const selectedFile = ref<File | null>(null);
-
-/* =========================
-   Handlers
-========================= */
-
-const handleFile = (file: File) => {
-  selectedFile.value = file;
-};
+const form = reactive({
+  title: "",
+  description: "",
+  stepType: "lesson" as 'lesson' | 'quiz' | 'exercise',
+  estimatedMinutes: 15,
+  isActive: true
+});
 
 const reset = () => {
-  title.value = "";
-  type.value = "";
-  mode.value = null;
-  content.value = null;
-  selectedFile.value = null;
+  form.title = "";
+  form.description = "";
+  form.stepType = "lesson";
+  form.estimatedMinutes = 15;
 };
 
-/* =========================
-   Submit
-========================= */
+const handleSubmit = async () => {
+  if (!form.title) return;
 
-const submitStep = async () => {
-  console.log("Bouton cliqué");
+  // Calcul automatique de l'index : suite de la liste actuelle
+  const nextIndex = (stepStore.steps.length || 0);
 
-  if (!title.value || !type.value) {
-    console.log("Titre ou type manquant");
-    return;
-  }
+  const success = await stepStore.createStep({
+    pathId: props.pathId,
+    ...form,
+    index: nextIndex
+  });
 
-  try {
-    /* ================= CREATE (éditeur Quill) ================= */
-    if (mode.value === "create") {
-
-      if (!content.value) {
-        console.log("Contenu vide");
-        return;
-      }
-
-      const response = await $fetch(
-        "https://213.32.120.11:4000/api/v1/steps",
-        {
-          method: "POST",
-          body: {
-            parcoursId: props.parcoursId,
-            title: title.value,
-            type: type.value,
-            // 🔥 on envoie du JSON stringifié
-            content: JSON.stringify(content.value),
-          },
-        }
-      );
-
-      console.log("Réponse CREATE:", response);
-    }
-
-    /* ================= IMPORT (fichier) ================= */
-    if (mode.value === "import" && selectedFile.value) {
-
-      const formData = new FormData();
-      formData.append("parcoursId", props.parcoursId);
-      formData.append("title", title.value);
-      formData.append("type", type.value);
-      formData.append("file", selectedFile.value);
-
-      const response = await $fetch(
-        "https://213.32.120.11:4000/api/v1/steps",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      console.log("Réponse IMPORT:", response);
-    }
-
+  if (success) {
     emit("created");
     reset();
-
-  } catch (error) {
-    console.error("Erreur lors de la création :", error);
   }
 };
 </script>
