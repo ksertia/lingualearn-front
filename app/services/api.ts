@@ -291,10 +291,14 @@ class ApiService {
 
   /* ===================== STEPS ===================== */
 
-  async getSteps(learningPathId: string): Promise<ApiResponse<any[]>> {
+  async getSteps(pathId: string): Promise<ApiResponse<any[]>> {
     return await this.api("/v1/steps", {
-      query: { learningPathId },
+      query: { pathId },
     });
+  }
+
+  async getStep(id: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/steps/${id}`);
   }
 
   async createStep(data: any): Promise<ApiResponse<any>> {

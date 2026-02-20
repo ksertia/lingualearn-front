@@ -10,11 +10,11 @@ export const useStepStore = defineStore('step', () => {
     const isLoading = ref(false);
     const error = ref<string | null>(null);
 
-    async function fetchSteps(LearningPathId?: string) {
+    async function fetchSteps(pathId?: string) {
         isLoading.value = true;
         error.value = null;
         try {
-            const response: any = await apiService.getSteps(LearningPathId || '');
+            const response: any = await apiService.getSteps(pathId || '');
             const data = response.data || (Array.isArray(response) ? response : null);
             if (data) {
                 steps.value = data;

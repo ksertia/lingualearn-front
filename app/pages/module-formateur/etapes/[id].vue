@@ -18,12 +18,11 @@
 
     <!-- Formulaire création -->
     <div class="mt-8">
-      <StepForm :parcoursId="parcoursId" @created="refreshKey++" />
+      <StepForm :pathId="pathId" @created="stepStore.fetchSteps(pathId)" />
     </div>
-
     <div class="mt-8">
       <!-- Liste des étapes -->
-    <StepList :parcoursId="parcoursId" :key="refreshKey"/>
+      <StepList :pathId="pathId" />
     </div>
     
   </section>
@@ -33,6 +32,9 @@
 import { useRoute, useRouter } from "vue-router";
 import StepList from "@/components/Module-formateur/Step/StepList.vue";
 import StepForm from "@/components/Module-formateur/Step/StepForm.vue";
+import { useStepStore } from "~/stores/stepStore";
+
+
 
 definePageMeta({
   layout: "formateur",
@@ -40,7 +42,7 @@ definePageMeta({
 
 const route = useRoute();
 const router = useRouter();
+const stepStore = useStepStore();
 
-const parcoursId = String(route.params.id);
-const refreshKey = ref(0);
+const pathId = String(route.params.id);
 </script>
