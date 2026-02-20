@@ -20,7 +20,6 @@
     <div class="mt-8">
       <StepForm :pathId="pathId" @created="stepStore.fetchSteps(pathId)" />
     </div>
-
     <div class="mt-8">
       <!-- Liste des étapes -->
       <StepList :pathId="pathId" />
@@ -34,6 +33,8 @@ import { useRoute, useRouter } from "vue-router";
 import StepList from "@/components/Module-formateur/Step/StepList.vue";
 import StepForm from "@/components/Module-formateur/Step/StepForm.vue";
 import { useStepStore } from "~/stores/stepStore";
+
+
 
 definePageMeta({
   layout: "formateur",

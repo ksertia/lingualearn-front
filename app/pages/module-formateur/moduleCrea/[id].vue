@@ -23,24 +23,26 @@
       >
         <thead class="bg-blue-900 text-white">
           <tr>
-            <th class="px-6 py-3">#</th>
             <th class="px-6 py-3">Nom</th>
             <th class="px-6 py-3">Niveau</th>
             <th class="px-6 py-3">Description</th>
+            <!-- 🆕 NOUVELLE COLONNE -->
+            <th class="px-6 py-3 text-center">Total parcours</th>
+
             <th class="px-6 py-3">Actions</th>
           </tr>
         </thead>
 
         <tbody>
           <tr
-            v-for="(m, index) in modules"
+            v-for="(m, index) in paginatedModules"
             :key="m.id"
             class="hover:bg-gray-50"
           >
             <!-- INDEX -->
-            <td class="px-6 py-4 text-sm">
+            <!-- <td class="px-6 py-4 text-sm">
               {{ index + 1 }}
-            </td>
+            </td> -->
 
             <!-- NOM DU MODULE -->
             <td class="px-6 py-4 font-medium text-teal-600">
@@ -57,6 +59,13 @@
             <!-- DESCRIPTION -->
             <td class="px-6 py-4 text-gray-500">
               {{ m.description || '-' }}
+            </td>
+            <!-- 🆕 TOTAL PARCOURS -->
+            <td class="px-6 py-4 text-center">
+              <span
+              class="inline-flex items-center justify-center min-w-[32px] px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-semibold">
+              {{ parcoursCount[m.id] ?? '...' }}
+              </span>
             </td>
 
             <!-- ================= ACTIONS ================= -->
@@ -86,6 +95,37 @@
       >
         Aucun module pour le moment
       </div>
+
+
+       <!-- ================= PAGINATION ================= -->
+        <div
+      v-if="modules.length > perPage"
+      class="flex items-center justify-between px-6 py-4 border-t bg-gray-50">
+
+  <button
+    class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-40"
+    :disabled="currentPage === 1"
+    @click="currentPage--">
+    ← Précédent
+  </button>
+
+      <div class="text-sm text-gray-600 font-medium">
+        Page {{ currentPage }} / {{ totalPages }}
+      </div>
+
+      <button
+        class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 disabled:opacity-40"
+        :disabled="currentPage === totalPages"
+        @click="currentPage++">
+        Suivant →
+      </button>
+
+    <div class="text-sm text-gray-500 mb-2">
+      {{ modules.length }} modules au total
+    </div>
+</div>
+  
+
     </div>
 
     <!-- ================= MODAL CRÉATION ================= -->
@@ -160,6 +200,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useModuleStore } from '~/stores/moduleStore'
 import { useLevelStore } from '~/stores/levelStore'
+import { useParcoursStore } from '~/stores/parcoursStore'
 
 definePageMeta({
   layout:'formateur'
@@ -172,6 +213,12 @@ const router = useRouter()
 /* ================= STORES ================= */
 const moduleStore = useModuleStore()
 const levelStore = useLevelStore()
+const parcoursStore = useParcoursStore()
+
+
+// Stocke le nombre de parcours par module
+const parcoursCount = ref<Record<string, number>>({})
+
 
 /* ================= PARAMÈTRES ================= */
 // ID DU NIVEAU -> C'est en fait l'ID DE LA LANGUE !
@@ -182,12 +229,28 @@ const levels = computed(() => levelStore.levels)
 const selectedLevelId = ref('')
 
 onMounted(async () => {
-  // On récupère les modules de cette langue (si fetchModule supporte le filtre par langue)
+  // modules de la langue
   await moduleStore.fetchModule(languageId)
-  
-  // On récupère les niveaux de cette langue
+
+  // niveaux
   await levelStore.fetchLevelsByLanguage(languageId)
+
+  // 🆕 charger le nombre de parcours pour chaque module
+  await parcoursStore.fetchAll()
+  computeCounts()
 })
+
+
+// 🆕 Fonction pour charger le nombre de parcours par module
+const computeCounts = () => {
+  const counts: Record<string, number> = {}
+  parcoursStore.parcours.forEach((p: any) => {
+    if (p.moduleId) {
+      counts[p.moduleId] = (counts[p.moduleId] || 0) + 1
+    }
+  })
+  parcoursCount.value = counts
+}
 
 /* ================= DATA ================= */
 // Modules appartenant au niveau courant (ou langue courante)
@@ -267,6 +330,9 @@ const onSubmit = async () => {
   } finally {
     isLoading.value = false
   }
+  await moduleStore.fetchModule(languageId)
+  currentPage.value = 1
+
 }
 
 /* ================= DELETE MODULE ================= */
@@ -274,7 +340,28 @@ const removeModule = async (id: string) => {
   if (!confirm('Supprimer ce module ?')) return
   await moduleStore.deleteModule(id)
   await moduleStore.fetchModule(languageId)
+
+  await moduleStore.fetchModule(languageId)
+  currentPage.value = 1
+
+ 
+
 }
+
+/* ================= PAGINATION ================= */
+const currentPage = ref(1)
+const perPage = 10
+
+const totalPages = computed(() =>
+  Math.ceil(modules.value.length / perPage)
+)
+
+const paginatedModules = computed(() => {
+  const start = (currentPage.value - 1) * perPage
+  const end = start + perPage
+  return modules.value.slice(start, end)
+})
+
 </script>
 
 <style scoped>

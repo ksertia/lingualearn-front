@@ -1,57 +1,47 @@
 <template>
-   <div class="dashboard-container">
-      <!-- Header 
-    <div class="dashboard flex justify-between items-center mb-6">
-      <h2 class="text-xl font-bold">Tableau de bord du formateur</h2>
-      <button
-        @click="goToModuleCreation"
-        class="btn btn-primary"
-      >
-        Créer un nouveau module
-      </button>
-    </div> -->
+  <div class="dashboard-container">
 
     <!-- Langues -->
     <div class="langue">
-      <h2 class="text-lg font-semibold mb-4">Sélectionnez une langue</h2>
+      <h2 class="section-title">Sélectionnez une langue</h2>
 
-      <div v-if="languages.length" class="bg-white shadow rounded-lg overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-blue-900 text-white">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase">#</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase">Titre</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase">Description</th>
-              <th class="px-6 py-3 text-left text-xs font-medium uppercase">Action</th>
-            </tr>
-          </thead>
+      <!-- Cards -->
+      <div v-if="languageStore.languages && languages.length" class="cards-container">
 
-          <tbody class="divide-y divide-gray-100">
-            <tr v-for="(lang, index) in languages" :key="lang.id">
-              
-              <td>{{ index + 1 }}</td>
-              <td>{{ lang.name }}</td>
-              <td>{{ lang.description }}</td>
-              <td>
-                <button
-  @click="goToModules(lang.id)"
-  class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-md"
->
-  Voir modules
+        <div
+          v-for="(lang, index) in languages"
+          :key="lang.id"
+          class="language-card"
+        >
+          <!-- Header card -->
+          <div class="card-header">
+            <div class="lang-icon">
+              🌍
+            </div>
+
+            <div class="lang-title">
+              {{ lang.name }}
+            </div>
+          </div>
+
+          <!-- Description -->
+          <p class="lang-description">
+            {{ lang.description || 'Aucune description disponible pour cette langue.' }}
+          </p>
+
+          <!-- Action -->
+          <button @click="goToModules(lang.id)" class="module-btn eye-btn">
+  <span class="eye-wrapper">
+    👁️
+  </span>
+  <!-- Voir modules -->
 </button>
-<!-- <NuxtLink
-  :to="`/moduleCrea/${lang.id}`"
-  class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-md inline-block"
->
-  Voir modules
-</NuxtLink> -->
-              </td>
-            </tr>
-          </tbody>
-        </table>
+
+        </div>
+
       </div>
 
-      <p v-else class="text-gray-500 text-sm mt-4">
+      <p v-else class="empty-state">
         Aucune langue disponible pour le moment.
       </p>
     </div>
@@ -61,6 +51,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useLanguageStore } from '~/stores/languageStore'
 
 interface Language {
   id: string
@@ -70,30 +61,128 @@ interface Language {
 
 const router = useRouter()
 const languages = ref<Language[]>([])
-
-// Redirection création module
-// const goToModuleCreation = () => {
-//   router.push('/module-formateur')
-// }
+const languageStore = useLanguageStore()
 
 // Redirection vers les modules d’une langue
-  const goToModules = (languageId: string) => {
+const goToModules = (languageId: string) => {
   const url = `module-formateur/moduleCrea/${languageId}`
   console.log('URL finale =', url)
   navigateTo(url)
 }
 
-
-// Récupération des langues depuis le backend
-const fetchLanguages = async () => {
+// Chargement des langues (inchangé)
+onMounted(async () => {
   try {
-    const res = await fetch('https://213.32.120.11:4000/api/v1/languages')
-    const result = await res.json()
-    languages.value = result.data
+    await languageStore.fetchLanguages()
+    languages.value = languageStore.languages
   } catch (error) {
-    console.error('Erreur lors du chargement des langues', error)
+    console.error("Erreur lors du chargement des langues", error)
   }
+})
+</script>
+
+<style scoped>
+/* Layout général */
+.dashboard-container {
+  padding: 20px;
 }
 
-onMounted(fetchLanguages)
-</script>
+.section-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #0f172a;
+}
+
+/* Grid responsive */
+.cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* Card */
+.language-card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  transition: all .25s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 190px;
+}
+
+.language-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(0,0,0,0.10);
+}
+
+/* Header */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.lang-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #1e3a8a;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.lang-title {
+  font-weight: 600;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+/* Description */
+.lang-description {
+  font-size: 14px;
+  color: #475569;
+  margin: 12px 0 18px;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+/* Bouton */
+.module-btn {
+  background: #1e3a8a;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+
+.module-btn:hover {
+  background: #172554;
+}
+
+/* Empty state */
+.empty-state {
+  margin-top: 20px;
+  color: #64748b;
+}
+
+.eye-btn:hover .eye-wrapper{
+  transform: scale(1.2);
+}
+
+.eye-wrapper{
+  display:inline-block;
+  transition: transform .2s ease;
+}
+
+</style>
