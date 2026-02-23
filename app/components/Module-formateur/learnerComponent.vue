@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '~/stores/userStore'
 import { useLanguageStore } from '~/stores/languageStore'
 import { useProgressionStore } from '~/stores/progressionStore'
+import { useLevelStore } from '~/stores/levelStore'
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement } from 'chart.js'
 import { Bar, Doughnut } from 'vue-chartjs'
 
@@ -11,25 +12,55 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale,
 const userStore = useUserStore()
 const langStore = useLanguageStore()
 const progStore = useProgressionStore()
+const levelStore = useLevelStore()
 
 const search = ref('')
+const country = ref('')
+const language = ref('')
+const level = ref('')
+const minAge = ref<number | undefined>(undefined)
+const maxAge = ref<number | undefined>(undefined)
+const page = ref(1)
+const limit = ref(12)
+
+const levelOptions = computed(() => {
+  const codes = levelStore.levels.map(l => l.code)
+  return [...new Set(codes)].sort()
+})
+
+
 const selectedUser = ref<any>(null)
 const languageId = ref('')
 const showModal = ref(false)
 
+const fetchLearners = async () => {
+  await userStore.fetchFilterUsers({
+    search: search.value,
+    country: country.value,
+    language: language.value,
+    level: level.value,
+    minAge: minAge.value,
+    maxAge: maxAge.value,
+    page: page.value,
+    limit: limit.value,
+    accountType: 'learner'
+  })
+}
+
 onMounted(async () => {
-  await Promise.all([userStore.fetchUsers(), langStore.fetchLanguages()])
-  if (langStore.languages.length) languageId.value = langStore.languages[0].id
+  await Promise.all([fetchLearners(), langStore.fetchLanguages(), levelStore.fetchLevels(),])
+  if (langStore.languages.length) languageId.value = langStore.languages[0]?.id ?? ''
 })
 
-const learners = computed(() => {
-  const q = search.value.toLowerCase()
-  return userStore.users.filter(u => {
-    const isLearner = (u.accountType as any) === 'learner'
-    const fullName = `${u.profile?.firstName || u.firstName || ''} ${u.profile?.lastName || u.lastName || ''}`.toLowerCase()
-    return isLearner && (fullName.includes(q) || u.email?.toLowerCase().includes(q))
-  })
+watch([search, country, language, level, minAge, maxAge, limit], () => {
+  page.value = 1
+  fetchLearners()
 })
+
+watch(page, fetchLearners)
+
+const learners = computed(() => userStore.users)
+const totalPages = computed(() => Math.ceil(userStore.pagination.total / userStore.pagination.limit))
 
 const openProfile = (user: any) => {
   selectedUser.value = user
@@ -77,15 +108,54 @@ const chartOptions = {
 
 <template>
   <div class="p-8 bg-slate-50 min-h-screen font-sans text-slate-900">
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-      <div>
-        <h1 class="text-3xl font-black tracking-tight text-slate-800">Espace Apprenants</h1>
-        <p class="text-slate-500 font-medium">Suivi analytique des performances</p>
+    <header class="flex flex-col gap-6 mb-8">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+          <h1 class="text-3xl font-black tracking-tight text-slate-800">Espace Apprenants</h1>
+          <p class="text-slate-500 font-medium">Suivi analytique des performances</p>
+        </div>
       </div>
-      <div class="relative w-full md:w-96">
-        <input v-model="search" type="text" placeholder="Rechercher un apprenant..." 
-               class="w-full pl-12 pr-4 py-3 bg-white border-0 shadow-sm rounded-2xl focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <!-- <div class="relative">
+          <select v-model="country" class="w-full px-4 py-3 bg-white border-0 shadow-sm rounded-xl text-sm font-bold outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500/20">
+            <option value="">Tous les pays</option>
+            <option value="France">France</option>
+            <option value="Sénégal">Sénégal</option>
+            <option value="USA">USA</option>
+            <option value="Canada">Canada</option>
+          </select>
+        </div> -->
+        <div>
+          <select v-model="language" class="w-full px-4 py-3 bg-white border-0 shadow-sm rounded-xl text-sm font-bold outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500/20">
+            <option value="">Toutes les langues</option>
+            <option v-for="l in langStore.languages" :key="l.id" :value="l.id">{{ l.name }}</option>
+          </select>
+        </div>
+        <div>
+          <select v-model="level" class="w-full px-4 py-3 bg-white border-0 shadow-sm rounded-xl text-sm font-bold outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500/20">
+            <option value="">Tous les niveaux</option>
+            <option v-for="l in levelOptions" :key="l" :value="l">{{ l }}</option>
+          </select>
+        </div>
+        <!-- <div class="flex gap-2">
+          <input v-model.number="minAge" type="number" placeholder="Âge Min" class="w-1/2 px-4 py-3 bg-white border-0 shadow-sm rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
+          <input v-model.number="maxAge" type="number" placeholder="Âge Max" class="w-1/2 px-4 py-3 bg-white border-0 shadow-sm rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-indigo-500/20">
+        </div> -->
+        <div>
+          <select v-model="limit" class="w-full px-4 py-3 bg-white border-0 shadow-sm rounded-xl text-sm font-bold outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500/20">
+            <option :value="12">12 par page</option>
+            <option :value="24">24 par page</option>
+            <option :value="48">48 par page</option>
+          </select>
+        </div>
+
+        <div class="relative w-full md:w-95">
+          <input v-model="search" type="text" placeholder="Rechercher par nom ou email..." 
+                 class="w-full pl-12 pr-4 py-2 bg-white border-0 shadow-sm rounded-2xl focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none">
+          <!-- <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></span> -->
+        </div>
+
       </div>
     </header>
 
@@ -97,6 +167,8 @@ const chartOptions = {
         </div>
       </div>
     </div>
+
+    
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       <div v-for="u in learners" :key="u.id" @click="openProfile(u)" 
@@ -111,6 +183,44 @@ const chartOptions = {
           </div>
         </div>
       </div>
+    </div>
+
+    <div v-if="!userStore.isLoading && learners.length === 0" class="flex flex-col items-center justify-center py-20 text-slate-400">
+      <div class="text-6xl mb-4"></div>
+      <p class="text-lg font-bold">Aucun apprenant trouvé</p>
+      <p class="text-sm">Essayez de modifier vos filtres de recherche.</p>
+    </div>
+
+    <!-- Pagination -->
+    <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-12 pb-8">
+      <button 
+        @click="page--" 
+        :disabled="page === 1"
+        class="p-3 rounded-xl bg-white shadow-sm hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+      </button>
+      
+      <div class="flex gap-1 overflow-x-auto max-w-[300px] sm:max-w-none no-scrollbar">
+        <button 
+          v-for="p in totalPages" 
+          :key="p" 
+          @click="page = p"
+          :class="[
+            'min-w-[40px] h-10 px-2 rounded-xl font-bold transition-all flex-shrink-0',
+            page === p ? 'bg-indigo-500 text-white shadow-lg' : 'bg-white text-slate-600 hover:bg-slate-100'
+          ]"
+        >
+          {{ p }}
+        </button>
+      </div>
+
+      <button 
+        @click="page++" 
+        :disabled="page === totalPages"
+        class="p-3 rounded-xl bg-white shadow-sm hover:bg-indigo-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        ➡️
+      </button>
     </div>
 
     
@@ -161,7 +271,7 @@ const chartOptions = {
                   <div class="h-48 w-48 relative">
                     <Doughnut :data="charts.doughnut" :options="chartOptions" />
                     <div class="absolute inset-0 flex flex-col items-center justify-center pt-2">
-                      <span class="text-4xl font-black text-slate-800">{{ progStore.stats?.overallProgressPercentage.toFixed(0) }}%</span>
+                      <span class="text-4xl font-black text-slate-800">{{ (progStore.stats?.overallProgressPercentage ?? 0).toFixed(0) }}%</span>
                     </div>
                   </div>
                 </div>

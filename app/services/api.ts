@@ -5,7 +5,7 @@ import type {
   Level,
 } from "~/types/language-level";
 import type { ApiResponse } from "~/types/learning";
-import type { CreateUserPayload, UpdateUserPayload } from "~/types/user";
+import type { CreateUserPayload, UpdateUserPayload, UserFilter } from "~/types/user";
 import type { module, moduleRequest, moduleResponse } from "~/types/modules";
 import type { StatTotalResponse, UsersTotalParams } from "~/types/dashboard";
 import type {
@@ -56,6 +56,21 @@ class ApiService {
 
   async getMe(): Promise<{ data: { user: User } }> {
     return await this.api("/v1/users/me");
+  }
+
+  async getFilterUsers(filters?: UserFilter): Promise<
+    ApiResponse<{
+      users: User[]
+      pagination: {
+        page: number
+        limit: number
+        total: number
+      }
+    }>
+  > {
+    return await this.api("/v1/users/profile-filters", {
+      query: filters
+    });
   }
 
   async createUser(
@@ -292,13 +307,13 @@ class ApiService {
   /* ===================== STEPS ===================== */
 
   async getSteps(pathId: string): Promise<ApiResponse<any[]>> {
-  return await this.api("/v1/steps", {
-    query: {
-      pathId,
-      learningPathId: pathId 
-    } 
-  });
-}
+    return await this.api("/v1/steps", {
+      query: {
+        pathId,
+        learningPathId: pathId
+      }
+    });
+  }
 
   async getStep(id: string): Promise<ApiResponse<any>> {
     return await this.api(`/v1/steps/${id}`);
