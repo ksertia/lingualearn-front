@@ -5,11 +5,11 @@
 </template>
 
 <script setup lang="ts">
-import DashboardLayout from "../../components/gestionnaire/DashboardLayout.vue";
+import DashboardLayout from "../../components/gestionnaire/language/DashboardLayout.vue";
 
 definePageMeta({
-  layout: 'gestionnaire'
-})
+  layout: "gestionnaire",
+});
 </script>
 
 <style scoped>

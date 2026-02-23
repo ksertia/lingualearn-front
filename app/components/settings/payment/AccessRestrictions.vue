@@ -36,18 +36,18 @@ const restrictions = ref<Restriction[]>([
     description: 'Obtention de certificats de completion',
     plans: { free: false, basic: true, premium: true }
   },
-  {
-    id: 'coaching',
-    feature: 'Coaching',
-    description: 'Sessions de coaching personnalisé',
-    plans: { free: false, basic: false, premium: true }
-  },
-  {
-    id: 'api-access',
-    feature: 'API',
-    description: 'Accès à l\'API de la plateforme',
-    plans: { free: false, basic: false, premium: false }
-  },
+  // {
+  //   id: 'coaching',
+  //   feature: 'Coaching',
+  //   description: 'Sessions de coaching personnalisé',
+  //   plans: { free: false, basic: false, premium: true }
+  // },
+  // {
+  //   id: 'api-access',
+  //   feature: 'API',
+  //   description: 'Accès à l\'API de la plateforme',
+  //   plans: { free: false, basic: false, premium: false }
+  // },
   {
     id: 'priority-support',
     feature: 'Support prioritaire',

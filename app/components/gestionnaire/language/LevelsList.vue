@@ -36,7 +36,7 @@
             <button
               :class="[
                 'btn-toggle',
-                level.isActive ? 'btn-deactivate' : 'btn-activate'
+                level.isActive ? 'btn-deactivate' : 'btn-activate',
               ]"
               @click="toggleLevel(level)"
               :disabled="!level.id || level.id.startsWith('level-')"
@@ -71,7 +71,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import { useLanguageStore } from "../../stores/languageStore";
+import { useLanguageStore } from "../../../stores/languageStore";
 import type { Level } from "~/types/language-level";
 
 const languageStore = useLanguageStore();
@@ -95,7 +95,7 @@ const getLevelIcon = (levelName: string) => {
 // Langue actuellement selectionnee (avec tous ses niveaux)
 const currentLanguage = computed(() => {
   return languageStore.languages.find(
-    l => l.id === languageStore.selectedLanguageId
+    (l) => l.id === languageStore.selectedLanguageId,
   );
 });
 
@@ -117,13 +117,9 @@ const toggleLevel = async (level: any) => {
     // Empeche l'appel API pour les niveaux fictifs
     if (!level.id || level.id.startsWith("level-")) return;
 
-    await languageStore.updateLevel(
-      lang.id,
-      level.id,
-      {
-        isActive: !level.isActive,
-      }
-    );
+    await languageStore.updateLevel(lang.id, level.id, {
+      isActive: !level.isActive,
+    });
 
     // Mise a jour locale pour feedback instantane
     level.isActive = !level.isActive;
@@ -133,7 +129,6 @@ const toggleLevel = async (level: any) => {
   }
 };
 </script>
-
 
 <style scoped>
 .levels-section {
