@@ -150,9 +150,9 @@ const chartOptions = {
           </select>
         </div>
 
-        <div class="relative w-full md:w-95">
+        <div class="relative w-full md:w-75">
           <input v-model="search" type="text" placeholder="Rechercher par nom ou email..." 
-                 class="w-full pl-12 pr-4 py-2 bg-white border-0 shadow-sm rounded-2xl focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none">
+                 class="w-full pl-10 pr-4 py-2 bg-white border-0 shadow-sm rounded-2xl focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none">
           <!-- <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></span> -->
         </div>
 
@@ -303,7 +303,7 @@ const chartOptions = {
             </div>
 
             <div v-else class="h-full flex flex-col items-center justify-center text-slate-300 italic">
-              <div class="text-6xl mb-4">📊</div>
+              <div class="text-6xl mb-4"></div>
               <p>Sélectionnez une langue pour explorer les statistiques.</p>
             </div>
           </main>

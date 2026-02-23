@@ -25,21 +25,18 @@ export default defineNuxtConfig({
     },
     apiSecret: '',
   },
-  //Transition entre les pages 
-
-  // app: {
-  //   pageTransition: {
-  //     name: 'page', mode: 'out-in'
-  //   }
-  // }
+  // Transition entre les pages 
 
   app: {
+    // pageTransition: {
+    //   name: 'page', mode: 'out-in'
+    // },
     head: {
       title: 'LinguaLearn',
       htmlAttrs: {
         lang: 'fr'
       },
-    }
+  },
   }
   
 });

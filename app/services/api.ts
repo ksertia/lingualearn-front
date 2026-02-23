@@ -114,6 +114,10 @@ class ApiService {
     });
   }
 
+  async getUserById(id: string): Promise<ApiResponse<User>> {
+    return await this.api(`/v1/users/${id}`);
+  }
+
 
   /* ===================== LANGUAGES ===================== */
 

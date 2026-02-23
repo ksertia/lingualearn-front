@@ -13,8 +13,8 @@ const emit = defineEmits<{
 
 const store = useFormateurStore()
 
-const formatDate = (dateString?: string) => {
-  if (!dateString) return '-'
+const formatDate = (dateString?: string | Date) => {
+  if (!dateString) return "-"
   return new Date(dateString).toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
@@ -22,7 +22,7 @@ const formatDate = (dateString?: string) => {
   })
 }
 
-const formatDateTime = (dateString?: string) => {
+const formatDateTime = (dateString?: string | Date) => {
   if (!dateString) return '-'
   return new Date(dateString).toLocaleDateString('fr-FR', {
     day: '2-digit',
@@ -33,8 +33,10 @@ const formatDateTime = (dateString?: string) => {
   })
 }
 
-const getInitials = (firstName: string, lastName: string) => {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+const getInitials = (firstName?: string, lastName?: string) => {
+  const f = firstName?.charAt(0) ?? '?'
+  const l = lastName?.charAt(0) ?? ''
+  return `${f}${l}`.toUpperCase() || '?'
 }
 
 const getModuleStatusBadge = (isActive: boolean, isPublished: boolean) => {
@@ -48,17 +50,19 @@ const getModuleStatusBadge = (isActive: boolean, isPublished: boolean) => {
 }
 
 const handleSuspend = () => {
-  const confirmSuspend = confirm(
-    `Êtes-vous sûr de vouloir suspendre ${store.currentFormateur?.firstName} ${store.currentFormateur?.lastName} ?\n\nCette action rendra tous ses modules invisibles pour les apprenants.`
-  )
-  if (confirmSuspend && store.currentFormateur) {
-    emit('suspend', store.currentFormateur.id)
+  if (store.currentFormateur) {
+    const confirmSuspend = confirm(
+      `Êtes-vous sûr de vouloir suspendre ${store.currentFormateur.firstName} ${store.currentFormateur.lastName} ?\n\nCette action rendra tous ses modules invisibles pour les apprenants.`
+    )
+    if (confirmSuspend) {
+      store.suspendFormateur(store.currentFormateur.id)
+    }
   }
 }
 
 const handleReactivate = () => {
   if (store.currentFormateur) {
-    emit('reactivate', store.currentFormateur.id)
+    store.reactivateFormateur(store.currentFormateur.id)
   }
 }
 
@@ -81,7 +85,7 @@ onMounted(() => {
     </button>
 
     <!-- Loading State -->
-    <div v-if="store.isLoading" class="flex flex-col items-center justify-center py-16">
+    <div v-if="store.isLoadingDetail" class="flex flex-col items-center justify-center py-16">
       <div class="relative w-16 h-16">
         <div class="absolute inset-0 border-4 border-gray-200 rounded-full"></div>
         <div class="absolute inset-0 border-4 border-[#000099] rounded-full border-t-transparent animate-spin"></div>
@@ -90,13 +94,13 @@ onMounted(() => {
     </div>
 
     <!-- Error State -->
-    <div v-else-if="store.error" class="bg-red-50 border border-red-200 p-6 rounded-2xl flex items-center gap-4 text-red-700">
+    <div v-else-if="store.errorDetail" class="bg-red-50 border border-red-200 p-6 rounded-2xl flex items-center gap-4 text-red-700">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 flex-shrink-0" viewBox="0 0 256 256">
         <path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm-8 56a8 8 0 0 1 16 0v56a8 8 0 0 1-16 0Zm8 104a12 12 0 1 1 12-12a12 12 0 0 1-12 12Z"/>
       </svg>
       <div>
         <p class="font-bold">Une erreur est survenue</p>
-        <p class="text-sm opacity-90">{{ store.error }}</p>
+        <p class="text-sm opacity-90">{{ store.errorDetail }}</p>
       </div>
     </div>
 
@@ -109,7 +113,7 @@ onMounted(() => {
           <div class="flex items-center gap-6">
             <div 
               class="w-24 h-24 rounded-3xl flex items-center justify-center text-3xl font-bold shadow-inner"
-              :class="store.currentFormateur.isSuspended 
+              :class="!store.currentFormateur.isActive 
                 ? 'bg-gray-200 text-gray-500' 
                 : 'bg-gradient-to-br from-[#00ced1] to-[#00a8a8] text-[#000099]'"
             >
@@ -129,11 +133,11 @@ onMounted(() => {
                 </span>
                 <span
                   class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider border"
-                  :class="store.currentFormateur.isSuspended 
+                  :class="!store.currentFormateur.isActive 
                     ? 'bg-red-100 text-red-700 border-red-200' 
                     : 'bg-green-100 text-green-700 border-green-200'"
                 >
-                  {{ store.currentFormateur.isSuspended ? 'Suspendu' : 'Actif' }}
+                  {{ !store.currentFormateur.isActive ? 'Suspendu' : 'Actif' }}
                 </span>
               </div>
             </div>
@@ -142,7 +146,7 @@ onMounted(() => {
           <!-- Actions -->
           <div class="flex gap-3">
             <button
-              v-if="!store.currentFormateur.isSuspended"
+              v-if="store.currentFormateur.isActive"
               @click="handleSuspend"
               class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 transition-colors"
             >
@@ -177,12 +181,12 @@ onMounted(() => {
           </div>
           <div class="p-4 bg-gray-50 rounded-2xl">
             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Dernière publication</p>
-            <p class="mt-1 text-lg font-bold text-gray-900">{{ formatDate(store.currentFormateur.stats.lastPublicationDate) }}</p>
+            <p class="mt-1 text-lg font-bold text-gray-900">{{ formatDate(store.currentFormateur.stats?.lastPublicationDate) }}</p>
           </div>
           <div class="p-4 bg-gray-50 rounded-2xl">
             <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Signalements</p>
-            <p class="mt-1 text-lg font-bold" :class="store.currentFormateur.reports.length > 0 ? 'text-orange-600' : 'text-green-600'">
-              {{ store.currentFormateur.reports.length }}
+            <p class="mt-1 text-lg font-bold" :class="store.currentFormateur.reports && store.currentFormateur.reports.length > 0 ? 'text-orange-600' : 'text-green-600'">
+              {{ store.currentFormateur.reports ? store.currentFormateur.reports.length : 0 }}
             </p>
           </div>
         </div>
@@ -199,10 +203,10 @@ onMounted(() => {
             </div>
             <div>
               <p class="text-xs text-gray-500 font-medium">Modules</p>
-              <p class="text-xl font-bold text-gray-900">{{ store.currentFormateur.stats.totalModules }}</p>
+              <p class="text-xl font-bold text-gray-900">{{ store.currentFormateur.stats?.totalModules ?? '-' }}</p>
             </div>
           </div>
-          <p class="text-xs text-green-600 mt-2">{{ store.currentFormateur.stats.activeModules }} actifs</p>
+          <p class="text-xs text-green-600 mt-2">{{ store.currentFormateur.stats?.activeModules ?? 0 }} actifs</p>
         </div>
 
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -214,7 +218,7 @@ onMounted(() => {
             </div>
             <div>
               <p class="text-xs text-gray-500 font-medium">Étapes</p>
-              <p class="text-xl font-bold text-gray-900">{{ store.currentFormateur.stats.totalSteps }}</p>
+              <p class="text-xl font-bold text-gray-900">{{ store.currentFormateur.stats?.totalSteps ?? '-' }}</p>
             </div>
           </div>
         </div>
@@ -228,7 +232,7 @@ onMounted(() => {
             </div>
             <div>
               <p class="text-xs text-gray-500 font-medium">Cours</p>
-              <p class="text-xl font-bold text-gray-900">{{ store.currentFormateur.stats.totalCourses }}</p>
+              <p class="text-xl font-bold text-gray-900">{{ store.currentFormateur.stats?.totalCourses ?? '-' }}</p>
             </div>
           </div>
         </div>
@@ -242,7 +246,7 @@ onMounted(() => {
             </div>
             <div>
               <p class="text-xs text-gray-500 font-medium">Exercices</p>
-              <p class="text-xl font-bold text-gray-900">{{ store.currentFormateur.stats.totalExercises }}</p>
+              <p class="text-xl font-bold text-gray-900">{{ store.currentFormateur.stats?.totalExercises ?? '-' }}</p>
             </div>
           </div>
         </div>
@@ -256,7 +260,7 @@ onMounted(() => {
             </div>
             <div>
               <p class="text-xs text-gray-500 font-medium">Quiz</p>
-              <p class="text-xl font-bold text-gray-900">{{ store.currentFormateur.stats.totalQuizzes }}</p>
+              <p class="text-xl font-bold text-gray-900">{{ store.currentFormateur.stats?.totalQuizzes ?? '-' }}</p>
             </div>
           </div>
         </div>

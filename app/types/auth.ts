@@ -1,8 +1,6 @@
-import type { User as BaseUser} from '../../shared/models/user'
+import type { User as AppUser } from './user'
 
-
-
-export type User = BaseUser
+export type User = AppUser
 
 export interface LoginCredentials {
   loginInfo: string;

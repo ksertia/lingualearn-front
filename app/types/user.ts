@@ -3,6 +3,22 @@ import type { User as BaseUser } from '../../shared/models/user'
 export type User = BaseUser & {
   isActive: boolean
   password?: string
+  language?: {
+    id: string
+    code: string
+    name: string
+  }
+  stats: BaseUser['stats'] & {
+    totalModules?: number
+    activeModules?: number
+    totalSteps?: number
+    totalCourses?: number
+    totalExercises?: number
+    totalQuizzes?: number
+    lastPublicationDate?: string
+  }
+  reports?: any[]
+  modules?: any[]
 }
 
 export interface CreateUserPayload {

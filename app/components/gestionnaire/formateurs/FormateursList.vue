@@ -13,7 +13,7 @@ const props = defineProps<{
   limit?: number;
 }>();
 
-const formatDate = (dateString?: string) => {
+const formatDate = (dateString?: string | Date) => {
   if (!dateString) return "-";
   return new Date(dateString).toLocaleDateString("fr-FR", {
     day: "2-digit",
@@ -22,7 +22,7 @@ const formatDate = (dateString?: string) => {
   });
 };
 
-const formatDateTime = (dateString?: string) => {
+const formatDateTime = (dateString?: string | Date) => {
   if (!dateString) return "-";
   return new Date(dateString).toLocaleDateString("fr-FR", {
     day: "2-digit",
@@ -45,7 +45,7 @@ const handleClickOutside = () => {
 
 onMounted(() => {
   window.addEventListener("click", handleClickOutside);
-  store.fetchFormateurs();
+  store.fetchFormateurUsers();
 });
 
 onUnmounted(() => {
@@ -53,18 +53,22 @@ onUnmounted(() => {
 });
 
 const displayedFormateurs = computed(() => {
+  const list = store.users
   if (props.limit) {
-    return store.filteredFormateurs.slice(0, props.limit);
+    return list.slice(0, props.limit)
   }
-  return store.filteredFormateurs;
-});
+  return list
+})
 
-const getInitials = (firstName: string, lastName: string) => {
-  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+
+const getInitials = (firstName?: string, lastName?: string) => {
+  const f = firstName?.charAt(0) ?? '?'
+  const l = lastName?.charAt(0) ?? ''
+  return `${f}${l}`.toUpperCase() || '?'
 };
 
 const getStatusBadge = (formateur: any) => {
-  if (formateur.isSuspended) {
+  if (!formateur.isActive) {
     return {
       class: "bg-red-100 text-red-700 border-red-200",
       label: "Suspendu",
@@ -87,20 +91,26 @@ const handleSuspend = (formateur: any) => {
     `Êtes-vous sûr de vouloir suspendre ${formateur.firstName} ${formateur.lastName} ?\n\nCette action rendra tous ses modules invisibles pour les apprenants.`,
   );
   if (confirmSuspend) {
-    emit("suspend", formateur.id);
+    store.suspendFormateur(formateur.id);
     openMenuId.value = null;
   }
 };
 
 const handleReactivate = (formateur: any) => {
-  emit("reactivate", formateur.id);
+  store.reactivateFormateur(formateur.id);
   openMenuId.value = null;
+};
+
+const handleViewDetail = (id: string) => {
+  openMenuId.value = null;
+  nextTick(() => {
+    emit('view', id);
+  });
 };
 </script>
 
 <template>
   <div class="formateurs-list">
-    <!-- Loading State -->
     <div
       v-if="store.isLoading"
       class="flex flex-col items-center justify-center py-16"
@@ -116,7 +126,6 @@ const handleReactivate = (formateur: any) => {
       <p class="mt-4 text-gray-500 font-medium">Chargement des formateurs...</p>
     </div>
 
-    <!-- Error State -->
     <div
       v-else-if="store.error"
       class="bg-red-50 border border-red-200 p-6 rounded-2xl flex items-center gap-4 text-red-700"
@@ -137,7 +146,6 @@ const handleReactivate = (formateur: any) => {
       </div>
     </div>
 
-    <!-- Empty State -->
     <div
       v-else-if="displayedFormateurs.length === 0"
       class="flex flex-col items-center justify-center py-16 text-gray-400 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200"
@@ -160,7 +168,6 @@ const handleReactivate = (formateur: any) => {
       <p class="text-sm">Essayez d'ajuster vos filtres de recherche</p>
     </div>
 
-    <!-- Table -->
     <div v-else class="overflow-x-auto -mx-8 px-8">
       <div class="min-w-[900px]">
         <!-- Header -->
@@ -183,7 +190,7 @@ const handleReactivate = (formateur: any) => {
             :key="formateur.id"
             class="grid grid-cols-[2fr_1.5fr_1fr_1fr_1fr_1fr_1fr] items-center border rounded-xl px-6 py-4 group transition-all duration-300 hover:shadow-lg"
             :class="
-              formateur.isSuspended
+              !formateur.isActive
                 ? 'bg-red-50 border-red-100'
                 : 'bg-white border-gray-100 hover:border-[#00ced1]'
             "
@@ -194,7 +201,7 @@ const handleReactivate = (formateur: any) => {
                 <div
                   class="w-12 h-12 rounded-2xl flex items-center justify-center text-base font-bold shadow-inner"
                   :class="
-                    formateur.isSuspended
+                    !formateur.isActive
                       ? 'bg-gray-200 text-gray-500'
                       : 'bg-gradient-to-br from-[#00ced1] to-[#00a8a8] text-[#000099]'
                   "
@@ -204,7 +211,7 @@ const handleReactivate = (formateur: any) => {
 
                 <!-- Lock icon for suspended -->
                 <div
-                  v-if="formateur.isSuspended"
+                  v-if="!formateur.isActive"
                   class="absolute -top-2 -right-2 w-7 h-7 rounded-xl bg-red-500 text-white flex items-center justify-center shadow-lg"
                   title="Compte suspendu"
                 >
@@ -244,18 +251,16 @@ const handleReactivate = (formateur: any) => {
                 v-if="formateur.language"
                 class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700"
               >
-                {{ formateur.language.code.toUpperCase() }}
+                {{ formateur.language?.code?.toUpperCase() }}
               </span>
               <span v-else class="text-xs text-gray-400">-</span>
             </div>
 
             <!-- Modules -->
             <div class="flex flex-col">
-              <span class="text-sm font-bold text-gray-900">{{
-                formateur.stats.totalModules
-              }}</span>
+              <span class="text-sm font-bold text-gray-900">{{ formateur.stats?.totalModules ?? '-' }}</span>
               <span class="text-[10px] text-gray-500"
-                >{{ formateur.stats.activeModules }} actifs</span
+                >{{ formateur.stats?.activeModules ?? 0 }} actifs</span
               >
             </div>
 
@@ -272,7 +277,7 @@ const handleReactivate = (formateur: any) => {
 
             <!-- Last Publication -->
             <div class="text-xs text-gray-600">
-              {{ formatDate(formateur.stats.lastPublicationDate) }}
+              {{ formatDate(formateur.stats?.lastPublicationDate) }}
             </div>
 
             <!-- Status -->
@@ -314,10 +319,11 @@ const handleReactivate = (formateur: any) => {
               <div
                 v-if="openMenuId === formateur.id"
                 class="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+                @click.stop
               >
                 <!-- View Details -->
                 <button
-                  @click="[$emit('view', formateur.id), (openMenuId = null)]"
+                  @click="handleViewDetail(formateur.id)"
                   class="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-[#000099] hover:bg-[#00ced1]/10 transition-colors"
                 >
                   <svg
@@ -368,7 +374,7 @@ const handleReactivate = (formateur: any) => {
 
                 <!-- Suspend / Reactivate -->
                 <button
-                  v-if="!formateur.isSuspended"
+                  v-if="formateur.isActive"
                   @click="handleSuspend(formateur)"
                   class="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 transition-colors"
                 >
