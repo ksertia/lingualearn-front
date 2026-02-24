@@ -247,6 +247,19 @@ class ApiService {
   }
 
   /* ===================== MODULES ===================== */
+  
+  //Un test 
+  async getModulesByLevel(languageId: string, levelId: string): Promise<ApiResponse<module[]>> {
+    return await this.api(`/v1/languages/${languageId}/levels/${levelId}/modules`);
+  }
+
+  async getLearningPathsByModule(languageId: string, levelId: string, moduleId: string): Promise<ApiResponse<any[]>> {
+    return await this.api(`/v1/languages/${languageId}/levels/${levelId}/modules/${moduleId}/paths`);
+  }
+
+  async getStepsByPath(languageId: string, levelId: string, moduleId: string, pathId: string): Promise<ApiResponse<any[]>> {
+    return await this.api(`/v1/languages/${languageId}/levels/${levelId}/modules/${moduleId}/paths/${pathId}/steps`);
+  }
 
   async getModule(levelId?: string): Promise<ApiResponse<module[]>> {
     return await this.api("/v1/modules", {

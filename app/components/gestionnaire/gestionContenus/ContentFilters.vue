@@ -1,117 +1,145 @@
 <script setup lang="ts">
-import { useContenuStore } from '~/stores/contenuStore'
-import { useLanguageStore } from '~/stores/languageStore'
-import { useFormateurStore } from '~/stores/formateurStore'
+import { useContenuStore } from "~/stores/contenuStore";
+import { useLanguageStore } from "~/stores/languageStore";
+import { useFormateurStore } from "~/stores/formateurStore";
 
-const store = useContenuStore()
-const languageStore = useLanguageStore()
-const formateurStore = useFormateurStore()
+const store = useContenuStore();
+const languageStore = useLanguageStore();
+const formateurStore = useFormateurStore();
 
 // Émettre les changements de filtres
 const emit = defineEmits<{
-  (e: 'filter-change'): void
-}>()
+  (e: "filter-change"): void;
+}>();
 
 // Computed pour les options de filtres
 const languages = computed(() => {
-  return languageStore.languages.map(lang => ({
+  return languageStore.languages.map((lang) => ({
     value: lang.id,
-    label: lang.name
-  }))
-})
+    label: lang.name,
+  }));
+});
 
 const levels = computed(() => {
-  const selectedLangId = store.filters.languageId
-  if (!selectedLangId) return []
-  
-  const selectedLang = languageStore.languages.find(l => l.id === selectedLangId)
-  if (!selectedLang) return []
-  
-  return selectedLang.levels.map(level => ({
+  const selectedLangId = store.filters.languageId;
+  if (!selectedLangId) return [];
+
+  const selectedLang = languageStore.languages.find(
+    (l) => l.id === selectedLangId,
+  );
+  if (!selectedLang) return [];
+
+  return selectedLang.levels.map((level) => ({
     value: level.id,
-    label: level.name
-  }))
-})
+    label: level.name,
+  }));
+});
 
 const formateurs = computed(() => {
-  return formateurStore.formateurs.map(f => ({
+  if (!formateurStore.formateurUsers) return [];
+  return formateurStore.formateurUsers.map((f) => ({
     value: f.id,
-    label: `${f.firstName} ${f.lastName}`
-  }))
-})
+    label: `${f.firstName} ${f.lastName}`,
+  }));
+});
 
 // Handlers
 const handleLanguageChange = (event: Event) => {
-  const value = (event.target as HTMLSelectElement).value
-  store.setFilter('languageId', value)
-  emit('filter-change')
-}
+  const value = (event.target as HTMLSelectElement).value;
+  store.filters.languageId = value;
+  store.filters.levelId = undefined; // Reset niveau si la langue change
+  store.fetchContenus();
+  emit("filter-change");
+};
 
 const handleLevelChange = (event: Event) => {
-  const value = (event.target as HTMLSelectElement).value
-  store.setFilter('levelId', value)
-  emit('filter-change')
-}
+  const value = (event.target as HTMLSelectElement).value;
+  store.filters.levelId = value;
+  store.fetchContenus();
+  emit("filter-change");
+};
 
 const handleFormateurChange = (event: Event) => {
-  const value = (event.target as HTMLSelectElement).value
-  store.setFilter('formateurId', value)
-  emit('filter-change')
-}
+  const value = (event.target as HTMLSelectElement).value;
+  store.filters.formateurId = value;
+  store.fetchContenus();
+  emit("filter-change");
+};
 
 const handleStatusChange = (event: Event) => {
-  const value = (event.target as HTMLSelectElement).value
-  store.setFilter('status', value)
-  emit('filter-change')
-}
+  const value = (event.target as HTMLSelectElement).value;
+  store.filters.status = value as any;
+  store.fetchContenus();
+  emit("filter-change");
+};
 
 const handleDateFromChange = (event: Event) => {
-  const value = (event.target as HTMLInputElement).value
-  store.setFilter('dateFrom', value || undefined)
-  emit('filter-change')
-}
+  const value = (event.target as HTMLInputElement).value;
+  store.filters.dateFrom = value;
+  store.fetchContenus();
+  emit("filter-change");
+};
 
 const handleDateToChange = (event: Event) => {
-  const value = (event.target as HTMLInputElement).value
-  store.setFilter('dateTo', value || undefined)
-  emit('filter-change')
-}
+  const value = (event.target as HTMLInputElement).value;
+  store.filters.dateTo = value;
+  store.fetchContenus();
+  emit("filter-change");
+};
 
 const handleMinEnrolledChange = (event: Event) => {
-  const value = parseInt((event.target as HTMLInputElement).value)
-  store.setFilter('minEnrolled', isNaN(value) ? undefined : value)
-  emit('filter-change')
-}
+  const value = parseInt((event.target as HTMLInputElement).value);
+  store.filters.minEnrolled = isNaN(value) ? undefined : value;
+  store.fetchContenus();
+  emit("filter-change");
+};
 
 const handleMaxEnrolledChange = (event: Event) => {
-  const value = parseInt((event.target as HTMLInputElement).value)
-  store.setFilter('maxEnrolled', isNaN(value) ? undefined : value)
-  emit('filter-change')
-}
+  const value = parseInt((event.target as HTMLInputElement).value);
+  store.filters.maxEnrolled = isNaN(value) ? undefined : value;
+  store.fetchContenus();
+  emit("filter-change");
+};
 
 const handleReset = () => {
-  store.resetFilters()
-  emit('filter-change')
-}
+  store.filters = { status: "all" };
+  store.fetchContenus();
+  emit("filter-change");
+};
 
 // État pour afficher/masquer les filtres avancés
-const showAdvancedFilters = ref(false)
+const showAdvancedFilters = ref(false);
 </script>
 
 <template>
-  <div class="content-filters bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+  <div
+    class="content-filters bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
+  >
     <!-- Filtres principaux -->
     <div class="flex flex-col lg:flex-row gap-4">
       <!-- Recherche -->
       <div class="relative flex-1">
         <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
           </svg>
         </span>
         <input
           :value="store.filters.search"
-          @input="store.setFilter('search', ($event.target as HTMLInputElement).value)"
+          @input="
+            store.setFilter('search', ($event.target as HTMLInputElement).value)
+          "
           type="text"
           placeholder="Rechercher un contenu..."
           class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm"
@@ -126,13 +154,30 @@ const showAdvancedFilters = ref(false)
           class="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium"
         >
           <option value="">Toutes les langues</option>
-          <option v-for="lang in languages" :key="lang.value" :value="lang.value">
+          <option
+            v-for="lang in languages"
+            :key="lang.value"
+            :value="lang.value"
+          >
             {{ lang.label }}
           </option>
         </select>
-        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        <div
+          class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </div>
       </div>
@@ -146,13 +191,30 @@ const showAdvancedFilters = ref(false)
           class="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <option value="">Tous les niveaux</option>
-          <option v-for="level in levels" :key="level.value" :value="level.value">
+          <option
+            v-for="level in levels"
+            :key="level.value"
+            :value="level.value"
+          >
             {{ level.label }}
           </option>
         </select>
-        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        <div
+          class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </div>
       </div>
@@ -165,13 +227,30 @@ const showAdvancedFilters = ref(false)
           class="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium"
         >
           <option value="">Tous les formateurs</option>
-          <option v-for="formateur in formateurs" :key="formateur.value" :value="formateur.value">
+          <option
+            v-for="formateur in formateurs"
+            :key="formateur.value"
+            :value="formateur.value"
+          >
             {{ formateur.label }}
           </option>
         </select>
-        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        <div
+          class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </div>
       </div>
@@ -187,23 +266,47 @@ const showAdvancedFilters = ref(false)
           <option value="active">Actifs</option>
           <option value="disabled">Désactivés</option>
         </select>
-        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        <div
+          class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </div>
       </div>
 
       <!-- Bouton filtres avancés -->
-      <button
+      <!-- <button
         @click="showAdvancedFilters = !showAdvancedFilters"
         class="flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#000099] bg-[#000099]/5 hover:bg-[#000099]/10 rounded-xl transition-colors whitespace-nowrap"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+          />
         </svg>
-        <span>{{ showAdvancedFilters ? 'Masquer' : 'Plus de filtres' }}</span>
-      </button>
+        <span>{{ showAdvancedFilters ? "Masquer" : "Plus de filtres" }}</span>
+      </button> -->
     </div>
 
     <!-- Filtres avancés -->
@@ -211,7 +314,9 @@ const showAdvancedFilters = ref(false)
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Date de début -->
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-2">Date de publication (depuis)</label>
+          <label class="block text-xs font-medium text-gray-500 mb-2"
+            >Date de publication (depuis)</label
+          >
           <input
             type="date"
             :value="store.filters.dateFrom || ''"
@@ -222,7 +327,9 @@ const showAdvancedFilters = ref(false)
 
         <!-- Date de fin -->
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-2">Date de publication (jusqu'à)</label>
+          <label class="block text-xs font-medium text-gray-500 mb-2"
+            >Date de publication (jusqu'à)</label
+          >
           <input
             type="date"
             :value="store.filters.dateTo || ''"
@@ -233,7 +340,9 @@ const showAdvancedFilters = ref(false)
 
         <!-- Inscrits (min) -->
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-2">Inscrits (min)</label>
+          <label class="block text-xs font-medium text-gray-500 mb-2"
+            >Inscrits (min)</label
+          >
           <input
             type="number"
             :value="store.filters.minEnrolled || ''"
@@ -246,7 +355,9 @@ const showAdvancedFilters = ref(false)
 
         <!-- Inscrits (max) -->
         <div>
-          <label class="block text-xs font-medium text-gray-500 mb-2">Inscrits (max)</label>
+          <label class="block text-xs font-medium text-gray-500 mb-2"
+            >Inscrits (max)</label
+          >
           <input
             type="number"
             :value="store.filters.maxEnrolled || ''"
@@ -264,8 +375,19 @@ const showAdvancedFilters = ref(false)
           @click="handleReset"
           class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
           </svg>
           Réinitialiser les filtres
         </button>
@@ -273,4 +395,3 @@ const showAdvancedFilters = ref(false)
     </div>
   </div>
 </template>
-

@@ -42,7 +42,7 @@ onMounted(async () => {
   await Promise.all([
     store.fetchSignalements(),
     languageStore.fetchLanguages(),
-    formateurStore.fetchFormateurs()
+    formateurStore.fetchFormateurUsers()
   ])
 })
 
