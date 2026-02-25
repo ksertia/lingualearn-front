@@ -36,6 +36,17 @@ watch(() => props.signalement, () => {
   suspendFormateur.value = false
   deleteContent.value = false
   showConfirm.value = false
+}, { immediate: true })
+
+// Cleanup when component unmounts
+onUnmounted(() => {
+  // Reset all refs to prevent reactivity issues
+  selectedAction.value = 'processed'
+  comment.value = ''
+  disableContent.value = false
+  suspendFormateur.value = false
+  deleteContent.value = false
+  showConfirm.value = false
 })
 
 const handleSubmit = () => {

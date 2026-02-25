@@ -13,12 +13,25 @@ const emit = defineEmits<{
 
 const store = useContenuStore()
 
+// Track if component is mounted
+const isMounted = ref(false)
+
 // Charger les détails quand l'ID change
 watch(() => props.contenuId, async (newId) => {
-  if (newId) {
+  if (newId && isMounted.value) {
     await store.fetchContenuDetail(newId)
   }
 }, { immediate: true })
+
+onMounted(() => {
+  isMounted.value = true
+})
+
+onUnmounted(() => {
+  isMounted.value = false
+  // Clear current contenu to prevent reactivity issues
+  store.currentContenu = null
+})
 
 // Formatage des dates
 const formatDate = (dateString?: string) => {
@@ -33,7 +46,7 @@ const formatDate = (dateString?: string) => {
 }
 
 // Badge de type
-const getTypeBadge = (type: string) => {
+const getTypeBadge = (type: string): { class: string; label: string; icon: string } => {
   const badges: Record<string, { class: string; label: string; icon: string }> = {
     course: { 
       class: 'bg-blue-100 text-blue-700 border-blue-200', 
@@ -51,11 +64,13 @@ const getTypeBadge = (type: string) => {
       icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z'
     }
   }
-  return badges[type] || { class: 'bg-gray-100 text-gray-700 border-gray-200', label: type, icon: '' }
+  const badge = badges[type]
+  if (badge) return badge
+  return { class: 'bg-gray-100 text-gray-700 border-gray-200', label: type, icon: '' }
 }
 
 // Badge de statut
-const getStatusBadge = (contenu: Contenu) => {
+const getStatusBadge = (contenu: Contenu): { class: string; label: string; icon: string } => {
   if (contenu.status === 'disabled') {
     if (contenu.disabledByGestionnaire) {
       return {

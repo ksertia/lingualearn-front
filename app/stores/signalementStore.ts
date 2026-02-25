@@ -449,6 +449,38 @@ export const useSignalementStore = defineStore('signalement', () => {
   function clearError() {
     error.value = null
   }
+
+  // Helpers UI
+function getActionBadge(action?: string) {
+  const badges = {
+    none: {
+      class: 'bg-slate-100 text-slate-700 border-slate-200',
+      label: 'Aucune'
+    },
+    processed: {
+      class: 'bg-green-100 text-green-700 border-green-200',
+      label: 'Traité'
+    },
+    rejected: {
+      class: 'bg-red-100 text-red-700 border-red-200',
+      label: 'Rejeté'
+    },
+    content_disabled: {
+      class: 'bg-orange-100 text-orange-700 border-orange-200',
+      label: 'Contenu désactivé'
+    },
+    content_deleted: {
+      class: 'bg-red-100 text-red-700 border-red-200',
+      label: 'Contenu supprimé'
+    },
+    formator_suspended: {
+      class: 'bg-purple-100 text-purple-700 border-purple-200',
+      label: 'Formateur suspendu'
+    }
+  }
+
+  return badges[action as keyof typeof badges] ?? badges.none
+}
   
   return {
     // State
@@ -473,7 +505,8 @@ export const useSignalementStore = defineStore('signalement', () => {
     setSort,
     resetFilters,
     setPage,
-    clearError
+    clearError,
+    getActionBadge
   }
 })
 

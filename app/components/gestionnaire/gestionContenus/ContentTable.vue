@@ -14,21 +14,34 @@ const emit = defineEmits<{
 
 // Menu contextuel
 const openMenuId = ref<string | null>(null)
+const menuRef = ref<HTMLElement | null>(null)
+const isMounted = ref(false)
 
-const toggleMenu = (id: string) => {
+const toggleMenu = (id: string, event: Event) => {
+  event.stopPropagation()
   openMenuId.value = openMenuId.value === id ? null : id
 }
 
-const handleClickOutside = () => {
-  openMenuId.value = null
+const handleClickOutside = (event: MouseEvent) => {
+  // Only process if component is still mounted
+  if (!isMounted.value) return
+  
+  const target = event.target as HTMLElement
+  const dropdown = target.closest('.dropdown-menu')
+  
+  if (!dropdown && openMenuId.value) {
+    openMenuId.value = null
+  }
 }
 
 onMounted(() => {
-  window.addEventListener('click', handleClickOutside)
+  isMounted.value = true
+  document.addEventListener('click', handleClickOutside, true)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('click', handleClickOutside)
+  isMounted.value = false
+  document.removeEventListener('click', handleClickOutside, true)
 })
 
 // Formatage des dates
@@ -42,17 +55,19 @@ const formatDate = (dateString?: string) => {
 }
 
 // Badge de type de contenu
-const getTypeBadge = (type: string) => {
+const getTypeBadge = (type: string): { class: string; label: string } => {
   const badges: Record<string, { class: string; label: string }> = {
     course: { class: 'bg-blue-100 text-blue-700 border-blue-200', label: 'Cours' },
     exercise: { class: 'bg-purple-100 text-purple-700 border-purple-200', label: 'Exercice' },
     quiz: { class: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Quiz' }
   }
-  return badges[type] || { class: 'bg-gray-100 text-gray-700 border-gray-200', label: type }
+  const badge = badges[type]
+  if (badge) return badge
+  return { class: 'bg-gray-100 text-gray-700 border-gray-200', label: type }
 }
 
 // Badge de statut
-const getStatusBadge = (contenu: Contenu) => {
+const getStatusBadge = (contenu: Contenu): { class: string; label: string; tooltip?: string } => {
   if (contenu.status === 'disabled') {
     if (contenu.disabledByGestionnaire) {
       return {
@@ -276,7 +291,7 @@ const displayedContenus = computed(() => {
 
             <div class="relative">
               <button
-                @click.stop="toggleMenu(contenu.id)"
+                @click.stop="toggleMenu(contenu.id, $event)"
                 class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-all duration-300"
                 :class="{ 'bg-gray-100 text-gray-900': openMenuId === contenu.id }"
               >

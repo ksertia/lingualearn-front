@@ -13,21 +13,34 @@ const emit = defineEmits<{
 
 // Menu contextuel
 const openMenuId = ref<string | null>(null)
+const menuRef = ref<HTMLElement | null>(null)
+const isMounted = ref(false)
 
-const toggleMenu = (id: string) => {
+const toggleMenu = (id: string, event: Event) => {
+  event.stopPropagation()
   openMenuId.value = openMenuId.value === id ? null : id
 }
 
-const handleClickOutside = () => {
-  openMenuId.value = null
+const handleClickOutside = (event: MouseEvent) => {
+  // Only process if component is still mounted
+  if (!isMounted.value) return
+  
+  const target = event.target as HTMLElement
+  const dropdown = target.closest('.dropdown-menu')
+  
+  if (!dropdown && openMenuId.value) {
+    openMenuId.value = null
+  }
 }
 
 onMounted(() => {
-  window.addEventListener('click', handleClickOutside)
+  isMounted.value = true
+  document.addEventListener('click', handleClickOutside, true)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('click', handleClickOutside)
+  isMounted.value = false
+  document.removeEventListener('click', handleClickOutside, true)
 })
 
 // Formatage des dates
@@ -52,9 +65,23 @@ const formatDateTime = (dateString?: string) => {
 }
 
 // Badge helpers with proper null safety
-const getTypeBadge = (type?: string) => {
-  if (!type) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Autre' }
-  const badges: Record<string, { class: string; label: string }> = {
+// const getTypeBadge = (type?: string): { class: string; label: string } => {
+//   if (!type) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Autre' }
+//   const badges: Record<string, { class: string; label: string }> = {
+//     course: { class: 'bg-blue-100 text-blue-700 border-blue-200', label: 'Cours' },
+//     lesson: { class: 'bg-indigo-100 text-indigo-700 border-indigo-200', label: 'Leçon' },
+//     quiz: { class: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Quiz' },
+//     formateur: { class: 'bg-purple-100 text-purple-700 border-purple-200', label: 'Formateur' },
+//     module: { class: 'bg-cyan-100 text-cyan-700 border-cyan-200', label: 'Module' },
+//     other: { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Autre' }
+//   }
+//   const badge = badges[type]
+//   if (badge) return badge
+//   return badges.other
+// }
+
+const getTypeBadge = (type?: string): { class: string; label: string } => {
+  const badges = {
     course: { class: 'bg-blue-100 text-blue-700 border-blue-200', label: 'Cours' },
     lesson: { class: 'bg-indigo-100 text-indigo-700 border-indigo-200', label: 'Leçon' },
     quiz: { class: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Quiz' },
@@ -62,41 +89,75 @@ const getTypeBadge = (type?: string) => {
     module: { class: 'bg-cyan-100 text-cyan-700 border-cyan-200', label: 'Module' },
     other: { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Autre' }
   }
-  return badges[type] || badges.other
+
+  if (!type) return badges.other
+  return badges[type as keyof typeof badges] ?? badges.other
 }
 
-const getStatusBadge = (status?: string) => {
-  if (!status) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Inconnu' }
-  const badges: Record<string, { class: string; label: string }> = {
+
+// const getStatusBadge = (status?: string): { class: string; label: string } => {
+//   if (!status) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Inconnu' }
+//   const badges: Record<string, { class: string; label: string }> = {
+//     pending: { class: 'bg-red-100 text-red-700 border-red-200', label: 'En attente' },
+//     processed: { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Traité' },
+//     rejected: { class: 'bg-emerald-100 text-emerald-700 border-emerald-200', label: 'Rejeté' }
+//   }
+//   const badge = badges[status]
+//   if (badge) return badge
+//   return badges.pending
+// }
+
+const getStatusBadge = (status?: string): { class: string; label: string } => {
+  const badges = {
     pending: { class: 'bg-red-100 text-red-700 border-red-200', label: 'En attente' },
     processed: { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Traité' },
     rejected: { class: 'bg-emerald-100 text-emerald-700 border-emerald-200', label: 'Rejeté' }
   }
-  return badges[status] || badges.pending
+
+  if (!status) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Inconnu' }
+  return badges[status as keyof typeof badges] ?? badges.pending
 }
 
-const getGravityBadge = (gravity?: string) => {
-  if (!gravity) return { class: 'text-slate-500', label: 'Inconnue', dot: 'bg-slate-400' }
-  const badges: Record<string, { class: string; label: string; dot: string }> = {
+
+// const getGravityBadge = (gravity?: string): { class: string; label: string; dot: string } => {
+//   if (!gravity) return { class: 'text-slate-500', label: 'Inconnue', dot: 'bg-slate-400' }
+//   const badges: Record<string, { class: string; label: string; dot: string }> = {
+//     urgent: { class: 'text-red-600', label: 'Urgent', dot: 'bg-red-500' },
+//     normal: { class: 'text-orange-600', label: 'Normal', dot: 'bg-orange-500' },
+//     low: { class: 'text-slate-500', label: 'Faible', dot: 'bg-slate-400' }
+//   }
+//   const badge = badges[gravity]
+//   if (badge) return badge
+//   return badges.normal
+// }
+
+
+const getGravityBadge = (gravity?: string): { class: string; label: string; dot: string } => {
+  const badges = {
     urgent: { class: 'text-red-600', label: 'Urgent', dot: 'bg-red-500' },
     normal: { class: 'text-orange-600', label: 'Normal', dot: 'bg-orange-500' },
     low: { class: 'text-slate-500', label: 'Faible', dot: 'bg-slate-400' }
   }
-  return badges[gravity] || badges.normal
+
+  if (!gravity) return { class: 'text-slate-500', label: 'Inconnue', dot: 'bg-slate-400' }
+  return badges[gravity as keyof typeof badges] ?? badges.normal
 }
 
-const getActionBadge = (action?: string) => {
-  if (!action) return { class: 'bg-slate-50 text-slate-500', label: 'Aucune' }
-  const badges: Record<string, { class: string; label: string }> = {
-    none: { class: 'bg-slate-50 text-slate-500', label: 'Aucune' },
-    content_disabled: { class: 'bg-red-50 text-red-600', label: 'Contenu désactivé' },
-    content_deleted: { class: 'bg-red-100 text-red-700', label: 'Contenu supprimé' },
-    formator_suspended: { class: 'bg-orange-50 text-orange-600', label: 'Formateur suspendu' },
-    rejected: { class: 'bg-slate-50 text-slate-500', label: 'Signalement rejeté' },
-    processed: { class: 'bg-blue-50 text-blue-600', label: 'Signalement traité' }
-  }
-  return badges[action] || badges.none
-}
+// const getActionBadge = (action?: string): { class: string; label: string } => {
+//   if (!action) return { class: 'bg-slate-50 text-slate-500', label: 'Aucune' }
+//   const badges: Record<string, { class: string; label: string }> = {
+//     none: { class: 'bg-slate-50 text-slate-500', label: 'Aucune' },
+//     content_disabled: { class: 'bg-red-50 text-red-600', label: 'Contenu désactivé' },
+//     content_deleted: { class: 'bg-red-100 text-red-700', label: 'Contenu supprimé' },
+//     formator_suspended: { class: 'bg-orange-50 text-orange-600', label: 'Formateur suspendu' },
+//     rejected: { class: 'bg-slate-50 text-slate-500', label: 'Signalement rejeté' },
+//     processed: { class: 'bg-blue-50 text-blue-600', label: 'Signalement traité' }
+//   }
+//   const badge = badges[action]
+//   if (badge) return badge
+//   return badges.none
+// }
+
 
 // Handlers
 const handleView = (id: string) => {
@@ -154,7 +215,7 @@ const displayedSignalements = computed(() => {
 
 // Safe data accessors
 const getSignalementTitle = (s: Signalement) => s.contenu?.title || '-'
-const getSignalementType = (s: Signalement) => getTypeBadge(s.contenu?.type)
+const getSignalementType = (s: Signalement): { class: string; label: string } => getTypeBadge(s.contenu?.type)
 const getSignalementFormateurInitials = (s: Signalement) => {
   const fn = s.contenu?.auteur?.firstName || ''
   const ln = s.contenu?.auteur?.lastName || ''
@@ -320,7 +381,7 @@ const getReporterName = (s: Signalement) => {
             </button>
             <div class="relative">
               <button
-                @click.stop="toggleMenu(signalement.id)"
+                @click.stop="toggleMenu(signalement.id, $event)"
                 class="p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-all duration-300"
                 :class="{ 'bg-slate-100 text-slate-900': openMenuId === signalement.id }"
               >
