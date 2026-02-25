@@ -1,230 +1,42 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useModuleStore } from './moduleStore'
+import { useLevelStore } from './levelStore'
+import { useLanguageStore } from './languageStore'
 import { useApiService } from '~/services/api'
-import type { 
-  Contenu, 
-  ContenuFilters, 
-  ContenuSort, 
-  ContenuStatsSummary, 
-  ContenuDetailResponse,
-  ContenuActionResult 
-} from '~/types/contenu'
-
-// Données de démonstration
-const DEMO_CONTENUS: Contenu[] = [
-  {
-    id: 'c1',
-    title: 'Bases de la grammaire française',
-    description: 'Cours complet pour maîtriser les fondamentaux de la grammaire française',
-    type: 'course',
-    status: 'active',
-    language: { id: '1', name: 'Français', code: 'fr' },
-    level: { id: 'l1', name: 'Débutant', code: 'A1' },
-    module: { id: 'm1', title: 'Grammaire fondamentale' },
-    parcours: { id: 'p1', title: 'Parcours complet' },
-    step: { id: 's1', title: 'Leçons 1-10' },
-    auteur: { id: 'a1', firstName: 'Jean', lastName: 'DOE', email: 'jean.doe@example.com' },
-    createdAt: '2024-01-15T10:00:00Z',
-    publishedAt: '2024-01-20T09:00:00Z',
-    updatedAt: '2024-03-15T14:30:00Z',
-    stats: {
-      enrolledCount: 245,
-      completionRate: 78,
-      averageScore: 82,
-      reportsCount: 2
-    }
-  },
-  {
-    id: 'c2',
-    title: 'Anglais professionnel - Niveau intermédiaire',
-    description: 'Maîtrisez l\'anglais des affaires',
-    type: 'course',
-    status: 'active',
-    language: { id: '2', name: 'Anglais', code: 'en' },
-    level: { id: 'l3', name: 'Intermédiaire', code: 'B1' },
-    module: { id: 'm2', title: 'Anglais professionnel' },
-    parcours: { id: 'p2', title: 'Parcours carrière' },
-    step: { id: 's2', title: 'Module 1' },
-    auteur: { id: 'a2', firstName: 'Marie', lastName: 'DURAND', email: 'marie.durand@example.com' },
-    createdAt: '2024-02-01T08:00:00Z',
-    publishedAt: '2024-02-10T11:00:00Z',
-    updatedAt: '2024-03-18T16:45:00Z',
-    stats: {
-      enrolledCount: 189,
-      completionRate: 65,
-      averageScore: 75,
-      reportsCount: 0
-    }
-  },
-  {
-    id: 'c3',
-    title: 'Exercices de vocabulaire avancé',
-    description: 'Plus de 500 exercices pour enrichir votre vocabulaire',
-    type: 'exercise',
-    status: 'disabled',
-    language: { id: '1', name: 'Français', code: 'fr' },
-    level: { id: 'l4', name: 'Avancé', code: 'C1' },
-    module: { id: 'm3', title: 'Vocabulaire avancé' },
-    parcours: { id: 'p3', title: 'Perfectionnement' },
-    step: { id: 's3', title: 'Vocabulaire thématique' },
-    auteur: { id: 'a1', firstName: 'Jean', lastName: 'DOE', email: 'jean.doe@example.com' },
-    createdAt: '2023-11-20T12:00:00Z',
-    publishedAt: '2023-12-01T09:00:00Z',
-    updatedAt: '2024-02-15T10:00:00Z',
-    stats: {
-      enrolledCount: 56,
-      completionRate: 90,
-      averageScore: 88,
-      reportsCount: 5
-    },
-    disabledByGestionnaire: true,
-    disabledAt: '2024-02-15T10:00:00Z',
-    disabledReason: 'Contenu inapproprié signalé à plusieurs reprises'
-  },
-  {
-    id: 'c4',
-    title: 'Quiz de grammaire espagnole',
-    description: 'Testez vos connaissances grammaticales',
-    type: 'quiz',
-    status: 'active',
-    language: { id: '3', name: 'Espagnol', code: 'es' },
-    level: { id: 'l2', name: 'Intermédiaire', code: 'B1' },
-    module: { id: 'm4', title: 'Grammaire espagnole' },
-    parcours: { id: 'p4', title: 'Apprentissage intensif' },
-    step: { id: 's4', title: 'Quiz 1-5' },
-    auteur: { id: 'a3', firstName: 'Pierre', lastName: 'MARTIN', email: 'pierre.martin@example.com' },
-    createdAt: '2024-03-01T09:00:00Z',
-    publishedAt: '2024-03-10T08:00:00Z',
-    updatedAt: '2024-03-20T10:00:00Z',
-    stats: {
-      enrolledCount: 78,
-      completionRate: 72,
-      averageScore: 79,
-      reportsCount: 1
-    }
-  },
-  {
-    id: 'c5',
-    title: 'Allemand pour débutants',
-    description: 'Initiation à la langue allemande',
-    type: 'course',
-    status: 'active',
-    language: { id: '4', name: 'Allemand', code: 'de' },
-    level: { id: 'l1', name: 'Débutant', code: 'A1' },
-    module: { id: 'm5', title: 'Allemand fondamental' },
-    parcours: { id: 'p5', title: 'Parcours découverte' },
-    step: { id: 's5', title: 'Leçons 1-15' },
-    auteur: { id: 'a4', firstName: 'Sophie', lastName: 'BERNARD', email: 'sophie.bernard@example.com' },
-    createdAt: '2024-03-05T14:00:00Z',
-    publishedAt: '2024-03-12T10:00:00Z',
-    updatedAt: '2024-03-19T15:20:00Z',
-    stats: {
-      enrolledCount: 134,
-      completionRate: 55,
-      averageScore: 70,
-      reportsCount: 0
-    }
-  },
-  {
-    id: 'c6',
-    title: 'Conversation anglaise - Niveau avancé',
-    description: 'Perfectionnez votre prononciation et fluidité',
-    type: 'course',
-    status: 'disabled',
-    language: { id: '2', name: 'Anglais', code: 'en' },
-    level: { id: 'l4', name: 'Avancé', code: 'C1' },
-    module: { id: 'm6', title: 'Conversation avancée' },
-    parcours: { id: 'p6', title: 'Maîtrise orale' },
-    step: { id: 's6', title: 'Dialogues 1-10' },
-    auteur: { id: 'a2', firstName: 'Marie', lastName: 'DURAND', email: 'marie.durand@example.com' },
-    createdAt: '2024-01-10T10:00:00Z',
-    publishedAt: '2024-01-25T14:00:00Z',
-    updatedAt: '2024-03-01T09:00:00Z',
-    stats: {
-      enrolledCount: 42,
-      completionRate: 80,
-      averageScore: 85,
-      reportsCount: 3
-    },
-    disabledByGestionnaire: true,
-    disabledAt: '2024-03-01T09:00:00Z',
-    disabledReason: 'Signalements de contenu'
-  },
-  {
-    id: 'c7',
-    title: 'Exercices de conjugaison française',
-    description: 'Maîtrisez tous les temps du verbe',
-    type: 'exercise',
-    status: 'active',
-    language: { id: '1', name: 'Français', code: 'fr' },
-    level: { id: 'l3', name: 'Intermédiaire', code: 'B1' },
-    module: { id: 'm1', title: 'Grammaire fondamentale' },
-    parcours: { id: 'p1', title: 'Parcours complet' },
-    step: { id: 's7', title: 'Conjugaison' },
-    auteur: { id: 'a1', firstName: 'Jean', lastName: 'DOE', email: 'jean.doe@example.com' },
-    createdAt: '2024-02-15T11:00:00Z',
-    publishedAt: '2024-02-25T10:00:00Z',
-    updatedAt: '2024-03-20T11:30:00Z',
-    stats: {
-      enrolledCount: 312,
-      completionRate: 85,
-      averageScore: 90,
-      reportsCount: 0
-    }
-  },
-  {
-    id: 'c8',
-    title: 'Quiz de vocabulaire italien',
-    description: 'Apprenez le vocabulaire italien par thème',
-    type: 'quiz',
-    status: 'active',
-    language: { id: '5', name: 'Italien', code: 'it' },
-    level: { id: 'l2', name: 'Intermédiaire', code: 'B1' },
-    module: { id: 'm7', title: 'Vocabulaire italien' },
-    parcours: { id: 'p7', title: 'Apprentissage flexible' },
-    step: { id: 's8', title: 'Quiz thématiques' },
-    auteur: { id: 'a5', firstName: 'Luc', lastName: 'PETIT', email: 'luc.petit@example.com' },
-    createdAt: '2024-03-10T08:00:00Z',
-    publishedAt: '2024-03-18T09:00:00Z',
-    updatedAt: '2024-03-20T08:00:00Z',
-    stats: {
-      enrolledCount: 67,
-      completionRate: 60,
-      averageScore: 72,
-      reportsCount: 1
-    }
-  }
-]
+import type { Contenu, ContenuFilters, ContenuSortField, ContenuSortOrder, ContenuStatsSummary } from '~/types/contenu'
+import type { module as ModuleType } from '~/types/modules'
+import type { LearningPath, Step } from '~/types/learning'
 
 export const useContenuStore = defineStore('contenu', () => {
+  const moduleStore = useModuleStore()
+  const levelStore = useLevelStore()
+  const languageStore = useLanguageStore()
   const apiService = useApiService()
 
-  // State
   const contenus = ref<Contenu[]>([])
-  const currentContenu = ref<Contenu | null>(null)
   const isLoading = ref(false)
   const error = ref<string | null>(null)
-  
-  // Filtres
-  const filters = ref<ContenuFilters>({
-    languageId: undefined,
-    levelId: undefined,
-    moduleId: undefined,
-    formateurId: undefined,
-    status: 'all',
-    dateFrom: undefined,
-    dateTo: undefined,
-    minEnrolled: undefined,
-    maxEnrolled: undefined,
-    search: ''
+
+  // Détails du module sélectionné (parcours et étapes)
+  const selectedModuleDetails = ref<{
+    parcours: LearningPath[],
+    steps: Record<string, Step[]> // pathId -> Step[]
+  }>({
+    parcours: [],
+    steps: {}
   })
-  
-  // Tri
-  const sort = ref<ContenuSort>({
+
+  // Filtres et Tri
+  const filters = ref<ContenuFilters>({
+    status: 'all'
+  })
+
+  const sort = ref<{ field: ContenuSortField; order: ContenuSortOrder }>({
     field: 'publishedAt',
     order: 'desc'
   })
-  
+
   // Pagination
   const pagination = ref({
     page: 1,
@@ -233,372 +45,269 @@ export const useContenuStore = defineStore('contenu', () => {
     totalPages: 0
   })
 
-  // Computed
+  // Computed: Contenus filtrés et triés
   const filteredContenus = computed(() => {
     let result = [...contenus.value]
-    
-    // Filtre par langue
-    if (filters.value.languageId) {
-      result = result.filter(c => c.language.id === filters.value.languageId)
+
+    // Filtre par recherche
+    if (filters.value.search) {
+      const q = filters.value.search.toLowerCase()
+      result = result.filter(c =>
+        c.title.toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q)
+      )
     }
-    
-    // Filtre par niveau
-    if (filters.value.levelId) {
-      result = result.filter(c => c.level.id === filters.value.levelId)
-    }
-    
-    // Filtre par module
-    if (filters.value.moduleId) {
-      result = result.filter(c => c.module.id === filters.value.moduleId)
-    }
-    
-    // Filtre par formateur
-    if (filters.value.formateurId) {
-      result = result.filter(c => c.auteur.id === filters.value.formateurId)
-    }
-    
+
     // Filtre par statut
     if (filters.value.status && filters.value.status !== 'all') {
       result = result.filter(c => c.status === filters.value.status)
     }
-    
-    // Filtre par date de publication (from)
-    if (filters.value.dateFrom) {
-      const fromDate = new Date(filters.value.dateFrom)
-      result = result.filter(c => c.publishedAt && new Date(c.publishedAt) >= fromDate)
-    }
-    
-    // Filtre par date de publication (to)
-    if (filters.value.dateTo) {
-      const toDate = new Date(filters.value.dateTo)
-      result = result.filter(c => c.publishedAt && new Date(c.publishedAt) <= toDate)
-    }
-    
-    // Filtre par nombre d'inscrits (min)
-    if (filters.value.minEnrolled !== undefined) {
-      result = result.filter(c => c.stats.enrolledCount >= filters.value.minEnrolled!)
-    }
-    
-    // Filtre par nombre d'inscrits (max)
-    if (filters.value.maxEnrolled !== undefined) {
-      result = result.filter(c => c.stats.enrolledCount <= filters.value.maxEnrolled!)
-    }
-    
-    // Filtre par recherche (titre ou description)
-    if (filters.value.search) {
-      const searchLower = filters.value.search.toLowerCase()
-      result = result.filter(c => 
-        c.title.toLowerCase().includes(searchLower) ||
-        c.description.toLowerCase().includes(searchLower) ||
-        c.auteur.firstName.toLowerCase().includes(searchLower) ||
-        c.auteur.lastName.toLowerCase().includes(searchLower)
-      )
-    }
-    
+
     // Tri
     result.sort((a, b) => {
-      let comparison = 0
-      
-      switch (sort.value.field) {
-        case 'publishedAt':
-          const dateA = a.publishedAt ? new Date(a.publishedAt).getTime() : 0
-          const dateB = b.publishedAt ? new Date(b.publishedAt).getTime() : 0
-          comparison = dateA - dateB
-          break
-        case 'enrolledCount':
-          comparison = a.stats.enrolledCount - b.stats.enrolledCount
-          break
-        case 'language':
-          comparison = a.language.name.localeCompare(b.language.name)
-          break
-        case 'level':
-          comparison = a.level.name.localeCompare(b.level.name)
-          break
-        case 'title':
-          comparison = a.title.localeCompare(b.title)
-          break
+      let valA: any = a[sort.value.field as keyof Contenu]
+      let valB: any = b[sort.value.field as keyof Contenu]
+
+      if (sort.value.field === 'title') {
+        valA = a.title
+        valB = b.title
+      } else if (sort.value.field === 'publishedAt') {
+        valA = new Date(a.publishedAt || a.createdAt).getTime()
+        valB = new Date(b.publishedAt || b.createdAt).getTime()
+      } else if (sort.value.field === 'enrolledCount') {
+        valA = a.stats?.enrolledCount || 0
+        valB = b.stats?.enrolledCount || 0
       }
-      
-      return sort.value.order === 'asc' ? comparison : -comparison
+
+      if (valA < valB) return sort.value.order === 'asc' ? -1 : 1
+      if (valA > valB) return sort.value.order === 'asc' ? 1 : -1
+      return 0
     })
-    
+
     return result
   })
-  
-  const paginatedContenus = computed(() => {
-    const start = (pagination.value.page - 1) * pagination.value.limit
-    const end = start + pagination.value.limit
-    return filteredContenus.value.slice(start, end)
-  })
-  
-  const statsSummary = computed((): ContenuStatsSummary => {
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000)
-    
-    const publishedToday = contenus.value.filter(c => 
-      c.publishedAt && new Date(c.publishedAt) >= today
-    ).length
-    
-    const publishedThisWeek = contenus.value.filter(c => 
-      c.publishedAt && new Date(c.publishedAt) >= weekAgo
-    ).length
-    
-    const publishedThisMonth = contenus.value.filter(c => 
-      c.publishedAt && new Date(c.publishedAt) >= monthAgo
-    ).length
-    
-    const totalEnrolled = contenus.value.reduce((sum, c) => sum + c.stats.enrolledCount, 0)
-    
+
+  const statsSummary = computed<ContenuStatsSummary>(() => {
     return {
       total: contenus.value.length,
       active: contenus.value.filter(c => c.status === 'active').length,
       disabled: contenus.value.filter(c => c.status === 'disabled').length,
-      publishedToday,
-      publishedThisWeek,
-      publishedThisMonth,
-      totalEnrolled
+      publishedToday: 0,
+      publishedThisWeek: 0,
+      publishedThisMonth: 0,
+      totalEnrolled: contenus.value.reduce((acc, c) => acc + (c.stats?.enrolledCount || 0), 0),
     }
   })
-  
-  // Actions
-  async function fetchContenus(page = 1) {
+
+  // Action: Récupérer les modules (contenus)
+  async function fetchContenus() {
     isLoading.value = true
     error.value = null
-    
+
     try {
-      // Simulation d'appel API - à remplacer par le vrai appel
-      // const response = await apiService.getAllContents({ page, limit: pagination.value.limit, ...filters.value })
+      // 1. Récupérer les modules, niveaux et langues en parallèle
+      await Promise.all([
+        moduleStore.fetchModule(),
+        levelStore.fetchLevels(),
+        languageStore.fetchLanguages()
+      ])
       
-      // Utilisation des données de démo
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // 2. Filtrer les modules qui n'ont pas de parcours associés
+      const validModules: ModuleType[] = []
       
-      contenus.value = DEMO_CONTENUS
-      pagination.value = {
-        page: 1,
-        limit: 10,
-        total: DEMO_CONTENUS.length,
-        totalPages: 1
-      }
-    } catch (err: any) {
-      error.value = err.message || 'Erreur lors du chargement des contenus'
-      console.error('Erreur fetchContenus:', err)
-    } finally {
-      isLoading.value = false
-    }
-  }
-  
-  async function fetchContenuDetail(id: string): Promise<Contenu | null> {
-    isLoading.value = true
-    error.value = null
-    
-    try {
-      // Simulation d'appel API
-      // const response = await apiService.getContenuDetail(id)
+      const checkResults = await Promise.all(
+        moduleStore.module.map(async (mod) => {
+          const moduleId = String(mod.id || (mod as any)._id || '');
+          if (!moduleId) return { mod, hasPaths: false };
+          
+          try {
+            // Utilisation directe de l'apiService pour vérifier l'existence de parcours
+            const response: any = await apiService.getLearningPaths(moduleId)
+            const pathsData = response?.data || (Array.isArray(response) ? response : [])
+            return { mod, hasPaths: pathsData.length > 0 };
+          } catch (e) {
+            return { mod, hasPaths: false };
+          }
+        })
+      )
+
+      validModules.push(...checkResults.filter(r => r.hasPaths).map(r => r.mod))
       
-      await new Promise(resolve => setTimeout(resolve, 300))
-      
-      const contenu = DEMO_CONTENUS.find(c => c.id === id)
-      if (contenu) {
-        currentContenu.value = contenu
-        return contenu
-      }
-      
-      error.value = 'Contenu introuvable'
-      return null
-    } catch (err: any) {
-      error.value = err.message || 'Erreur lors du chargement des détails'
-      console.error('Erreur fetchContenuDetail:', err)
-      return null
-    } finally {
-      isLoading.value = false
-    }
-  }
-  
-  async function disableContenu(id: string, reason?: string): Promise<ContenuActionResult> {
-    isLoading.value = true
-    error.value = null
-    
-    try {
-      // Simulation d'appel API
-      // await apiService.disableContenu(id, reason)
-      
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Mise à jour locale
-      const index = contenus.value.findIndex(c => c.id === id)
-      if (index !== -1) {
-        contenus.value[index].status = 'disabled'
-        contenus.value[index].disabledByGestionnaire = true
-        contenus.value[index].disabledAt = new Date().toISOString()
-        contenus.value[index].disabledReason = reason
-      }
-      
-      if (currentContenu.value && currentContenu.value.id === id) {
-        currentContenu.value.status = 'disabled'
-        currentContenu.value.disabledByGestionnaire = true
-        currentContenu.value.disabledAt = new Date().toISOString()
-        currentContenu.value.disabledReason = reason
-      }
-      
-      // Journalisation (simulée)
-      console.log(`[AUDIT] Contenu ${id} désactivé par le gestionnaire. Raison: ${reason || 'Non spécifiée'}`)
-      
-      return { success: true, message: 'Contenu désactivé avec succès' }
-    } catch (err: any) {
-      error.value = err.message || 'Erreur lors de la désactivation'
-      console.error('Erreur disableContenu:', err)
-      return { success: false, message: error.value }
-    } finally {
-      isLoading.value = false
-    }
-  }
-  
-  async function enableContenu(id: string): Promise<ContenuActionResult> {
-    isLoading.value = true
-    error.value = null
-    
-    try {
-      // Vérifier si le contenu a été désactivé par le gestionnaire
-      const contenu = contenus.value.find(c => c.id === id)
-      if (contenu?.disabledByGestionnaire) {
-        return { 
-          success: false, 
-          message: 'Ce contenu a été désactivé par le gestionnaire et ne peut pas être réactivé par le formateur.' 
+      // 3. Mapping avec les données synchronisées
+      contenus.value = validModules.map((mod: ModuleType) => {
+        const modLevelId = String(mod.levelId || (mod as any)._levelId || '');
+        const level = levelStore.levels.find(l => 
+          String(l.id || (l as any)._id || '').trim() === modLevelId.trim()
+        )
+        
+        const language = level ? languageStore.languages.find(lang => 
+          String(lang.id || (lang as any)._id || '').trim() === String(level.languageId || (level as any)._languageId || '').trim()
+        ) : null
+
+        return {
+          id: String(mod.id || (mod as any)._id || ''),
+          title: mod.title,
+          description: mod.description,
+          type: 'course',
+          status: mod.isActive ? 'active' : 'disabled',
+          language: { 
+            id: String(language?.id || (language as any)?._id || ''), 
+            name: language?.name || 'Inconnue', 
+            code: language?.code || 'FR' 
+          },
+          level: { 
+            id: modLevelId, 
+            name: level?.name || `Niveau ${modLevelId}`, 
+            code: level?.code || '' 
+          },
+          module: { id: String(mod.id || (mod as any)._id || ''), title: mod.title },
+          auteur: { id: 'system', firstName: 'Admin', lastName: 'System', email: '' },
+          createdAt: new Date().toISOString(),
+          publishedAt: new Date().toISOString(),
+          stats: { enrolledCount: 0, completionRate: 0, averageScore: 0, reportsCount: 0 }
         }
-      }
-      
-      // Simulation d'appel API
-      // await apiService.enableContenu(id)
-      
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Mise à jour locale
-      const index = contenus.value.findIndex(c => c.id === id)
-      if (index !== -1) {
-        contenus.value[index].status = 'active'
-        contenus.value[index].disabledByGestionnaire = false
-        contenus.value[index].disabledAt = undefined
-        contenus.value[index].disabledReason = undefined
-      }
-      
-      if (currentContenu.value && currentContenu.value.id === id) {
-        currentContenu.value.status = 'active'
-        currentContenu.value.disabledByGestionnaire = false
-        currentContenu.value.disabledAt = undefined
-        currentContenu.value.disabledReason = undefined
-      }
-      
-      // Journalisation (simulée)
-      console.log(`[AUDIT] Contenu ${id} réactivé`)
-      
-      return { success: true, message: 'Contenu réactivé avec succès' }
+      })
+
+      pagination.value.total = contenus.value.length
+      pagination.value.totalPages = Math.ceil(contenus.value.length / pagination.value.limit)
+
     } catch (err: any) {
-      error.value = err.message || 'Erreur lors de la réactivation'
-      console.error('Erreur enableContenu:', err)
-      return { success: false, message: error.value }
+      error.value = err.message || 'Erreur lors de la récupération des contenus'
     } finally {
       isLoading.value = false
     }
   }
-  
-  async function deleteContenu(id: string): Promise<ContenuActionResult> {
+
+  // Action: Récupérer les détails d'un module (parcours + étapes)
+  async function fetchModuleDetails(moduleId: string) {
     isLoading.value = true
     error.value = null
-    
+    const targetModuleId = String(moduleId).trim();
+    // Reset avant chargement pour éviter les flashs de données précédentes
+    selectedModuleDetails.value = { parcours: [], steps: {} }
+
     try {
-      // Simulation d'appel API
-      // await apiService.deleteContenu(id)
+      // 1. Récupérer les parcours associés au module
+      const response: any = await apiService.getLearningPaths(targetModuleId)
       
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const rawPaths = response?.data || (Array.isArray(response) ? response : [])
       
-      // Suppression locale
-      contenus.value = contenus.value.filter(c => c.id !== id)
-      
-      if (currentContenu.value && currentContenu.value.id === id) {
-        currentContenu.value = null
+      if (rawPaths && rawPaths.length > 0) {
+        // 2. Pour chaque parcours, récupérer ses étapes et filtrer ceux qui n'en ont pas
+        const pathCheckResults = await Promise.all(rawPaths.map(async (path: any) => {
+          const pathId = String(path.id || path._id || '').trim();
+          if (!pathId) return null;
+          
+          try {
+            const stepsRes: any = await apiService.getSteps(pathId)
+            const stepsData = stepsRes?.data || (Array.isArray(stepsRes) ? stepsRes : [])
+            
+            if (stepsData && stepsData.length > 0) {
+              return {
+                path: { ...path, id: pathId },
+                steps: stepsData.map((s: any) => ({
+                  ...s,
+                  id: String(s.id || s._id || '').trim()
+                }))
+              };
+            }
+            return null;
+          } catch (stepErr) {
+            console.error(`Error fetching steps for path ${pathId}:`, stepErr)
+            return null;
+          }
+        }))
+
+        const validResults = pathCheckResults.filter((r): r is NonNullable<typeof r> => r !== null);
+        
+        // 3. Mettre à jour le store avec les parcours filtrés et leurs étapes
+        selectedModuleDetails.value.parcours = validResults.map(r => r.path);
+        validResults.forEach(r => {
+          selectedModuleDetails.value.steps[r.path.id] = r.steps;
+        });
       }
-      
-      // Journalisation (simulée)
-      console.log(`[AUDIT] Contenu ${id} supprimé définitivement`)
-      
-      return { success: true, message: 'Contenu supprimé définitivement' }
     } catch (err: any) {
-      error.value = err.message || 'Erreur lors de la suppression'
-      console.error('Erreur deleteContenu:', err)
-      return { success: false, message: error.value }
+      error.value = "Erreur lors de la récupération des détails du module"
+      console.error('fetchModuleDetails error:', err)
     } finally {
       isLoading.value = false
     }
   }
-  
-  // Filtres
-  function setFilter(key: keyof ContenuFilters, value: any) {
-    if (key === 'search') {
-      filters.value.search = value
-    } else if (value === '' || value === 'all') {
-      (filters.value as any)[key] = undefined
-    } else {
-      (filters.value as any)[key] = value
-    }
-    pagination.value.page = 1 // Reset à la première page
-  }
-  
-  function setSort(field: ContenuSort['field'], order: ContenuSort['order']) {
+
+  function setSort(field: ContenuSortField, order: ContenuSortOrder) {
     sort.value = { field, order }
   }
-  
-  function resetFilters() {
-    filters.value = {
-      languageId: undefined,
-      levelId: undefined,
-      moduleId: undefined,
-      formateurId: undefined,
-      status: 'all',
-      dateFrom: undefined,
-      dateTo: undefined,
-      minEnrolled: undefined,
-      maxEnrolled: undefined,
-      search: ''
-    }
-    pagination.value.page = 1
-  }
-  
+
   function setPage(page: number) {
     pagination.value.page = page
   }
-  
-  function clearError() {
-    error.value = null
+
+  async function disableContenu(id: string, reason?: string) {
+    try {
+      // On suppose que désactiver un contenu = désactiver le module
+      const res = await apiService.updateModule(id, { isActive: false } as any)
+      if (res.success) {
+        const c = contenus.value.find(item => item.id === id)
+        if (c) {
+          c.status = 'disabled'
+          c.disabledByGestionnaire = true
+          c.disabledReason = reason
+        }
+        return { success: true, message: 'Module désactivé' }
+      }
+      return { success: false, message: res.message || 'Erreur' }
+    } catch (err) {
+      return { success: false, message: 'Erreur lors de la désactivation' }
+    }
   }
-  
+
+  async function enableContenu(id: string) {
+    try {
+      const res = await apiService.updateModule(id, { isActive: true } as any)
+      if (res.success) {
+        const c = contenus.value.find(item => item.id === id)
+        if (c) {
+          c.status = 'active'
+          c.disabledByGestionnaire = false
+          c.disabledReason = undefined
+        }
+        return { success: true, message: 'Module activé' }
+      }
+      return { success: false, message: res.message || 'Erreur' }
+    } catch (err) {
+      return { success: false, message: 'Erreur lors de l\'activation' }
+    }
+  }
+
+  async function deleteContenu(id: string) {
+    try {
+      const res = await apiService.deleteModule(id)
+      if (res.success) {
+        contenus.value = contenus.value.filter(c => c.id !== id)
+        return { success: true, message: 'Module supprimé' }
+      }
+      return { success: false, message: res.message || 'Erreur' }
+    } catch (err) {
+      return { success: false, message: 'Erreur lors de la suppression' }
+    }
+  }
+
   return {
-    // State
     contenus,
-    currentContenu,
     isLoading,
     error,
     filters,
     sort,
     pagination,
-    
-    // Computed
     filteredContenus,
-    paginatedContenus,
     statsSummary,
-    
-    // Actions
+    selectedModuleDetails,
     fetchContenus,
-    fetchContenuDetail,
+    fetchModuleDetails,
+    setSort,
+    setPage,
     disableContenu,
     enableContenu,
-    deleteContenu,
-    setFilter,
-    setSort,
-    resetFilters,
-    setPage,
-    clearError
+    deleteContenu
   }
 })
-
