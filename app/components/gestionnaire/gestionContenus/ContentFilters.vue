@@ -2,10 +2,12 @@
 import { useContenuStore } from "~/stores/contenuStore";
 import { useLanguageStore } from "~/stores/languageStore";
 import { useFormateurStore } from "~/stores/formateurStore";
+import { useLevelStore } from "~/stores/levelStore";
 
 const store = useContenuStore();
 const languageStore = useLanguageStore();
 const formateurStore = useFormateurStore();
+const levelStore = useLevelStore();
 
 // Émettre les changements de filtres
 const emit = defineEmits<{
@@ -21,29 +23,25 @@ const languages = computed(() => {
 });
 
 const levels = computed(() => {
-  const selectedLangId = store.filters.languageId;
-  if (!selectedLangId) return [];
-
-  const selectedLang = languageStore.languages.find(
-    (l) => l.id === selectedLangId,
-  );
-  if (!selectedLang) return [];
-
-  return selectedLang.levels.map((level) => ({
-    value: level.id,
-    label: level.name,
-  }));
+  // Regrouper les niveaux par nom (Débutant, Intermédiaire, Avancé) peu importe la langue
+  const uniqueLevels = new Map();
+  
+  levelStore.levels.forEach((level: any) => {
+    const levelName = level.name.toLowerCase().trim();
+    if (!uniqueLevels.has(levelName)) {
+      uniqueLevels.set(levelName, {
+        value: level.id,
+        label: level.name,
+      });
+    }
+  });
+  
+  return Array.from(uniqueLevels.values());
 });
 
 const formateurs = computed(() => {
-  if(!formateurStore.fetchFormateurUsers) {
-    return []
-  } else {
-    return formateurStore.fetchFormateurUsers((f) => ({
-    value: f.id,
-    label: `${f.firstName} ${f.lastName}`,
-  }));
-  }
+  // Ne plus utiliser le filtrage par formateur
+  return [];
 });
 
 // Handlers
@@ -141,7 +139,7 @@ const showAdvancedFilters = ref(false);
         <input
           :value="store.filters.search"
           @input="
-            store.setFilter('search', ($event.target as HTMLInputElement).value)
+            store.filters.search = ($event.target as HTMLInputElement).value
           "
           type="text"
           placeholder="Rechercher un contenu..."
@@ -190,7 +188,7 @@ const showAdvancedFilters = ref(false);
         <select
           :value="store.filters.levelId || ''"
           @change="handleLevelChange"
-          :disabled="!store.filters.languageId"
+         
           class="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <option value="">Tous les niveaux</option>
@@ -200,42 +198,6 @@ const showAdvancedFilters = ref(false);
             :value="level.value"
           >
             {{ level.label }}
-          </option>
-        </select>
-        <div
-          class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </div>
-      </div>
-
-      <!-- Formateur -->
-      <div class="relative min-w-[180px]">
-        <select
-          :value="store.filters.formateurId || ''"
-          @change="handleFormateurChange"
-          class="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium"
-        >
-          <option value="">Tous les formateurs</option>
-          <option
-            v-for="formateur in formateurs"
-            :key="formateur"
-            :value="formateur"
-          >
-            {{ formateur }}
           </option>
         </select>
         <div

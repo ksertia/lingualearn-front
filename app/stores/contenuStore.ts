@@ -29,7 +29,15 @@ export const useContenuStore = defineStore('contenu', () => {
 
   // Filtres et Tri
   const filters = ref<ContenuFilters>({
-    status: 'all'
+    status: 'all',
+    languageId: undefined,
+    levelId: undefined,
+    formateurId: undefined,
+    dateFrom: undefined,
+    dateTo: undefined,
+    minEnrolled: undefined,
+    maxEnrolled: undefined,
+    search: undefined
   })
 
   const sort = ref<{ field: ContenuSortField; order: ContenuSortOrder }>({
@@ -58,9 +66,57 @@ export const useContenuStore = defineStore('contenu', () => {
       )
     }
 
+    // Filtre par langue
+    if (filters.value.languageId) {
+      result = result.filter(c => c.language.id === filters.value.languageId)
+    }
+
+    // Filtre par niveau (par nom regroupé)
+    if (filters.value.levelId) {
+      // Trouver le niveau sélectionné pour obtenir son nom
+      const selectedLevel = levelStore.levels.find(l => l.id === filters.value.levelId);
+      if (selectedLevel) {
+        // Filtrer par nom de niveau (peu importe la langue)
+        result = result.filter(c => c.level.name === selectedLevel.name);
+      }
+    }
+
+    // Filtre par formateur (désactivé)
+    // if (filters.value.formateurId) {
+    //   result = result.filter(c => c.auteur.id === filters.value.formateurId)
+    // }
+
     // Filtre par statut
     if (filters.value.status && filters.value.status !== 'all') {
       result = result.filter(c => c.status === filters.value.status)
+    }
+
+    // Filtre par date de début
+    if (filters.value.dateFrom) {
+      const fromDate = new Date(filters.value.dateFrom)
+      result = result.filter(c => {
+        const publishDate = new Date(c.publishedAt || c.createdAt)
+        return publishDate >= fromDate
+      })
+    }
+
+    // Filtre par date de fin
+    if (filters.value.dateTo) {
+      const toDate = new Date(filters.value.dateTo)
+      result = result.filter(c => {
+        const publishDate = new Date(c.publishedAt || c.createdAt)
+        return publishDate <= toDate
+      })
+    }
+
+    // Filtre par nombre d'inscrits (min)
+    if (filters.value.minEnrolled !== undefined && filters.value.minEnrolled !== null) {
+      result = result.filter(c => (c.stats?.enrolledCount || 0) >= filters.value.minEnrolled!)
+    }
+
+    // Filtre par nombre d'inscrits (max)
+    if (filters.value.maxEnrolled !== undefined && filters.value.maxEnrolled !== null) {
+      result = result.filter(c => (c.stats?.enrolledCount || 0) <= filters.value.maxEnrolled!)
     }
 
     // Tri
