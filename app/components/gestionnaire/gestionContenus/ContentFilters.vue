@@ -36,11 +36,14 @@ const levels = computed(() => {
 });
 
 const formateurs = computed(() => {
-  if (!formateurStore.formateurUsers) return [];
-  return formateurStore.formateurUsers.map((f) => ({
+  if(!formateurStore.fetchFormateurUsers) {
+    return []
+  } else {
+    return formateurStore.fetchFormateurUsers((f) => ({
     value: f.id,
     label: `${f.firstName} ${f.lastName}`,
   }));
+  }
 });
 
 // Handlers
@@ -229,10 +232,10 @@ const showAdvancedFilters = ref(false);
           <option value="">Tous les formateurs</option>
           <option
             v-for="formateur in formateurs"
-            :key="formateur.value"
-            :value="formateur.value"
+            :key="formateur"
+            :value="formateur"
           >
-            {{ formateur.label }}
+            {{ formateur }}
           </option>
         </select>
         <div

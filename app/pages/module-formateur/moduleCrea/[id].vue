@@ -17,8 +17,17 @@
 
     <!-- ================= TABLE DES MODULES ================= -->
     <div class="bg-white shadow rounded-lg overflow-hidden">
+      <!-- État de chargement -->
+      <div
+        v-if="isFetchingModules"
+        class="p-8 text-center text-gray-500"
+      >
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900 mr-2"></div>
+        Chargement des modules...
+      </div>
+
       <table
-        v-if="modules.length"
+        v-else-if="modules.length"
         class="min-w-full divide-y divide-gray-200"
       >
         <thead class="bg-blue-900 text-white">
@@ -196,11 +205,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useModuleStore } from '~/stores/moduleStore'
 import { useLevelStore } from '~/stores/levelStore'
 import { useParcoursStore } from '~/stores/parcoursStore'
+import { useApiService } from '~/services/api'
 
 definePageMeta({
   layout:'formateur'
@@ -214,10 +224,71 @@ const router = useRouter()
 const moduleStore = useModuleStore()
 const levelStore = useLevelStore()
 const parcoursStore = useParcoursStore()
+const apiService = useApiService()
 
 
 // Stocke le nombre de parcours par module
 const parcoursCount = ref<Record<string, number>>({})
+
+// Fonction pour récupérer les modules par langue via les niveaux
+const fetchModulesByLanguage = async (languageId: string, expectedLevelId?: string) => {
+  try {
+    // Vider immédiatement les modules et indiquer le chargement
+    isFetchingModules.value = true
+    moduleStore.module = []
+    parcoursCount.value = {}
+    
+    console.log('Début récupération modules pour langue:', languageId)
+    
+    // Récupérer les niveaux de cette langue
+    await levelStore.fetchLevelsByLanguage(languageId)
+    console.log('Niveaux récupérés:', levelStore.levels)
+    
+    const allModules = []
+    
+    // Pour chaque niveau, récupérer les modules
+    for (const level of levelStore.levels) {
+      console.log('Vérification niveau:', level, 'languageId:', level.languageId, 'recherché:', languageId)
+      if (level.languageId === languageId) {
+        console.log('Récupération modules pour niveau:', level.id)
+        const response = await apiService.getModulesByLevel(languageId, level.id)
+        console.log('Réponse API pour niveau', level.id, ':', response)
+        
+        // L'API retourne {modules: Array} au lieu d'un tableau direct
+        const responseData = response?.data as any || {}
+        const modules = responseData.modules || []
+        console.log('Modules extraits:', modules)
+        if (Array.isArray(modules)) {
+          allModules.push(...modules)
+        }
+      }
+    }
+    
+    console.log('Tous les modules agrégés:', allModules)
+    
+    // Afficher les levelId de tous les modules pour débogage
+    console.log('LevelId des modules:', allModules.map(m => ({ id: m.id, title: m.title, levelId: m.levelId })))
+    
+    // Vérifier si le module créé est dans la liste
+    if (expectedLevelId) {
+      console.log('Module créé avec levelId:', expectedLevelId, 'présent dans les modules?', 
+        allModules.some(m => m.levelId === expectedLevelId))
+    }
+    
+    // Mettre à jour le store avec les modules filtrés
+    moduleStore.module = allModules
+    console.log('Modules chargés:', allModules)
+    console.log('Store module:', moduleStore.module)
+    
+    // Calculer les nombres de parcours
+    await parcoursStore.fetchAll()
+    computeCounts()
+  } catch (error) {
+    console.error('Erreur lors de la récupération des modules:', error)
+  } finally {
+    isFetchingModules.value = false
+  }
+}
 
 
 /* ================= PARAMÈTRES ================= */
@@ -225,20 +296,23 @@ const parcoursCount = ref<Record<string, number>>({})
 const languageId = route.params.id as string
 
 /* ================= LEVELS ================= */
-const levels = computed(() => levelStore.levels)
+const levels = computed(() => {
+  // Filtrer les niveaux pour n'afficher que ceux de la langue actuelle
+  return levelStore.levels.filter(level => level.languageId === route.params.id)
+})
 const selectedLevelId = ref('')
 
 onMounted(async () => {
-  // modules de la langue
-  await moduleStore.fetchModule(languageId)
-
-  // niveaux
-  await levelStore.fetchLevelsByLanguage(languageId)
-
-  // 🆕 charger le nombre de parcours pour chaque module
-  await parcoursStore.fetchAll()
-  computeCounts()
+  // Récupérer les modules de la langue via les niveaux
+  await fetchModulesByLanguage(languageId)
 })
+
+// Watcher pour recharger les modules quand la langue change
+watch(() => route.params.id, async (newLanguageId) => {
+  if (newLanguageId && newLanguageId !== languageId) {
+    await fetchModulesByLanguage(newLanguageId as string)
+  }
+}, { immediate: false })
 
 
 // 🆕 Fonction pour charger le nombre de parcours par module
@@ -254,7 +328,10 @@ const computeCounts = () => {
 
 /* ================= DATA ================= */
 // Modules appartenant au niveau courant (ou langue courante)
-const modules = computed(() => moduleStore.module)
+const modules = computed(() => {
+  console.log('Computed modules called, store.module:', moduleStore.module)
+  return moduleStore.module
+})
 
 /* ================= UI STATE ================= */
 const showModal = ref(false)
@@ -262,6 +339,7 @@ const name = ref('')
 const description = ref('')
 const error = ref('')
 const isLoading = ref(false)
+const isFetchingModules = ref(false)
 
 // Récupérer le nom du niveau via son ID
 const getLevelName = (levelId: string) => {
@@ -313,9 +391,11 @@ const onSubmit = async () => {
 
   try {
     isLoading.value = true
+    const createdLevelId = selectedLevelId.value
+    console.log('Création module avec levelId:', createdLevelId, 'languageId:', route.params.id)
 
     await moduleStore.createModule({
-      levelId: selectedLevelId.value,
+      levelId: createdLevelId,
       title: name.value,
       description: description.value,
       iconUrl: '',
@@ -323,15 +403,19 @@ const onSubmit = async () => {
       isActive: true,
     })
 
-    await moduleStore.fetchModule(languageId)
+    console.log('Module créé, rechargement des modules pour languageId actuel:', route.params.id)
+    
+    // Attendre un peu pour que l'API ait le temps de mettre à jour
+    await new Promise(resolve => setTimeout(resolve, 500))
+    
+    await fetchModulesByLanguage(route.params.id as string, createdLevelId)
     closeModal()
   } catch (e) {
+    console.error('Erreur création module:', e)
     error.value = 'Erreur lors de la création du module'
   } finally {
     isLoading.value = false
   }
-  await moduleStore.fetchModule(languageId)
-  currentPage.value = 1
 
 }
 
@@ -339,9 +423,7 @@ const onSubmit = async () => {
 const removeModule = async (id: string) => {
   if (!confirm('Supprimer ce module ?')) return
   await moduleStore.deleteModule(id)
-  await moduleStore.fetchModule(languageId)
-
-  await moduleStore.fetchModule(languageId)
+  await fetchModulesByLanguage(route.params.id as string)
   currentPage.value = 1
 
  

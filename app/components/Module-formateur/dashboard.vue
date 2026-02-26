@@ -52,6 +52,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLanguageStore } from '~/stores/languageStore'
+import { useLevelStore } from '~/stores/levelStore'
 
 interface Language {
   id: string
@@ -62,10 +63,12 @@ interface Language {
 const router = useRouter()
 const languages = ref<Language[]>([])
 const languageStore = useLanguageStore()
+const levelStore = useLevelStore()
 
 // Redirection vers les modules d’une langue
 const goToModules = (languageId: string) => {
   const url = `module-formateur/moduleCrea/${languageId}`
+  
   console.log('URL finale =', url)
   navigateTo(url)
 }
@@ -73,7 +76,8 @@ const goToModules = (languageId: string) => {
 // Chargement des langues (inchangé)
 onMounted(async () => {
   try {
-    await languageStore.fetchLanguages()
+    await languageStore.fetchLanguages() 
+    await levelStore.fetchLevels()
     languages.value = languageStore.languages
   } catch (error) {
     console.error("Erreur lors du chargement des langues", error)
