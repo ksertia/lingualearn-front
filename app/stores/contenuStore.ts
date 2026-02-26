@@ -99,30 +99,88 @@ export const useContenuStore = defineStore('contenu', () => {
     }
   })
 
-  // Action: Récupérer les modules (contenus)
+  // Action: Récupérer les modules (contenus) par langue via les niveaux
   async function fetchContenus() {
     isLoading.value = true
     error.value = null
 
     try {
-      // 1. Récupérer les modules, niveaux et langues en parallèle
+      // 1. Récupérer les langues et niveaux
       await Promise.all([
-        moduleStore.fetchModule(),
         levelStore.fetchLevels(),
         languageStore.fetchLanguages()
       ])
       
-      // 2. Filtrer les modules qui n'ont pas de parcours associés
-      const validModules: ModuleType[] = []
+      const allModules: ModuleType[] = []
       
+      // 2. Préparer toutes les requêtes de modules en parallèle
+      const moduleRequests: Promise<{ languageId: string; levelId: string; modules: ModuleType[] }>[] = []
+      
+      for (const language of languageStore.languages) {
+        const languageId = String(language.id || (language as any)._id || '')
+        
+        // Récupérer les niveaux de cette langue
+        const languageLevels = levelStore.levels.filter(level => level.languageId === languageId)
+        
+        // Préparer les requêtes pour chaque niveau
+        for (const level of languageLevels) {
+          const levelId = String(level.id || (level as any)._id || '')
+          
+          moduleRequests.push(
+            apiService.getModulesByLevel(languageId, levelId)
+              .then(response => {
+                const responseData = response?.data as any || {}
+                const modules = responseData.modules || []
+                return {
+                  languageId,
+                  levelId,
+                  modules: Array.isArray(modules) ? modules : []
+                }
+              })
+              .catch(e => {
+                console.error(`Erreur récupération modules pour niveau ${levelId}:`, e)
+                return { languageId, levelId, modules: [] }
+              })
+          )
+        }
+      }
+      
+      // 3. Exécuter toutes les requêtes en parallèle
+      const results = await Promise.all(moduleRequests)
+      
+      // 4. Agréger tous les modules
+      results.forEach(result => {
+        allModules.push(...result.modules)
+      })
+      
+      console.log('Total modules récupérés:', allModules.length)
+      
+      // 5. Filtrer les modules qui ont des parcours associés (en parallèle)
       const checkResults = await Promise.all(
-        moduleStore.module.map(async (mod) => {
+        allModules.map(async (mod) => {
           const moduleId = String(mod.id || (mod as any)._id || '');
-          if (!moduleId) return { mod, hasPaths: false };
+          const modLevelId = String(mod.levelId || (mod as any)._levelId || '');
+          
+          if (!moduleId || !modLevelId) return { mod, hasPaths: false };
+          
+          // Trouver le niveau et la langue pour utiliser les endpoints hiérarchiques
+          const level = levelStore.levels.find(l => 
+            String(l.id || (l as any)._id || '').trim() === modLevelId.trim()
+          );
+          
+          const language = level ? languageStore.languages.find(lang => 
+            String(lang.id || (lang as any)._id || '').trim() === String(level.languageId || (level as any)._languageId || '').trim()
+          ) : null;
+          
+          if (!level || !language) return { mod, hasPaths: false };
           
           try {
-            // Utilisation directe de l'apiService pour vérifier l'existence de parcours
-            const response: any = await apiService.getLearningPaths(moduleId)
+            // Utilisation des endpoints hiérarchiques
+            const response: any = await apiService.getLearningPathsByModule(
+              String(language.id || (language as any)._id || ''),
+              modLevelId,
+              moduleId
+            );
             const pathsData = response?.data || (Array.isArray(response) ? response : [])
             return { mod, hasPaths: pathsData.length > 0 };
           } catch (e) {
@@ -131,10 +189,15 @@ export const useContenuStore = defineStore('contenu', () => {
         })
       )
 
-      validModules.push(...checkResults.filter(r => r.hasPaths).map(r => r.mod))
+      const validModules = checkResults.filter(r => r.hasPaths).map(r => r.mod)
+      console.log('Modules valides (avec parcours):', validModules.length)
       
-      // 3. Mapping avec les données synchronisées
-      contenus.value = validModules.map((mod: ModuleType) => {
+      // TEMPORAIRE: Afficher tous les modules même sans parcours pour débogage
+      const allValidModules = checkResults.map(r => r.mod)
+      console.log('TOUS les modules (même sans parcours):', allValidModules.length)
+      
+      // 6. Mapping avec les données synchronisées
+      contenus.value = allValidModules.map((mod: ModuleType) => {
         const modLevelId = String(mod.levelId || (mod as any)._levelId || '');
         const level = levelStore.levels.find(l => 
           String(l.id || (l as any)._id || '').trim() === modLevelId.trim()
@@ -187,20 +250,43 @@ export const useContenuStore = defineStore('contenu', () => {
     selectedModuleDetails.value = { parcours: [], steps: {} }
 
     try {
-      // 1. Récupérer les parcours associés au module
-      const response: any = await apiService.getLearningPaths(targetModuleId)
+      // 1. Trouver le module et sa hiérarchie (langue -> niveau -> module)
+      const module = contenus.value.find(c => c.id === targetModuleId);
+      console.log('Module trouvé pour détails:', module)
       
-      const rawPaths = response?.data || (Array.isArray(response) ? response : [])
+      if (!module) {
+        throw new Error('Module non trouvé');
+      }
+      
+      const languageId = module.language.id;
+      const levelId = module.level.id;
+      
+      console.log('Récupération parcours pour:', { languageId, levelId, moduleId: targetModuleId })
+      
+      // 2. Récupérer les parcours associés au module avec l'endpoint hiérarchique
+      const response: any = await apiService.getLearningPathsByModule(languageId, levelId, targetModuleId)
+      
+      console.log('Réponse parcours API:', response)
+      
+      const rawPaths = response?.data?.paths || (Array.isArray(response?.data) ? response?.data : [])
+      console.log('Parcours bruts extraits:', rawPaths)
       
       if (rawPaths && rawPaths.length > 0) {
-        // 2. Pour chaque parcours, récupérer ses étapes et filtrer ceux qui n'en ont pas
+        console.log(`Traitement de ${rawPaths.length} parcours...`)
+        
+        // 3. Pour chaque parcours, récupérer ses étapes avec l'endpoint hiérarchique
         const pathCheckResults = await Promise.all(rawPaths.map(async (path: any) => {
           const pathId = String(path.id || path._id || '').trim();
+          console.log(`Traitement parcours ${pathId}:`, path)
+          
           if (!pathId) return null;
           
           try {
-            const stepsRes: any = await apiService.getSteps(pathId)
-            const stepsData = stepsRes?.data || (Array.isArray(stepsRes) ? stepsRes : [])
+            const stepsRes: any = await apiService.getStepsByPath(languageId, levelId, targetModuleId, pathId)
+            console.log(`Réponse étapes pour parcours ${pathId}:`, stepsRes)
+            
+            const stepsData = stepsRes?.data?.steps || (Array.isArray(stepsRes?.data) ? stepsRes?.data : [])
+            console.log(`Étapes brutes pour parcours ${pathId}:`, stepsData)
             
             if (stepsData && stepsData.length > 0) {
               return {
@@ -211,6 +297,7 @@ export const useContenuStore = defineStore('contenu', () => {
                 }))
               };
             }
+            console.log(`Aucune étape trouvée pour parcours ${pathId}`)
             return null;
           } catch (stepErr) {
             console.error(`Error fetching steps for path ${pathId}:`, stepErr)
@@ -219,12 +306,17 @@ export const useContenuStore = defineStore('contenu', () => {
         }))
 
         const validResults = pathCheckResults.filter((r): r is NonNullable<typeof r> => r !== null);
+        console.log('Résultats valides (parcours avec étapes):', validResults)
         
-        // 3. Mettre à jour le store avec les parcours filtrés et leurs étapes
+        // 4. Mettre à jour le store avec les parcours filtrés et leurs étapes
         selectedModuleDetails.value.parcours = validResults.map(r => r.path);
         validResults.forEach(r => {
           selectedModuleDetails.value.steps[r.path.id] = r.steps;
         });
+        
+        console.log('Détails finaux du module:', selectedModuleDetails.value)
+      } else {
+        console.log('Aucun parcours trouvé pour ce module')
       }
     } catch (err: any) {
       error.value = "Erreur lors de la récupération des détails du module"
