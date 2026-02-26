@@ -15,6 +15,9 @@ const emit = defineEmits<{
 
 const store = useContenuStore();
 
+// Track if component is mounted
+const isMounted = ref(false)
+
 // Charger les détails quand l'ID change
 
 watch(
@@ -28,6 +31,16 @@ watch(
 
   { immediate: true },
 );
+
+onMounted(() => {
+  isMounted.value = true
+})
+
+onUnmounted(() => {
+  isMounted.value = false
+  // Clear current contenu to prevent reactivity issues
+  store.currentContenu = null
+})
 
 // Formatage des dates
 

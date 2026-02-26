@@ -169,7 +169,7 @@ onMounted(() => {
               <p class="text-sm text-slate-500">{{ store.reportsPending }} signalement(s) nécessitent votre attention</p>
             </div>
             <NuxtLink 
-              to="/gestionnaire/reports" 
+              to="/gestionnaire/signalements" 
               class="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition-colors"
             >
               Voir les signalements

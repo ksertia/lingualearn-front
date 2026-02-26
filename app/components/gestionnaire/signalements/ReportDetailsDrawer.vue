@@ -13,12 +13,25 @@ const emit = defineEmits<{
 
 const store = useSignalementStore()
 
+// Track if component is mounted
+const isMounted = ref(false)
+
 // Charger les détails quand l'ID change
 watch(() => props.signalementId, async (newId) => {
-  if (newId) {
+  if (newId && isMounted.value) {
     await store.fetchSignalementDetail(newId)
   }
 }, { immediate: true })
+
+onMounted(() => {
+  isMounted.value = true
+})
+
+onUnmounted(() => {
+  isMounted.value = false
+  // Clear current signalement to prevent reactivity issues
+  store.currentSignalement = null
+})
 
 // Formatage des dates
 const formatDateTime = (dateString?: string) => {
@@ -33,9 +46,25 @@ const formatDateTime = (dateString?: string) => {
 }
 
 // Badge de type
+// const getTypeBadge = (type?: string): { class: string; label: string } => {
+//   if (!type) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Autre' }
+//   const badges: Record<string, { class: string; label: string }> = {
+//     course: { class: 'bg-blue-100 text-blue-700 border-blue-200', label: 'Cours' },
+//     lesson: { class: 'bg-indigo-100 text-indigo-700 border-indigo-200', label: 'Leçon' },
+//     quiz: { class: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Quiz' },
+//     formateur: { class: 'bg-purple-100 text-purple-700 border-purple-200', label: 'Formateur' },
+//     module: { class: 'bg-cyan-100 text-cyan-700 border-cyan-200', label: 'Module' },
+//     other: { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Autre' }
+//   }
+//   const badge = badges[type]
+//   if (badge) return badge
+//   return badges.other
+// }
+
+
+
 const getTypeBadge = (type?: string) => {
-  if (!type) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Autre' }
-  const badges: Record<string, { class: string; label: string }> = {
+  const badges = {
     course: { class: 'bg-blue-100 text-blue-700 border-blue-200', label: 'Cours' },
     lesson: { class: 'bg-indigo-100 text-indigo-700 border-indigo-200', label: 'Leçon' },
     quiz: { class: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Quiz' },
@@ -43,35 +72,79 @@ const getTypeBadge = (type?: string) => {
     module: { class: 'bg-cyan-100 text-cyan-700 border-cyan-200', label: 'Module' },
     other: { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Autre' }
   }
-  return badges[type] || badges.other
+
+  return badges[type as keyof typeof badges] ?? badges.other
 }
 
 // Badge de statut
+// const getStatusBadge = (status?: string): { class: string; label: string } => {
+//   if (!status) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Inconnu' }
+//   const badges: Record<string, { class: string; label: string }> = {
+//     pending: { class: 'bg-red-100 text-red-700 border-red-200', label: 'En attente' },
+//     processed: { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Traité' },
+//     rejected: { class: 'bg-emerald-100 text-emerald-700 border-emerald-200', label: 'Rejeté' }
+//   }
+//   const badge = badges[status]
+//   if (badge) return badge
+//   return badges.pending
+// }
+
+
 const getStatusBadge = (status?: string) => {
-  if (!status) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Inconnu' }
-  const badges: Record<string, { class: string; label: string }> = {
+  const badges = {
     pending: { class: 'bg-red-100 text-red-700 border-red-200', label: 'En attente' },
     processed: { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Traité' },
     rejected: { class: 'bg-emerald-100 text-emerald-700 border-emerald-200', label: 'Rejeté' }
   }
-  return badges[status] || badges.pending
+
+  return badges[status as keyof typeof badges] ?? badges.pending
 }
 
 // Badge de gravité
+// const getGravityBadge = (gravity?: string): { class: string; label: string } => {
+//   if (!gravity) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Inconnue' }
+//   const badges: Record<string, { class: string; label: string }> = {
+//     urgent: { class: 'bg-red-100 text-red-700 border-red-200', label: 'Urgent' },
+//     normal: { class: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Normal' },
+//     low: { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Faible' }
+//   }
+//   const badge = badges[gravity]
+//   if (badge) return badge
+//   return badges.normal
+// }
+
+
+
 const getGravityBadge = (gravity?: string) => {
-  if (!gravity) return { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Inconnue' }
-  const badges: Record<string, { class: string; label: string }> = {
+  const badges = {
     urgent: { class: 'bg-red-100 text-red-700 border-red-200', label: 'Urgent' },
     normal: { class: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Normal' },
     low: { class: 'bg-slate-100 text-slate-700 border-slate-200', label: 'Faible' }
   }
-  return badges[gravity] || badges.normal
+
+  return badges[gravity as keyof typeof badges] ?? badges.normal
 }
 
 // Action de modération
+// const getActionBadge = (action?: string): { class: string; label: string } => {
+//   if (!action) return { class: 'bg-slate-50 text-slate-500', label: 'Aucune' }
+//   const badges: Record<string, { class: string; label: string }> = {
+//     none: { class: 'bg-slate-50 text-slate-500', label: 'Aucune' },
+//     content_disabled: { class: 'bg-red-50 text-red-600 border-red-200', label: 'Contenu désactivé' },
+//     content_deleted: { class: 'bg-red-100 text-red-700 border-red-200', label: 'Contenu supprimé' },
+//     formator_suspended: { class: 'bg-orange-50 text-orange-600 border-orange-200', label: 'Formateur suspendu' },
+//     rejected: { class: 'bg-slate-50 text-slate-500 border-slate-200', label: 'Signalement rejeté' },
+//     processed: { class: 'bg-blue-50 text-blue-600 border-blue-200', label: 'Signalement traité' }
+//   }
+//   const badge = badges[action]
+//   if (badge) return badge
+//   return badges.none
+// }
+
+
+
 const getActionBadge = (action?: string) => {
-  if (!action) return { class: 'bg-slate-50 text-slate-500', label: 'Aucune' }
-  const badges: Record<string, { class: string; label: string }> = {
+  const badges = {
     none: { class: 'bg-slate-50 text-slate-500', label: 'Aucune' },
     content_disabled: { class: 'bg-red-50 text-red-600 border-red-200', label: 'Contenu désactivé' },
     content_deleted: { class: 'bg-red-100 text-red-700 border-red-200', label: 'Contenu supprimé' },
@@ -79,7 +152,8 @@ const getActionBadge = (action?: string) => {
     rejected: { class: 'bg-slate-50 text-slate-500 border-slate-200', label: 'Signalement rejeté' },
     processed: { class: 'bg-blue-50 text-blue-600 border-blue-200', label: 'Signalement traité' }
   }
-  return badges[action] || badges.none
+
+  return badges[action as keyof typeof badges] ?? badges.none
 }
 
 const signalement = computed(() => store.currentSignalement)

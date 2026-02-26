@@ -41,7 +41,7 @@ const formatDate = (dateString?: string) => {
 };
 
 // Badge de type de contenu
-const getTypeBadge = (type: string) => {
+const getTypeBadge = (type: string): { class: string; label: string } => {
   const badges: Record<string, { class: string; label: string }> = {
     course: {
       class: "bg-blue-100 text-blue-700 border-blue-200",
@@ -291,7 +291,7 @@ const displayedContenus = computed(() => {
 
             <div class="relative">
               <button
-                @click.stop="toggleMenu(contenu.id)"
+                @click.stop="toggleMenu(contenu.id, $event)"
                 class="p-2 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-all duration-300"
                 :class="{
                   'bg-gray-100 text-gray-900': openMenuId === contenu.id,
