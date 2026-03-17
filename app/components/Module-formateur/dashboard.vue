@@ -60,7 +60,7 @@ import { useLevelStore } from '~/stores/levelStore'
 interface Language {
   id: string
   name: string
-  description: string
+  description?: string
 }
 
 const router = useRouter()
