@@ -125,6 +125,7 @@ const removeOption = (qIndex: number, oIndex: number) => {
 const setCorrectAnswer = (qIndex: number, oIndex: number) => {
   questions.value[qIndex].correctAnswer = oIndex;
 };
+
 </script>
 
 <style scoped>

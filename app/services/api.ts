@@ -356,6 +356,70 @@ class ApiService {
     });
   }
 
+  /* ===================== COURSES ===================== */
+
+  async getCourses(stepId?: string): Promise<ApiResponse<any[]>> {
+    return await this.api("/v1/courses", {
+      query: stepId ? { stepId } : {},
+    });
+  }
+
+  async getCourse(id: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/courses/${id}`);
+  }
+
+  async createCourse(data: any): Promise<ApiResponse<any>> {
+    return await this.api("/v1/courses", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  async updateCourse(id: string, data: any): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/courses/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  }
+
+  async deleteCourse(id: string): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/courses/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  /* ===================== EXERCISES ===================== */
+
+  async getExercises(lessonId?: string): Promise<ApiResponse<any[]>> {
+    return await this.api("/v1/exercises", {
+      query: lessonId ? { lessonId } : {},
+    });
+  }
+
+  async getExercise(id: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/exercises/${id}`);
+  }
+
+  async createExercise(data: any): Promise<ApiResponse<any>> {
+    return await this.api("/v1/exercises", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  async updateExercise(id: string, data: any): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/exercises/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  }
+
+  async deleteExercise(id: string): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/exercises/${id}`, {
+      method: "DELETE",
+    });
+  }
+
   /* ===================== DASHBOARD ===================== */
 
   async getDashboardData(params?: UsersTotalParams): Promise<StatTotalResponse> {

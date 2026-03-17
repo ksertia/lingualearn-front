@@ -14,20 +14,36 @@ export const useCourseStore = defineStore('course', () => {
         error.value = null;
         try {
             const response: any = await apiService.getCourses(stepId);
-            const data = response.data || (Array.isArray(response) ? response : null);
-            if (data) {
-                courses.value = data;
+            const payload = response?.data ?? response;
+            let items: Course[] | null = null;
+
+            if (Array.isArray(payload)) {
+                items = payload as Course[];
+            } else if (Array.isArray(payload?.items)) {
+                items = payload.items as Course[];
+            } else if (Array.isArray(payload?.courses)) {
+                items = payload.courses as Course[];
+            } else if (Array.isArray(payload?.data)) {
+                items = payload.data as Course[];
+            } else if (Array.isArray(payload?.results)) {
+                items = payload.results as Course[];
+            }
+
+            if (items) {
+                courses.value = items;
             } else {
-                error.value = response.message || 'Ã‰chec du chargement des cours';
+                courses.value = [];
+                error.value = response?.message || 'Échec du chargement des cours';
+                console.warn('fetchCourses: réponse inattendue', response);
             }
         } catch (err: any) {
-            error.value = 'Erreur lors de la rÃ©cupÃ©ration des cours';
+            error.value = 'Erreur lors de la récupération des cours';
+            console.error('fetchCourses error:', err);
         } finally {
             isLoading.value = false;
         }
     }
-
-    async function createCourse(data: CreateCourseRequest) {
+    async function createCourse(data: CreateCourseRequest): Promise<Course | null> {
         isLoading.value = true;
         error.value = null;
         try {
@@ -35,14 +51,14 @@ export const useCourseStore = defineStore('course', () => {
             const courseData = response.data || (response.id ? response : null);
             if (courseData) {
                 courses.value.push(courseData);
-                return true;
+                return courseData as Course;
             } else {
                 error.value = response.message || 'Ã‰chec de la crÃ©ation du cours';
-                return false;
+                return null;
             }
         } catch (err: any) {
             error.value = err.data?.message || 'Erreur lors de la crÃ©ation du cours';
-            return false;
+            return null;
         } finally {
             isLoading.value = false;
         }

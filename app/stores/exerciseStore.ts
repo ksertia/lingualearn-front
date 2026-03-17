@@ -13,7 +13,7 @@ export const useExerciseStore = defineStore('exercise', () => {
         isLoading.value = true;
         error.value = null;
         try {
-            const response: any = await apiService.getExercises(quizId);
+            const response: any = await apiService.getExercises(lessonId);
             const data = response.data || (Array.isArray(response) ? response : null);
             if (data) {
                 exercises.value = data;
@@ -27,7 +27,7 @@ export const useExerciseStore = defineStore('exercise', () => {
         }
     }
 
-    async function createExercise(data: CreateExerciseRequest) {
+    async function createExercise(data: CreateExerciseRequest): Promise<Exercise | null> {
         isLoading.value = true;
         error.value = null;
         try {
@@ -35,14 +35,14 @@ export const useExerciseStore = defineStore('exercise', () => {
             const exerciseData = response.data || (response.id ? response : null);
             if (exerciseData) {
                 exercises.value.push(exerciseData);
-                return true;
+                return exerciseData as Exercise;
             } else {
                 error.value = response.message || "Échec de la création de l'exercice";
-                return false;
+                return null;
             }
         } catch (err: any) {
             error.value = err.data?.message || "Erreur lors de la création de l'exercice";
-            return false;
+            return null;
         } finally {
             isLoading.value = false;
         }
@@ -102,3 +102,4 @@ export const useExerciseStore = defineStore('exercise', () => {
         deleteExercise
     };
 });
+

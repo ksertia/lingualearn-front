@@ -101,27 +101,42 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
           <div class="p-6 border-b border-slate-50 bg-gradient-to-r from-white to-slate-50/30 flex justify-between items-center">
             <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">
-              Contenu du {{ stepData.stepType === 'lesson' ? 'Cours' : 'Quiz' }}
+              Contenu du {{ stepData.stepType === 'lesson' ? 'Cours' : stepData.stepType === 'quiz' ? 'Quiz' : 'Exercice' }}
             </h3>
             <span :class="[
               'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border',
-              stepData.stepType === 'lesson' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100'
+              stepData.stepType === 'lesson'
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                : stepData.stepType === 'quiz'
+                  ? 'bg-amber-50 text-amber-700 border-amber-100'
+                  : 'bg-blue-50 text-blue-700 border-blue-100'
             ]">
-              {{ stepData.stepType === 'lesson' ? 'Mode Éditeur' : 'Mode Configuration' }}
+              {{ stepData.stepType === 'lesson' ? 'Mode Editeur' : stepData.stepType === 'quiz' ? 'Mode Configuration' : 'Mode Exercice' }}
             </span>
           </div>
 
           <div class="p-8">
             <template v-if="stepData.stepType === 'lesson'">
-              <StepEditor v-model="stepData.content" />
+              <CourseEditor v-model="courseData" />
             </template>
             <template v-else-if="stepData.stepType === 'quiz'">
               <QuizEditor v-model="stepData.content" />
             </template>
             <template v-else>
-               <div class="py-12 text-center">
-                 <p class="text-slate-400 font-medium italic">Contenu non géré pour ce type d'étape (exercice)</p>
-               </div>
+              <ExerciseEditor
+                v-model="exerciseData"
+                :courses="courseStore.courses"
+                :courses-loading="courseStore.isLoading"
+                :courses-error="courseStore.error"
+                :selected-course-id="existingCourseId"
+                :has-course="Boolean(existingCourseId)"
+                :course-form-open="showCourseForm"
+                @update:selected-course-id="selectCourseById"
+                @toggle-course="toggleCourseForm"
+              />
+              <div v-if="showCourseForm" class="mt-6">
+                <CourseEditor v-model="courseData" />
+              </div>
             </template>
           </div>
         </div>
@@ -134,9 +149,13 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStepStore } from '~/stores/stepStore';
-import StepEditor from '@/components/Module-formateur/Step/StepEditor.vue';
+import CourseEditor from '@/components/Module-formateur/Step/CourseEditor.vue';
 import QuizEditor from '@/components/Module-formateur/Step/QuizEditor.vue';
+import ExerciseEditor from '@/components/Module-formateur/Step/ExerciseEditor.vue';
+import { useExerciseStore } from '~/stores/exerciseStore';
+import { useCourseStore } from '~/stores/courseStore';
 import { useApiService } from '~/services/api';
+import type { Exercise, CreateExerciseRequest, Course, CreateCourseRequest } from '~/types/learning';
 
 definePageMeta({
   layout: "formateur",
@@ -161,6 +180,412 @@ const stepData = ref<any>({
   content: null
 });
 
+type ExerciseQuestion = {
+  text: string;
+  options: string[];
+  correctAnswer: number;
+};
+
+type FillBlankItem = {
+  prompt: string;
+  answer: string;
+};
+
+type MatchPair = {
+  left: string;
+  right: string;
+};
+
+type ExerciseForm = {
+  id?: string;
+  title: string;
+  exerciseType: 'multiple_choice' | 'fill_blank' | 'matching';
+  instructions?: string;
+  questions: ExerciseQuestion[];
+  fillBlankItems: FillBlankItem[];
+  matchPairs: MatchPair[];
+  hints: string[];
+  explanation?: string;
+  points?: number;
+  xpReward?: number;
+  coinReward?: number;
+  maxAttempts?: number;
+  timeLimitSeconds?: number;
+  sortOrder?: number;
+  isActive: boolean;
+};
+
+type CourseForm = {
+  id?: string;
+  title: string;
+  description?: string;
+  contentType: 'video' | 'audio' | 'text' | 'pdf';
+  contentUrl: string;
+  duration?: number;
+  order?: number;
+  isPublished?: boolean;
+  isActive?: boolean;
+};
+
+const exerciseStore = useExerciseStore();
+const existingExerciseId = ref<string | null>(null);
+const courseStore = useCourseStore();
+const existingCourseId = ref<string | null>(null);
+const showCourseForm = ref(false);
+
+const defaultExerciseForm = (): ExerciseForm => ({
+  title: '',
+  exerciseType: 'multiple_choice',
+  instructions: '',
+  questions: [],
+  fillBlankItems: [],
+  matchPairs: [],
+  hints: [],
+  explanation: '',
+  points: undefined,
+  xpReward: undefined,
+  coinReward: undefined,
+  maxAttempts: undefined,
+  timeLimitSeconds: undefined,
+  sortOrder: undefined,
+  isActive: true,
+});
+
+const exerciseData = ref<ExerciseForm>(defaultExerciseForm());
+
+const defaultCourseForm = (): CourseForm => ({
+  title: '',
+  description: '',
+  contentType: 'text',
+  contentUrl: '',
+  duration: undefined,
+  order: undefined,
+  isPublished: false,
+  isActive: true,
+});
+
+const courseData = ref<CourseForm>(defaultCourseForm());
+
+const parseMaybeJson = (value: any) => {
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch (err) {
+    return value;
+  }
+};
+
+const mapCourseToForm = (course: Course): CourseForm => ({
+  id: course.id,
+  title: course.title || stepData.value.title || '',
+  description: course.description || stepData.value.description || '',
+  contentType: course.contentType || 'text',
+  contentUrl: course.contentUrl || '',
+  duration: course.duration ?? undefined,
+  order: course.order ?? undefined,
+  isPublished: course.isPublished ?? false,
+  isActive: course.isActive ?? true,
+});
+
+const buildCoursePayload = (): CreateCourseRequest => ({
+  stepId: id,
+  title: courseData.value.title || stepData.value.title || 'Cours',
+  description: courseData.value.description || stepData.value.description || undefined,
+  contentType: courseData.value.contentType,
+  contentUrl: courseData.value.contentUrl,
+  duration: courseData.value.duration,
+  order: courseData.value.order ?? stepData.value.index ?? undefined,
+  isPublished: courseData.value.isPublished ?? false,
+  isActive: courseData.value.isActive ?? true,
+});
+
+const isValidHttpUrl = (value: string) => {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (err) {
+    return false;
+  }
+};
+
+const loadCourseForStep = async (fetchAll = false) => {
+  await courseStore.fetchCourses(fetchAll ? undefined : id);
+
+  const existing = courseStore.courses.find((c) => c.stepId === id);
+  const fallback = fetchAll ? null : courseStore.courses[0];
+
+  if (existing) {
+    existingCourseId.value = existing.id;
+    courseData.value = mapCourseToForm(existing);
+    return;
+  }
+
+  if (fallback) {
+    if (!existingCourseId.value) {
+      existingCourseId.value = fallback.id;
+    }
+    const selected = courseStore.courses.find((c) => c.id === existingCourseId.value) || fallback;
+    courseData.value = mapCourseToForm(selected);
+    return;
+  }
+
+  courseData.value = defaultCourseForm();
+  courseData.value.title = stepData.value.title || '';
+  courseData.value.description = stepData.value.description || '';
+  courseData.value.order = stepData.value.index ?? undefined;
+};
+
+const toggleCourseForm = () => {
+  showCourseForm.value = !showCourseForm.value;
+};
+
+const selectCourseById = (courseId: string | null) => {
+  existingCourseId.value = courseId;
+  if (!courseId) return;
+  const course = courseStore.courses.find((c) => c.id === courseId);
+  if (course) {
+    courseData.value = mapCourseToForm(course);
+  }
+  showCourseForm.value = false;
+};
+
+const mapExerciseToForm = (exercise: Exercise): ExerciseForm => {
+  const content = parseMaybeJson(exercise.content);
+  const correct = parseMaybeJson(exercise.correctAnswers);
+  const hintsRaw = parseMaybeJson(exercise.hints);
+
+  const form = defaultExerciseForm();
+  form.id = exercise.id;
+  form.title = exercise.title || stepData.value.title || '';
+  form.exerciseType = exercise.exerciseType || 'multiple_choice';
+  form.instructions = exercise.instructions || '';
+  form.explanation = exercise.explanation || '';
+  form.points = exercise.points ?? undefined;
+  form.xpReward = exercise.xpReward ?? undefined;
+  form.coinReward = exercise.coinReward ?? undefined;
+  form.maxAttempts = exercise.maxAttempts ?? undefined;
+  form.timeLimitSeconds = exercise.timeLimitSeconds ?? undefined;
+  form.sortOrder = exercise.sortOrder ?? undefined;
+  form.isActive = exercise.isActive ?? true;
+
+  if (Array.isArray(hintsRaw)) {
+    form.hints = hintsRaw.filter((h) => typeof h === 'string');
+  } else if (Array.isArray((hintsRaw as any)?.items)) {
+    form.hints = (hintsRaw as any).items.filter((h: any) => typeof h === 'string');
+  } else if (typeof hintsRaw === 'string' && hintsRaw.trim()) {
+    form.hints = [hintsRaw];
+  }
+
+  if (form.exerciseType === 'multiple_choice') {
+    const questionsSource = Array.isArray((content as any)?.questions)
+      ? (content as any).questions
+      : Array.isArray(content)
+        ? content
+        : [];
+    const answers = Array.isArray((correct as any)?.answers) ? (correct as any).answers : [];
+
+    form.questions = questionsSource.map((q: any, index: number) => ({
+      text: typeof q.text === 'string' ? q.text : '',
+      options: Array.isArray(q.options) ? q.options : ['', ''],
+      correctAnswer: typeof q.correctAnswer === 'number'
+        ? q.correctAnswer
+        : typeof answers[index] === 'number'
+          ? answers[index]
+          : 0,
+    }));
+  } else if (form.exerciseType === 'fill_blank') {
+    let promptItems: any[] = [];
+    if (Array.isArray((content as any)?.items)) {
+      promptItems = (content as any).items;
+    } else if (Array.isArray((content as any)?.prompts)) {
+      promptItems = (content as any).prompts;
+    } else if (Array.isArray(content)) {
+      promptItems = content as any[];
+    }
+
+    const prompts = promptItems.map((item) => {
+      if (typeof item === 'string') return item;
+      if (item && typeof item === 'object') return item.prompt || item.text || '';
+      return '';
+    });
+
+    let answersSource: any[] = [];
+    if (Array.isArray((correct as any)?.answers)) {
+      answersSource = (correct as any).answers;
+    } else if (Array.isArray(correct)) {
+      answersSource = correct as any[];
+    } else if (Array.isArray(promptItems)) {
+      answersSource = promptItems.map((item) =>
+        item && typeof item === 'object' ? item.answer : ''
+      );
+    }
+
+    const length = Math.max(prompts.length, answersSource.length);
+    for (let i = 0; i < length; i += 1) {
+      form.fillBlankItems.push({
+        prompt: prompts[i] ?? '',
+        answer: answersSource[i] ?? '',
+      });
+    }
+  } else {
+    let pairsSource: any[] = [];
+    if (Array.isArray((content as any)?.pairs)) {
+      pairsSource = (content as any).pairs;
+    } else if (Array.isArray((correct as any)?.pairs)) {
+      pairsSource = (correct as any).pairs;
+    } else if (Array.isArray(content)) {
+      pairsSource = content as any[];
+    } else if (Array.isArray((content as any)?.left) && Array.isArray((content as any)?.right)) {
+      const lefts = (content as any).left;
+      const rights = (content as any).right;
+      const length = Math.max(lefts.length, rights.length);
+      for (let i = 0; i < length; i += 1) {
+        form.matchPairs.push({
+          left: lefts[i] ?? '',
+          right: rights[i] ?? '',
+        });
+      }
+    }
+
+    if (pairsSource.length) {
+      form.matchPairs = pairsSource.map((pair) => {
+        if (Array.isArray(pair)) {
+          return {
+            left: pair[0] ?? '',
+            right: pair[1] ?? '',
+          };
+        }
+        return {
+          left: pair?.left ?? '',
+          right: pair?.right ?? '',
+        };
+      });
+    }
+  }
+
+  if (form.exerciseType === 'fill_blank' && form.fillBlankItems.length === 0) {
+    form.fillBlankItems.push({ prompt: '', answer: '' });
+  }
+  if (form.exerciseType === 'matching' && form.matchPairs.length === 0) {
+    form.matchPairs.push({ left: '', right: '' });
+  }
+
+  return form;
+};
+
+const buildExercisePayload = (lessonId: string): CreateExerciseRequest => {
+  const hints = exerciseData.value.hints && exerciseData.value.hints.length
+    ? { items: exerciseData.value.hints }
+    : undefined;
+
+  const base = {
+    lessonId,
+    title: exerciseData.value.title || stepData.value.title || 'Exercice',
+    exerciseType: exerciseData.value.exerciseType,
+    instructions: exerciseData.value.instructions || undefined,
+    hints,
+    explanation: exerciseData.value.explanation || undefined,
+    points: exerciseData.value.points,
+    xpReward: exerciseData.value.xpReward,
+    coinReward: exerciseData.value.coinReward,
+    maxAttempts: exerciseData.value.maxAttempts,
+    timeLimitSeconds: exerciseData.value.timeLimitSeconds,
+    sortOrder: exerciseData.value.sortOrder,
+    isActive: exerciseData.value.isActive,
+  };
+
+  if (exerciseData.value.exerciseType === 'multiple_choice') {
+    const questions = exerciseData.value.questions || [];
+    return {
+      ...base,
+      content: {
+        questions: questions.map((q) => ({
+          text: q.text,
+          options: Array.isArray(q.options) ? q.options : [],
+        })),
+      },
+      correctAnswers: {
+        answers: questions.map((q) => q.correctAnswer),
+      },
+    };
+  }
+
+  if (exerciseData.value.exerciseType === 'fill_blank') {
+    const items = (exerciseData.value.fillBlankItems || []).filter(
+      (item) => item.prompt || item.answer
+    );
+
+    return {
+      ...base,
+      content: {
+        items: items.map((item) => ({
+          prompt: item.prompt,
+        })),
+      },
+      correctAnswers: {
+        answers: items.map((item) => item.answer),
+      },
+    };
+  }
+
+  const pairs = (exerciseData.value.matchPairs || []).filter(
+    (pair) => pair.left || pair.right
+  );
+
+  return {
+    ...base,
+    content: {
+      pairs: pairs.map((pair) => ({
+        left: pair.left,
+        right: pair.right,
+      })),
+    },
+    correctAnswers: {
+      pairs: pairs.map((pair) => ({
+        left: pair.left,
+        right: pair.right,
+      })),
+    },
+  };
+};
+
+const buildStepPayload = () => {
+  const payload: Record<string, any> = {
+    title: stepData.value.title,
+    description: stepData.value.description,
+    estimatedMinutes: stepData.value.estimatedMinutes,
+    index: stepData.value.index,
+    isActive: stepData.value.isActive,
+  };
+
+  if (stepData.value.stepType === 'quiz') {
+    payload.content = stepData.value.content
+      ? JSON.stringify(stepData.value.content)
+      : null;
+  }
+
+  return payload;
+};
+
+const loadExerciseForStep = async () => {
+  await exerciseStore.fetchExercises(id);
+  const existing = exerciseStore.exercises.find(
+    (ex) => ex.lessonId === id || ex.stepId === id
+  ) || exerciseStore.exercises[0];
+
+  if (existing) {
+    existingExerciseId.value = existing.id;
+    if (existing.lessonId) {
+      existingCourseId.value = existing.lessonId;
+    }
+    exerciseData.value = mapExerciseToForm(existing);
+  } else {
+    exerciseData.value = defaultExerciseForm();
+    exerciseData.value.title = stepData.value.title || '';
+  }
+};
+
 onMounted(async () => {
   try {
     const response: any = await api.getStep(id); // I need to ensure getStep exists
@@ -171,6 +596,15 @@ onMounted(async () => {
         try {
           stepData.value.content = JSON.parse(stepData.value.content);
         } catch (e) {}
+      }
+
+      if (stepData.value.stepType === 'exercise') {
+        await loadExerciseForStep();
+        await loadCourseForStep(true);
+        showCourseForm.value = false;
+      }
+      if (stepData.value.stepType === 'lesson') {
+        await loadCourseForStep();
       }
     }
   } catch (err) {
@@ -183,13 +617,55 @@ onMounted(async () => {
 const saveStep = async () => {
   isSaving.value = true;
   try {
-    const payload = { 
-      ...stepData.value,
-      content: JSON.stringify(stepData.value.content)
-    };
-    const success = await stepStore.updateStep(id, payload);
-    if (success) {
-      // Small toast or notification could go here
+    const stepSuccess = await stepStore.updateStep(id, buildStepPayload());
+
+    if (stepData.value.stepType === 'exercise') {
+      let courseId = existingCourseId.value;
+
+      if (!courseId) {
+        if (!isValidHttpUrl(courseData.value.contentUrl)) {
+          alert('Le champ URL du contenu doit contenir une URL valide (http/https) pour creer le cours associe.');
+          return;
+        }
+
+        const createdCourse = await courseStore.createCourse(buildCoursePayload());
+        if (!createdCourse?.id) {
+          return;
+        }
+        existingCourseId.value = createdCourse.id;
+        courseId = createdCourse.id;
+        showCourseForm.value = false;
+      }
+
+      const exercisePayload = buildExercisePayload(courseId);
+      if (existingExerciseId.value) {
+        await exerciseStore.updateExercise(existingExerciseId.value, exercisePayload);
+      } else {
+        const created = await exerciseStore.createExercise(exercisePayload);
+        if (created?.id) {
+          existingExerciseId.value = created.id;
+        }
+      }
+    }
+
+    if (stepData.value.stepType === 'lesson') {
+      if (!isValidHttpUrl(courseData.value.contentUrl)) {
+        alert('Le champ URL du contenu doit contenir une URL valide (http/https).');
+      } else {
+        const coursePayload = buildCoursePayload();
+        if (existingCourseId.value) {
+          await courseStore.updateCourse(existingCourseId.value, coursePayload);
+        } else {
+          const created = await courseStore.createCourse(coursePayload);
+          if (created?.id) {
+            existingCourseId.value = created.id;
+          }
+        }
+      }
+    }
+
+    if (!stepSuccess) {
+      console.warn("Mise a jour de l'etape echouee, mais le contenu associe a ete traite.");
     }
   } catch (err) {
     console.error("Erreur sauvegarde:", err);
