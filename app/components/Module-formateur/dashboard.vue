@@ -1,49 +1,52 @@
 <template>
   <div class="dashboard-container">
+  
+    
 
     <!-- Langues -->
     <div class="langue">
       <h2 class="section-title">Sélectionnez une langue</h2>
 
-      <!-- Cards -->
-      <div v-if="languageStore.languages && languages.length" class="cards-container">
-
-        <div
-          v-for="(lang, index) in languages"
-          :key="lang.id"
-          class="language-card"
-        >
-          <!-- Header card -->
-          <div class="card-header">
-            <div class="lang-icon">
-              🌍
-            </div>
-
-            <div class="lang-title">
-              {{ lang.name }}
-            </div>
-          </div>
-
-          <!-- Description -->
-          <p class="lang-description">
-            {{ lang.description || 'Aucune description disponible pour cette langue.' }}
-          </p>
-
-          <!-- Action -->
-          <button @click="goToModules(lang.id)" class="module-btn eye-btn">
-  <span class="eye-wrapper">
-    👁️
-  </span>
-  <!-- Voir modules -->
-</button>
-
-        </div>
-
+      <div
+        v-if="isLoading"
+        class="p-8 text-center text-gray-500"
+      >
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900 mr-2"></div>
+        Chargement des langues...
       </div>
 
-      <p v-else class="empty-state">
+    <div v-else>
+      <div v-if="languageStore.languages && languages.length" class="cards-container">
+        <div v-for="(lang, index) in languages" :key="lang.id" class="language-card">
+           <div class="card-header">
+              <div class="lang-icon">
+                🌍
+              </div>
+
+              <div class="lang-title">
+                {{ lang.name }}
+              </div>
+            </div>
+
+            <!-- Description -->
+            <p class="lang-description">
+              {{ lang.description || 'Aucune description disponible pour cette langue.' }}
+            </p>
+
+            <!-- Action -->
+            <button @click="goToModules(lang.id)" class="module-btn eye-btn">
+              <span class="eye-wrapper">
+                👁️
+              </span>
+            </button>
+        </div>
+      </div>
+      <div v-else class="empty-state">
+        <p>
         Aucune langue disponible pour le moment.
       </p>
+      </div>
+    </div>
     </div>
   </div>
 </template>
@@ -65,6 +68,8 @@ const languages = ref<Language[]>([])
 const languageStore = useLanguageStore()
 const levelStore = useLevelStore()
 
+const isLoading = ref()
+
 // Redirection vers les modules d’une langue
 const goToModules = (languageId: string) => {
   const url = `module-formateur/moduleCrea/${languageId}`
@@ -75,12 +80,15 @@ const goToModules = (languageId: string) => {
 
 // Chargement des langues (inchangé)
 onMounted(async () => {
+  isLoading.value = true
   try {
     await languageStore.fetchLanguages() 
     await levelStore.fetchLevels()
     languages.value = languageStore.languages
   } catch (error) {
     console.error("Erreur lors du chargement des langues", error)
+  } finally {
+    isLoading.value = false
   }
 })
 </script>
