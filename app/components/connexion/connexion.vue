@@ -134,7 +134,7 @@
               <div class="grid h-12 w-12 place-items-center rounded-xl bg-[#2D5BFF]/20">
                 <div class="h-6 w-6 rounded bg-[#2D5BFF]"></div>
               </div>
-              <div class="text-3xl font-semibold">LinguaLearn</div>
+              <div class="text-3xl font-semibold">TiBi</div>
             </div>
             <p class="mx-auto max-w-sm text-sm text-white/70">
               Vos racines ont une langue. Faites-la revivre

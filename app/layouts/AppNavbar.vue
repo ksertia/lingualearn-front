@@ -4,7 +4,7 @@
       <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center border border-white/20">
         <span class="text-white font-black text-xs">LL</span>
       </div>
-      <span class="text-xl font-bold text-white tracking-tight">Lingua<span class="text-brand-cyan text-[#00CED1]">Learn</span></span>
+      <span class="text-xl font-bold text-white tracking-tight">Ti<span class="text-brand-cyan text-[#00CED1]">Bi</span></span>
     </div>
 
     <div class="flex items-center gap-4">

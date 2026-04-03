@@ -88,7 +88,7 @@ export interface Course {
   stepId: string
   title: string
   description?: string
-  contentType: 'video' | 'audio' | 'text' | 'pdf'
+  contentType: 'video' | 'audio' | 'text' | 'pdf' | 'image'
   contentUrl: string
   duration?: number
   order?: number
@@ -172,7 +172,7 @@ export interface CreateCourseRequest {
   stepId: string
   title: string
   description?: string
-  contentType: 'video' | 'audio' | 'text' | 'pdf'
+  contentType: 'video' | 'audio' | 'text' | 'pdf' | 'image'
   contentUrl: string
   duration?: number
   order?: number

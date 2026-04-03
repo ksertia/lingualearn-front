@@ -32,6 +32,46 @@
           class="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition-all text-sm"
         ></textarea>
       </div>
+
+      <div class="md:col-span-2">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+          Media (optionnel)
+        </label>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <select
+            v-model="local.mediaType"
+            class="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition-all text-sm"
+          >
+            <option value="">Aucun</option>
+            <option value="image">Image</option>
+            <option value="video">Video</option>
+            <option value="audio">Audio</option>
+            <option value="pdf">PDF</option>
+          </select>
+          <input
+            v-model="local.mediaUrl"
+            type="text"
+            :disabled="!local.mediaType"
+            placeholder="https://..."
+            class="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition-all text-sm disabled:bg-slate-50"
+          />
+          <input
+            type="file"
+            :disabled="!local.mediaType"
+            :accept="mediaAccept"
+            @change="handleMediaUpload"
+            class="block w-full text-sm text-slate-600"
+          />
+        </div>
+        <p class="text-xs text-slate-400 mt-2">
+          Choisis un type, colle une URL ou importe un fichier.
+        </p>
+        <p v-if="mediaUploading" class="text-xs text-slate-500 mt-1">Upload en cours...</p>
+        <p v-else-if="mediaUploadError" class="text-xs text-rose-500 mt-1">{{ mediaUploadError }}</p>
+        <p v-else-if="mediaUploadSuccess" class="text-xs text-emerald-600 mt-1">
+          Media uploade. URL mise a jour.
+        </p>
+      </div>
     </div>
 
     <div v-if="local.exerciseType === 'multiple_choice'">
@@ -249,6 +289,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import QuizEditor from "@/components/Module-formateur/Step/QuizEditor.vue";
+import { useApiService } from "~/services/api";
 
 interface ExerciseQuestion {
   text: string;
@@ -283,6 +324,8 @@ interface ExerciseForm {
   timeLimitSeconds?: number;
   sortOrder?: number;
   isActive: boolean;
+  mediaType?: "image" | "video" | "audio" | "pdf";
+  mediaUrl?: string;
 }
 
 type CourseOption = {
@@ -303,10 +346,29 @@ const props = defineProps<{
 const emit = defineEmits(["update:modelValue", "toggle-course", "update:selectedCourseId"]);
 
 const allowedTypes = new Set(["multiple_choice", "fill_blank", "matching"]);
+const allowedMediaTypes = new Set(["image", "video", "audio", "pdf"]);
+
+type UploadKind = "image" | "video" | "audio" | "pdf" | "content";
 
 const normalize = (value: any): ExerciseForm => {
   const v = value && typeof value === "object" ? value : {};
   const exerciseType = allowedTypes.has(v.exerciseType) ? v.exerciseType : "multiple_choice";
+  const mediaFromContent =
+    v?.content && typeof v.content === "object" && !Array.isArray(v.content)
+      ? v.content.media
+      : null;
+  const mediaTypeCandidate =
+    typeof v.mediaType === "string"
+      ? v.mediaType
+      : typeof mediaFromContent?.type === "string"
+        ? mediaFromContent.type
+        : "";
+  const mediaUrlCandidate =
+    typeof v.mediaUrl === "string"
+      ? v.mediaUrl
+      : typeof mediaFromContent?.url === "string"
+        ? mediaFromContent.url
+        : "";
 
   return {
     id: v.id,
@@ -335,10 +397,105 @@ const normalize = (value: any): ExerciseForm => {
     timeLimitSeconds: typeof v.timeLimitSeconds === "number" ? v.timeLimitSeconds : undefined,
     sortOrder: typeof v.sortOrder === "number" ? v.sortOrder : undefined,
     isActive: typeof v.isActive === "boolean" ? v.isActive : true,
+    mediaType: allowedMediaTypes.has(mediaTypeCandidate) ? mediaTypeCandidate : undefined,
+    mediaUrl: mediaUrlCandidate,
   };
 };
 
 const local = ref<ExerciseForm>(normalize(props.modelValue));
+
+const api = useApiService();
+const config = useRuntimeConfig();
+const mediaUploading = ref(false);
+const mediaUploadError = ref<string | null>(null);
+const mediaUploadSuccess = ref(false);
+
+const mediaAccept = computed(() => {
+  switch (local.value.mediaType) {
+    case "image":
+      return "image/*";
+    case "video":
+      return "video/*";
+    case "audio":
+      return "audio/*";
+    case "pdf":
+      return "application/pdf";
+    default:
+      return "";
+  }
+});
+
+const extractUploadUrl = (payload: any): string | null => {
+  if (!payload) return null;
+  if (typeof payload === "string") return payload;
+  const candidates = [
+    payload.data?.url,
+    payload.url,
+    payload.fileUrl,
+    payload.location,
+    payload.path,
+    payload.data?.fileUrl,
+    payload.data?.location,
+    payload.data?.path,
+    payload.data?.data?.url,
+  ];
+  return candidates.find((value) => typeof value === "string" && value.trim()) || null;
+};
+
+const getUploadOrigin = () => {
+  if (config.public.apiBase) {
+    try {
+      return new URL(config.public.apiBase).origin;
+    } catch (err) {
+      return "";
+    }
+  }
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+  return "";
+};
+
+const normalizeUploadUrl = (value: string) => {
+  const trimmed = value?.trim();
+  if (!trimmed) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return encodeURI(trimmed);
+  const origin = getUploadOrigin();
+  if (!origin) return encodeURI(trimmed);
+  if (trimmed.startsWith("/")) {
+    return encodeURI(`${origin}${trimmed}`);
+  }
+  return encodeURI(`${origin}/${trimmed}`);
+};
+
+const handleMediaUpload = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file || !local.value.mediaType) return;
+
+  mediaUploadError.value = null;
+  mediaUploadSuccess.value = false;
+  mediaUploading.value = true;
+
+  try {
+    const response = await api.uploadMedia(local.value.mediaType as UploadKind, file);
+    if (response?.success === false) {
+      throw new Error("Upload refuse par le serveur.");
+    }
+    const url = extractUploadUrl(response);
+    if (!url) {
+      throw new Error("URL manquante dans la reponse d'upload.");
+    }
+    local.value.mediaUrl = normalizeUploadUrl(url);
+    mediaUploadSuccess.value = true;
+  } catch (err) {
+    console.error("Upload media exercice echoue:", err);
+    mediaUploadError.value = "Echec de l'upload du media.";
+  } finally {
+    mediaUploading.value = false;
+    input.value = "";
+  }
+};
 
 const courses = computed(() => props.courses ?? []);
 const coursesLoading = computed(() => Boolean(props.coursesLoading));
@@ -388,6 +545,17 @@ watch(
   () => local.value.exerciseType,
   () => {
     ensureDefaults();
+  }
+);
+
+watch(
+  () => local.value.mediaType,
+  (value) => {
+    mediaUploadError.value = null;
+    mediaUploadSuccess.value = false;
+    if (!value) {
+      local.value.mediaUrl = "";
+    }
   }
 );
 

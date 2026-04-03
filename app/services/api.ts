@@ -420,6 +420,22 @@ class ApiService {
     });
   }
 
+  /* ===================== UPLOADS ===================== */
+
+  async uploadMedia(
+    kind: "image" | "video" | "audio" | "pdf" | "content",
+    file: File,
+  ): Promise<any> {
+    const formData = new FormData();
+    const fieldName = kind === "content" ? "file" : kind;
+    formData.append(fieldName, file);
+
+    return await this.api(`/v1/uploads/${kind}`, {
+      method: "POST",
+      body: formData,
+    });
+  }
+
   /* ===================== DASHBOARD ===================== */
 
   async getDashboardData(params?: UsersTotalParams): Promise<StatTotalResponse> {

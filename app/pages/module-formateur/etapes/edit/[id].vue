@@ -165,6 +165,7 @@ const route = useRoute();
 const router = useRouter();
 const stepStore = useStepStore();
 const api = useApiService();
+const config = useRuntimeConfig();
 
 const id = String(route.params.id);
 const isLoading = ref(true);
@@ -213,13 +214,15 @@ type ExerciseForm = {
   timeLimitSeconds?: number;
   sortOrder?: number;
   isActive: boolean;
+  mediaType?: 'image' | 'video' | 'audio' | 'pdf';
+  mediaUrl?: string;
 };
 
 type CourseForm = {
   id?: string;
   title: string;
   description?: string;
-  contentType: 'video' | 'audio' | 'text' | 'pdf';
+  contentType: 'video' | 'audio' | 'text' | 'pdf' | 'image';
   contentUrl: string;
   duration?: number;
   order?: number;
@@ -249,6 +252,8 @@ const defaultExerciseForm = (): ExerciseForm => ({
   timeLimitSeconds: undefined,
   sortOrder: undefined,
   isActive: true,
+  mediaType: undefined,
+  mediaUrl: '',
 });
 
 const exerciseData = ref<ExerciseForm>(defaultExerciseForm());
@@ -287,22 +292,56 @@ const mapCourseToForm = (course: Course): CourseForm => ({
   isActive: course.isActive ?? true,
 });
 
-const buildCoursePayload = (): CreateCourseRequest => ({
-  stepId: id,
-  title: courseData.value.title || stepData.value.title || 'Cours',
-  description: courseData.value.description || stepData.value.description || undefined,
-  contentType: courseData.value.contentType,
-  contentUrl: courseData.value.contentUrl,
-  duration: courseData.value.duration,
-  order: courseData.value.order ?? stepData.value.index ?? undefined,
-  isPublished: courseData.value.isPublished ?? false,
-  isActive: courseData.value.isActive ?? true,
-});
+const getApiOrigin = () => {
+  if (config.public.apiBase) {
+    try {
+      return new URL(config.public.apiBase).origin;
+    } catch (err) {
+      return '';
+    }
+  }
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return '';
+};
+
+const normalizeCourseContentUrl = (value: string) => {
+  const trimmed = value?.trim();
+  if (!trimmed) return '';
+  let normalized = trimmed;
+  if (!/^https?:\/\//i.test(normalized)) {
+    const origin = getApiOrigin();
+    if (origin) {
+      normalized = normalized.startsWith('/') ? `${origin}${normalized}` : `${origin}/${normalized}`;
+    }
+  }
+  return encodeURI(normalized);
+};
+
+const buildCoursePayload = (): CreateCourseRequest => {
+  const normalizedUrl = normalizeCourseContentUrl(courseData.value.contentUrl);
+  if (normalizedUrl && normalizedUrl !== courseData.value.contentUrl) {
+    courseData.value.contentUrl = normalizedUrl;
+  }
+  return {
+    stepId: id,
+    title: courseData.value.title || stepData.value.title || 'Cours',
+    description: courseData.value.description || stepData.value.description || undefined,
+    contentType: courseData.value.contentType,
+    contentUrl: normalizedUrl,
+    duration: courseData.value.duration,
+    order: courseData.value.order ?? stepData.value.index ?? undefined,
+    isPublished: courseData.value.isPublished ?? false,
+    isActive: courseData.value.isActive ?? true,
+  };
+};
 
 const isValidHttpUrl = (value: string) => {
-  if (!value) return false;
+  const normalized = normalizeCourseContentUrl(value);
+  if (!normalized) return false;
   try {
-    const url = new URL(value);
+    const url = new URL(normalized);
     return url.protocol === 'http:' || url.protocol === 'https:';
   } catch (err) {
     return false;
@@ -354,6 +393,10 @@ const mapExerciseToForm = (exercise: Exercise): ExerciseForm => {
   const content = parseMaybeJson(exercise.content);
   const correct = parseMaybeJson(exercise.correctAnswers);
   const hintsRaw = parseMaybeJson(exercise.hints);
+  const media =
+    content && typeof content === 'object' && !Array.isArray(content)
+      ? (content as any).media
+      : null;
 
   const form = defaultExerciseForm();
   form.id = exercise.id;
@@ -368,6 +411,17 @@ const mapExerciseToForm = (exercise: Exercise): ExerciseForm => {
   form.timeLimitSeconds = exercise.timeLimitSeconds ?? undefined;
   form.sortOrder = exercise.sortOrder ?? undefined;
   form.isActive = exercise.isActive ?? true;
+
+  if (media && typeof media === 'object') {
+    const type = typeof media.type === 'string' ? media.type : '';
+    const url = typeof media.url === 'string' ? media.url : '';
+    if (['image', 'video', 'audio', 'pdf'].includes(type)) {
+      form.mediaType = type as ExerciseForm['mediaType'];
+    }
+    if (url) {
+      form.mediaUrl = url;
+    }
+  }
 
   if (Array.isArray(hintsRaw)) {
     form.hints = hintsRaw.filter((h) => typeof h === 'string');
@@ -478,6 +532,9 @@ const buildExercisePayload = (lessonId: string): CreateExerciseRequest => {
   const hints = exerciseData.value.hints && exerciseData.value.hints.length
     ? { items: exerciseData.value.hints }
     : undefined;
+  const mediaType = exerciseData.value.mediaType;
+  const mediaUrl = exerciseData.value.mediaUrl?.trim();
+  const media = mediaType && mediaUrl ? { type: mediaType, url: mediaUrl } : undefined;
 
   const base = {
     lessonId,
@@ -504,6 +561,7 @@ const buildExercisePayload = (lessonId: string): CreateExerciseRequest => {
           text: q.text,
           options: Array.isArray(q.options) ? q.options : [],
         })),
+        ...(media ? { media } : {}),
       },
       correctAnswers: {
         answers: questions.map((q) => q.correctAnswer),
@@ -522,6 +580,7 @@ const buildExercisePayload = (lessonId: string): CreateExerciseRequest => {
         items: items.map((item) => ({
           prompt: item.prompt,
         })),
+        ...(media ? { media } : {}),
       },
       correctAnswers: {
         answers: items.map((item) => item.answer),
@@ -540,6 +599,7 @@ const buildExercisePayload = (lessonId: string): CreateExerciseRequest => {
         left: pair.left,
         right: pair.right,
       })),
+      ...(media ? { media } : {}),
     },
     correctAnswers: {
       pairs: pairs.map((pair) => ({
