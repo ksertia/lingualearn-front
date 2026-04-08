@@ -54,29 +54,57 @@ export const useStepStore = defineStore('step', () => {
         }
     }
 
+    // async function updateStep(id: string, data: Partial<Step>) {
+    //     isLoading.value = true;
+    //     error.value = null;
+    //     try {
+    //         const response: any = await apiService.updateStep(id, data);
+    //         const stepData = response.data || (response.id ? response : null);
+    //         if (stepData) {
+    //             const index = steps.value.findIndex(s => s.id === id);
+    //             if (index !== -1) {
+    //                 steps.value[index] = stepData;
+    //             }
+    //             return true;
+    //         } else {
+    //             error.value = response.message || "Échec de la mise à jour de l'étape";
+    //             return false;
+    //         }
+    //     } catch (err: any) {
+    //         error.value = err.data?.message || "Erreur lors de la mise à jour de l'étape";
+    //         return false;
+    //     } finally {
+    //         isLoading.value = false;
+    //     }
+    // }
+
+    //Nouvelle version de updateStep
     async function updateStep(id: string, data: Partial<Step>) {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            const response: any = await apiService.updateStep(id, data);
-            const stepData = response.data || (response.id ? response : null);
-            if (stepData) {
-                const index = steps.value.findIndex(s => s.id === id);
-                if (index !== -1) {
-                    steps.value[index] = stepData;
-                }
-                return true;
-            } else {
-                error.value = response.message || "Échec de la mise à jour de l'étape";
-                return false;
-            }
-        } catch (err: any) {
-            error.value = err.data?.message || "Erreur lors de la mise à jour de l'étape";
-            return false;
-        } finally {
-            isLoading.value = false;
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+        const response: any = await apiService.updateStep(id, data);
+        const stepData = response.data || (response.id ? response : null);
+
+        if (!stepData) {
+            throw new Error(response.message || "Échec de la mise à jour");
         }
+
+        const index = steps.value.findIndex(s => s.id === id);
+        if (index !== -1) {
+            steps.value[index] = stepData;
+        }
+
+        return stepData;
+
+    } catch (err: any) {
+        error.value = err.message || "Erreur lors de la mise à jour";
+        throw err; // 🔥 IMPORTANT
+    } finally {
+        isLoading.value = false;
     }
+}
 
     async function deleteStep(id: string) {
         isLoading.value = true;

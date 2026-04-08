@@ -500,19 +500,53 @@ class ApiService {
 
   /* ===================== UPLOADS ===================== */
 
-  async uploadMedia(
-    kind: "image" | "video" | "audio" | "pdf" | "content",
-    file: File,
-  ): Promise<any> {
-    const formData = new FormData();
-    const fieldName = kind === "content" ? "file" : kind;
-    formData.append(fieldName, file);
+async uploadMedia(file: File): Promise<string> {
+  const formData = new FormData();
 
-    return await this.api(`/v1/uploads/${kind}`, {
+  // ✅ Toujours utiliser la bonne clé
+  formData.append("content", file);
+
+  // ✅ Détection automatique du type
+  let endpoint = "/v1/uploads/content";
+
+  if (file.type.startsWith("image/")) {
+    endpoint = "/v1/uploads/image";
+  } else if (file.type.startsWith("video/")) {
+    endpoint = "/v1/uploads/video";
+  } else if (file.type.startsWith("audio/")) {
+    endpoint = "/v1/uploads/audio";
+  } else if (file.type === "application/pdf") {
+    endpoint = "/v1/uploads/pdf";
+  }
+
+  try {
+    const response: any = await this.api(endpoint, {
       method: "POST",
       body: formData,
     });
+
+    // ✅ Gestion flexible des réponses API
+    const url =
+      response?.url ||
+      response?.path ||
+      response?.fileUrl ||
+      response?.data?.url ||
+      "";
+
+    if (!url) {
+      throw new Error("Aucune URL retournée par le serveur");
+    }
+
+    return url;
+
+  } catch (error) {
+    console.error("❌ Erreur upload média :", error);
+
+    // ✅ Message propre pour debug ou UI
+    throw new Error("Échec de l'upload du fichier");
   }
+}
+
 
   /* ===================== DISCOVERY ===================== */
 
