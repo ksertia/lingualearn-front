@@ -57,7 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
       case 'admin':
         return '/admin/dashboard';
       case 'plateform_manager':
-        return '/gestionnaire';
+        return '/gestionnaire/dashboard';
       case 'teacher':
         return '/module-formateur';
       default:

@@ -5,7 +5,11 @@ import type {
   Level,
 } from "~/types/language-level";
 import type { ApiResponse } from "~/types/learning";
-import type { CreateUserPayload, UpdateUserPayload, UserFilter } from "~/types/user";
+import type {
+  CreateUserPayload,
+  UpdateUserPayload,
+  UserFilter,
+} from "~/types/user";
 import type { module, moduleRequest, moduleResponse } from "~/types/modules";
 import type { StatTotalResponse, UsersTotalParams } from "~/types/dashboard";
 import type {
@@ -32,10 +36,7 @@ class ApiService {
         }
 
         if (token) {
-          (options.headers as Headers).set(
-            "Authorization",
-            `Bearer ${token}`,
-          );
+          (options.headers as Headers).set("Authorization", `Bearer ${token}`);
         }
       },
     });
@@ -60,39 +61,36 @@ class ApiService {
 
   async getFilterUsers(filters?: UserFilter): Promise<
     ApiResponse<{
-      users: User[]
+      users: User[];
       pagination: {
-        page: number
-        limit: number
-        total: number
-      }
+        page: number;
+        limit: number;
+        total: number;
+      };
     }>
   > {
     return await this.api("/v1/users/profile-filters", {
-      query: filters
+      query: filters,
     });
   }
 
-  async createUser(
-    payload: CreateUserPayload,
-  ): Promise<ApiResponse<User>> {
+  async createUser(payload: CreateUserPayload): Promise<ApiResponse<User>> {
     return await this.api("/v1/auth/register", {
       method: "POST",
       body: payload,
     });
   }
 
-
   /* ===================== USERS ===================== */
 
   async getUsers(): Promise<
     ApiResponse<{
-      users: User[]
+      users: User[];
       pagination: {
-        page: number
-        limit: number
-        total: number
-      }
+        page: number;
+        limit: number;
+        total: number;
+      };
     }>
   > {
     return await this.api("/v1/users");
@@ -118,7 +116,6 @@ class ApiService {
     return await this.api(`/v1/users/${id}`);
   }
 
-
   /* ===================== LANGUAGES ===================== */
 
   async getLanguages(): Promise<ApiResponse<any[]>> {
@@ -129,9 +126,7 @@ class ApiService {
     return await this.api(`/v1/languages/${id}`);
   }
 
-  async createLanguage(
-    data: CreateLanguagePayload,
-  ): Promise<ApiResponse<any>> {
+  async createLanguage(data: CreateLanguagePayload): Promise<ApiResponse<any>> {
     return await this.api("/v1/languages", {
       method: "POST",
       body: {
@@ -206,9 +201,7 @@ class ApiService {
     });
   }
 
-  async getLevelsByLanguage(
-    languageId: string,
-  ): Promise<ApiResponse<Level[]>> {
+  async getLevelsByLanguage(languageId: string): Promise<ApiResponse<Level[]>> {
     return await this.api("/v1/levels", {
       query: { languageId },
     });
@@ -224,9 +217,7 @@ class ApiService {
     });
   }
 
-  async deleteLevelForLanguage(
-    levelId: string,
-  ): Promise<ApiResponse<void>> {
+  async deleteLevelForLanguage(levelId: string): Promise<ApiResponse<void>> {
     return await this.api(`/v1/levels/${levelId}`, {
       method: "DELETE",
     });
@@ -247,18 +238,36 @@ class ApiService {
   }
 
   /* ===================== MODULES ===================== */
-  
-  //Un test 
-  async getModulesByLevel(languageId: string, levelId: string): Promise<ApiResponse<module[]>> {
-    return await this.api(`/v1/languages/${languageId}/levels/${levelId}/modules`);
+
+  //Un test
+  async getModulesByLevel(
+    languageId: string,
+    levelId: string,
+  ): Promise<ApiResponse<module[]>> {
+    return await this.api(
+      `/v1/languages/${languageId}/levels/${levelId}/modules`,
+    );
   }
 
-  async getLearningPathsByModule(languageId: string, levelId: string, moduleId: string): Promise<ApiResponse<any[]>> {
-    return await this.api(`/v1/languages/${languageId}/levels/${levelId}/modules/${moduleId}/paths`);
+  async getLearningPathsByModule(
+    languageId: string,
+    levelId: string,
+    moduleId: string,
+  ): Promise<ApiResponse<any[]>> {
+    return await this.api(
+      `/v1/languages/${languageId}/levels/${levelId}/modules/${moduleId}/paths`,
+    );
   }
 
-  async getStepsByPath(languageId: string, levelId: string, moduleId: string, pathId: string): Promise<ApiResponse<any[]>> {
-    return await this.api(`/v1/languages/${languageId}/levels/${levelId}/modules/${moduleId}/paths/${pathId}/steps`);
+  async getStepsByPath(
+    languageId: string,
+    levelId: string,
+    moduleId: string,
+    pathId: string,
+  ): Promise<ApiResponse<any[]>> {
+    return await this.api(
+      `/v1/languages/${languageId}/levels/${levelId}/modules/${moduleId}/paths/${pathId}/steps`,
+    );
   }
 
   async getModule(levelId?: string): Promise<ApiResponse<module[]>> {
@@ -305,10 +314,7 @@ class ApiService {
     });
   }
 
-  async updateLearningPath(
-    id: string,
-    data: any,
-  ): Promise<ApiResponse<any>> {
+  async updateLearningPath(id: string, data: any): Promise<ApiResponse<any>> {
     return await this.api(`/v1/learning-paths/${id}`, {
       method: "PUT",
       body: data,
@@ -327,8 +333,8 @@ class ApiService {
     return await this.api("/v1/steps", {
       query: {
         pathId,
-        learningPathId: pathId
-      }
+        learningPathId: pathId,
+      },
     });
   }
 
@@ -472,7 +478,9 @@ async uploadMedia(file: File): Promise<string> {
 
   /* ===================== DASHBOARD ===================== */
 
-  async getDashboardData(params?: UsersTotalParams): Promise<StatTotalResponse> {
+  async getDashboardData(
+    params?: UsersTotalParams,
+  ): Promise<StatTotalResponse> {
     return await this.api("/v1/admin/stats/users/total", {
       query: params,
     });
@@ -517,18 +525,14 @@ async uploadMedia(file: File): Promise<string> {
     userId: string,
     languageId: string,
   ): Promise<CompleteProgressionResponse> {
-    return await this.api(
-      `/v1/progression/complete/${userId}/${languageId}`,
-    );
+    return await this.api(`/v1/progression/complete/${userId}/${languageId}`);
   }
 
   async getProgressionStats(
     userId: string,
     languageId: string,
   ): Promise<ProgressionStatsResponse> {
-    return await this.api(
-      `/v1/progression/stats/${userId}/${languageId}`,
-    );
+    return await this.api(`/v1/progression/stats/${userId}/${languageId}`);
   }
 }
 

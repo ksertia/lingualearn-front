@@ -82,9 +82,8 @@ const goToModules = (languageId: string) => {
 onMounted(async () => {
   isLoading.value = true
   try {
-    await languageStore.fetchLanguages() 
-    await levelStore.fetchLevels()
-    languages.value = languageStore.languages
+    await languageStore.fetchLanguages()
+    languages.value = languageStore.visibleLanguages
   } catch (error) {
     console.error("Erreur lors du chargement des langues", error)
   } finally {

@@ -5,8 +5,8 @@ import type {
   GestionnaireDashboardData,
   DailyPublication,
   LanguageContent,
-  StatTotalResponse,
 } from "~/types/gestionnaire-dashboard";
+import type { StatTotalResponse } from "~/types/dashboard";
 
 // Données de démonstration (à remplacer par de vraies données API)
 const DEMO_DATA: GestionnaireDashboardData = {
@@ -14,7 +14,11 @@ const DEMO_DATA: GestionnaireDashboardData = {
     total: 24,
     active: 18,
   },
-  courses: {
+  languages: {
+    total: 12,
+    active: 3,
+  },
+  modules: {
     published: 156,
     disabled: 12,
     total: 168,
@@ -58,7 +62,7 @@ function generateLast30DaysData(): DailyPublication[] {
     const weekendFactor = dayOfWeek === 0 || dayOfWeek === 6 ? 0.5 : 1;
 
     data.push({
-      date: date.toISOString().split("T")[0],
+      date: date.toISOString().split("T")[0]!,
       count: Math.floor(baseCount * weekendFactor),
     });
   }
@@ -104,9 +108,9 @@ export const useGestionnaireDashboardStore = defineStore(
     // Computed properties pour les indicateurs
     const trainersTotal = computed(() => stats.value?.trainers.total ?? 0);
     const coursesPublished = computed(
-      () => stats.value?.courses.published ?? 0,
+      () => stats.value?.modules.published ?? 0,
     );
-    const coursesDisabled = computed(() => stats.value?.courses.disabled ?? 0);
+    const coursesDisabled = computed(() => stats.value?.modules.disabled ?? 0);
     const contentsThisMonth = computed(
       () => stats.value?.contents.createdThisMonth ?? 0,
     );
@@ -132,6 +136,26 @@ export const useGestionnaireDashboardStore = defineStore(
       () => stats.value?.charts.contentsByLanguage ?? [],
     );
 
+    const totalParcours = computed(() => stats.value?.modules.total ?? 0);
+
+    const totalEtapes = computed(() => stats.value?.contents.total ?? 0);
+
+    const totalModules = computed(() => stats.value?.modules.total ?? 0);
+
+    // 👉 total global contenus (ce que tu veux maintenant)
+    const contentsTotal = computed(
+      () => totalParcours.value + totalEtapes.value,
+    );
+
+    const totalLanguages = computed(() => stats.value?.languages?.total ?? 0);
+
+    // const disabledLanguages = computed(
+    //   () => stats.value?.languages?.disabled ?? 0,
+    // );
+    const activeLanguages = computed(
+      () => stats.value?.languages?.active ?? 0,
+    );
+
     // Calcul des variations (demo)
     const contentsVariation = computed(() => {
       // Variation simulée pour le demo
@@ -148,31 +172,39 @@ export const useGestionnaireDashboardStore = defineStore(
       error.value = null;
 
       try {
-        // TODO: Remplacer par les vrais appels API quand disponibles
-        // Pour l'instant, on utilise les données de démonstration
+        // Récupération des données des formateurs via getFilterUsers (accessible aux gestionnaires)
+        const totalResponse = await apiService.getFilterUsers({
+          accountType: "teacher",
+          limit: 1,
+        });
+        const trainersTotal =
+          totalResponse.success && totalResponse.data
+            ? totalResponse.data.pagination.total
+            : 0;
 
-        /* 
-      // Exemple des appels API à implémenter:
-      const [
-        trainersTotal,
-        coursesPublished,
-        coursesDisabled,
-        contentsThisMonth,
-        reportsPending
-      ] = await Promise.all([
-        safeTotal(apiService.getTrainersTotal()),
-        safeTotal(apiService.getCoursesPublished()),
-        safeTotal(apiService.getCoursesDisabled()),
-        safeTotal(apiService.getContentsThisMonth()),
-        safeTotal(apiService.getPendingReports())
-      ])
-      */
+        // Pour les actifs, récupérer tous les formateurs et filtrer (limit élevé pour couvrir la plupart des cas)
+        const allTeachersResponse = await apiService.getFilterUsers({
+          accountType: "teacher",
+          limit: 10000,
+        });
+        const trainersActive =
+          allTeachersResponse.success && allTeachersResponse.data
+            ? allTeachersResponse.data.users.filter(
+                (user: any) => user.isActive,
+              ).length
+            : 0;
 
         // Simulation d'un appel API
         await new Promise((resolve) => setTimeout(resolve, 800));
 
-        // Utiliser les données de démo
-        stats.value = DEMO_DATA;
+        // Utiliser les données de démo pour le reste, mais remplacer trainers par données réelles
+        stats.value = {
+          ...DEMO_DATA,
+          trainers: {
+            total: trainersTotal,
+            active: trainersActive,
+          },
+        };
       } catch (err: any) {
         console.warn("Erreur lors du chargement des données:", err);
         error.value = err.message || "Erreur lors du chargement des données";
@@ -190,9 +222,9 @@ export const useGestionnaireDashboardStore = defineStore(
 
     // Fonction pour calculer le pourcentage de cours désactivés
     const disabledCoursesPercentage = computed(() => {
-      if (!stats.value || stats.value.courses.total === 0) return 0;
+      if (!stats.value || stats.value.modules.total === 0) return 0;
       return Math.round(
-        (stats.value.courses.disabled / stats.value.courses.total) * 100,
+        (stats.value.modules.disabled / stats.value.modules.total) * 100,
       );
     });
 
@@ -223,6 +255,14 @@ export const useGestionnaireDashboardStore = defineStore(
       contentsVariation,
       reportsVariation,
       disabledCoursesPercentage,
+
+      totalParcours,
+      totalEtapes,
+      totalModules,
+      contentsTotal,
+
+      totalLanguages,
+      activeLanguages,
 
       // Actions
       fetchDashboardData,
