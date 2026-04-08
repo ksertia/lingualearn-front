@@ -1,30 +1,27 @@
-<template>
+﻿<template>
   <div class="dashboard-container">
-  
-    
-
     <!-- Langues -->
     <div class="langue">
-      <h2 class="section-title">Sélectionnez une langue</h2>
+      <h2 class="section-title">{{ resolvedTitle }}</h2>
 
       <div
-        v-if="isLoading"
+        v-if="resolvedLoading"
         class="p-8 text-center text-gray-500"
       >
         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900 mr-2"></div>
         Chargement des langues...
       </div>
 
-    <div v-else>
-      <div v-if="languageStore.languages && languages.length" class="cards-container">
-        <div v-for="(lang, index) in languages" :key="lang.id" class="language-card">
-           <div class="card-header">
+      <div v-else>
+        <div v-if="resolvedLanguages.length" class="cards-container">
+          <div v-for="(lang, index) in resolvedLanguages" :key="lang.id ?? index" class="language-card">
+            <div class="card-header">
               <div class="lang-icon">
                 🌍
               </div>
 
               <div class="lang-title">
-                {{ lang.name }}
+                {{ lang.name || lang.title || 'Langue' }}
               </div>
             </div>
 
@@ -34,59 +31,88 @@
             </p>
 
             <!-- Action -->
-            <button @click="goToModules(lang.id)" class="module-btn eye-btn">
+            <button @click="handleSelectLanguage(lang.id)" class="module-btn eye-btn">
               <span class="eye-wrapper">
                 👁️
               </span>
             </button>
+          </div>
+        </div>
+        <div v-else class="empty-state">
+          <p>
+            {{ emptyLabel }}
+          </p>
         </div>
       </div>
-      <div v-else class="empty-state">
-        <p>
-        Aucune langue disponible pour le moment.
-      </p>
-      </div>
-    </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
 import { useLanguageStore } from '~/stores/languageStore'
 import { useLevelStore } from '~/stores/levelStore'
 
 interface Language {
   id: string
-  name: string
+  name?: string
+  title?: string
   description?: string
 }
 
-const router = useRouter()
+const props = defineProps<{
+  languages?: Language[]
+  loading?: boolean
+  title?: string
+  emptyLabel?: string
+}>()
+
+const emit = defineEmits<{
+  (e: 'select-language', languageId: string): void
+}>()
+
 const languages = ref<Language[]>([])
 const languageStore = useLanguageStore()
 const levelStore = useLevelStore()
 
-const isLoading = ref()
+const isLoading = ref(false)
 
-// Redirection vers les modules d’une langue
-const goToModules = (languageId: string) => {
+const resolvedLanguages = computed(() => {
+  if (Array.isArray(props.languages)) {
+    return props.languages
+  }
+  return languages.value
+})
+
+const resolvedLoading = computed(() => {
+  if (typeof props.loading === 'boolean') return props.loading
+  return isLoading.value
+})
+
+const resolvedTitle = computed(() => props.title || 'Sélectionnez une langue')
+
+const emptyLabel = computed(() => props.emptyLabel || 'Aucune langue disponible pour le moment.')
+
+const handleSelectLanguage = (languageId?: string) => {
+  if (!languageId) return
+  if (Array.isArray(props.languages)) {
+    emit('select-language', languageId)
+    return
+  }
   const url = `module-formateur/moduleCrea/${languageId}`
-  
   console.log('URL finale =', url)
   navigateTo(url)
 }
 
-// Chargement des langues (inchangé)
 onMounted(async () => {
+  if (Array.isArray(props.languages)) return
   isLoading.value = true
   try {
-    await languageStore.fetchLanguages() 
+    await languageStore.fetchLanguages()
     await levelStore.fetchLevels()
     languages.value = languageStore.languages
   } catch (error) {
-    console.error("Erreur lors du chargement des langues", error)
+    console.error('Erreur lors du chargement des langues', error)
   } finally {
     isLoading.value = false
   }
@@ -94,7 +120,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* Layout général */
+
 .dashboard-container {
   padding: 20px;
 }

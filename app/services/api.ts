@@ -4,7 +4,7 @@ import type {
   CreateLevelPayload,
   Level,
 } from "~/types/language-level";
-import type { ApiResponse } from "~/types/learning";
+import type { ApiResponse, StepQuiz, CreateStepQuizRequest } from "~/types/learning";
 import type { CreateUserPayload, UpdateUserPayload, UserFilter } from "~/types/user";
 import type { module, moduleRequest, moduleResponse } from "~/types/modules";
 import type { StatTotalResponse, UsersTotalParams } from "~/types/dashboard";
@@ -13,17 +13,22 @@ import type {
   CompleteProgressionResponse,
   ProgressionStatsResponse,
 } from "~/types/progression";
+import { useSessionStore } from "~/stores/sessionStore";
 
 class ApiService {
   private api: ReturnType<typeof $fetch.create>;
+  private discoverBase: string | null = null;
+  private discoverFallbackBase: string | null = null;
 
   private accessToken: string | null = null;
 
   constructor() {
     const config = useRuntimeConfig();
+    const apiBase = (config.public.apiBase || "").replace(/\/+$/, "");
+    const discoverBase = (config.public.discoverApiBase || apiBase).replace(/\/+$/, "");
 
     this.api = $fetch.create({
-      baseURL: config.public.apiBase,
+      baseURL: apiBase,
       onRequest: ({ options }) => {
         const token = this.accessToken || useCookie("token").value;
 
@@ -38,11 +43,44 @@ class ApiService {
           );
         }
       },
+      onResponseError: ({ response }) => {
+        if (!process.client) return;
+
+        const status = response?.status;
+        if (status !== 401 && status !== 403) return;
+
+        const token = this.accessToken || useCookie("token").value;
+        if (!token) return;
+
+        const sessionStore = useSessionStore();
+        sessionStore.showSessionExpired();
+      },
     });
+
+    if (discoverBase) {
+      this.discoverBase = discoverBase;
+    }
+
+    if (!config.public.discoverApiBase && apiBase.endsWith("/api")) {
+      this.discoverFallbackBase = apiBase.slice(0, -4);
+    }
   }
 
   setAccessToken(token: string | null) {
     this.accessToken = token;
+  }
+
+  private async discoverRequest<T>(path: string, options: Record<string, any> = {}): Promise<T> {
+    const baseURL = this.discoverBase || undefined;
+    try {
+      return await this.api(path, { ...options, baseURL });
+    } catch (err: any) {
+      const status = err?.statusCode ?? err?.status;
+      if (status === 404 && this.discoverFallbackBase) {
+        return await this.api(path, { ...options, baseURL: this.discoverFallbackBase });
+      }
+      throw err;
+    }
   }
 
   /* ===================== AUTH ===================== */
@@ -420,6 +458,46 @@ class ApiService {
     });
   }
 
+  /* ===================== STEP QUIZZES ===================== */
+
+  async getStepQuizzes(stepId?: string): Promise<ApiResponse<StepQuiz[]>> {
+    return await this.api("/v1/step-quizzes", {
+      query: stepId ? { stepId } : {},
+    });
+  }
+
+  async getStepQuiz(id: string): Promise<ApiResponse<StepQuiz>> {
+    return await this.api(`/v1/step-quizzes/${id}`);
+  }
+
+  async createStepQuiz(
+    data: CreateStepQuizRequest,
+  ): Promise<ApiResponse<StepQuiz>> {
+    return await this.api("/v1/step-quizzes", {
+      method: "POST",
+      body: {
+        ...data,
+        isActive: data.isActive ?? true,
+      },
+    });
+  }
+
+  async updateStepQuiz(
+    id: string,
+    data: Partial<StepQuiz>,
+  ): Promise<ApiResponse<StepQuiz>> {
+    return await this.api(`/v1/step-quizzes/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  }
+
+  async deleteStepQuiz(id: string): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/step-quizzes/${id}`, {
+      method: "DELETE",
+    });
+  }
+
   /* ===================== UPLOADS ===================== */
 
   async uploadMedia(
@@ -434,6 +512,99 @@ class ApiService {
       method: "POST",
       body: formData,
     });
+  }
+
+  /* ===================== DISCOVERY ===================== */
+
+  async discoverLanguages(payload: Record<string, any> = {}): Promise<any> {
+    return await this.discoverRequest("/v1/discover/languages", {
+      method: "GET",
+      query: payload,
+    });
+  }
+
+  async createDiscoverSession(payload: Record<string, any> = {}): Promise<any> {
+    return await this.discoverRequest("/v1/discover/session/create", {
+      method: "POST",
+      body: payload,
+    });
+  }
+
+  async getDiscoverSessionScore(sessionId: string): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/session/${sessionId}/score`);
+  }
+
+  async getDiscoverLessons(params: Record<string, any> = {}): Promise<any> {
+    return await this.discoverRequest("/v1/discover/lessons", {
+      query: params,
+    });
+  }
+
+  async getDiscoverLesson(id: string, params: Record<string, any> = {}): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/lesson/${id}`, {
+      query: params,
+    });
+  }
+
+  async submitDiscoverExercise(id: string, payload: Record<string, any> = {}): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/exercises/${id}/submit`, {
+      method: "POST",
+      body: payload,
+    });
+  }
+
+  // Admin methods
+  async createDiscoverLesson(payload: FormData | Record<string, any> = {}): Promise<any> {
+    return await this.discoverRequest("/v1/discover/lesson/create", {
+      method: "POST",
+      body: payload,
+    });
+  }
+
+  async updateDiscoverLesson(id: string, payload: FormData | Record<string, any> = {}): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/lesson/${id}`, {
+      method: "PUT",
+      body: payload,
+    });
+  }
+
+  async deleteDiscoverLesson(id: string): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/lesson/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async publishDiscoverLesson(id: string): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/lesson/${id}/publish`, {
+      method: "PATCH",
+    });
+  }
+
+  async uploadDiscoverMedia(file: File, kind: string = "discovery"): Promise<any> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("kind", kind);
+    return await this.api("/v1/discover/upload/media", {
+      method: "POST",
+      body: formData,
+    });
+  }
+
+  // Legacy methods (deprecated but keeping for compatibility)
+  async getDiscoverExercisesBySection(params: Record<string, any> = {}): Promise<any> {
+    return await this.getDiscoverLessons(params);
+  }
+
+  async getDiscoverExercisesNavigate(params: Record<string, any> = {}): Promise<any> {
+    return await this.getDiscoverLessons(params);
+  }
+
+  async getDiscoverExercises(params: Record<string, any> = {}): Promise<any> {
+    return await this.getDiscoverLessons(params);
+  }
+
+  async getDiscoverExercise(id: string, params: Record<string, any> = {}): Promise<any> {
+    return await this.getDiscoverLesson(id, params);
   }
 
   /* ===================== DASHBOARD ===================== */

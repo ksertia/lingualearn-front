@@ -120,7 +120,7 @@
               <CourseEditor v-model="courseData" />
             </template>
             <template v-else-if="stepData.stepType === 'quiz'">
-              <QuizEditor v-model="stepData.content" />
+              <QuizEditor v-model="quizData" />
             </template>
             <template v-else>
               <ExerciseEditor
@@ -154,8 +154,9 @@ import QuizEditor from '@/components/Module-formateur/Step/QuizEditor.vue';
 import ExerciseEditor from '@/components/Module-formateur/Step/ExerciseEditor.vue';
 import { useExerciseStore } from '~/stores/exerciseStore';
 import { useCourseStore } from '~/stores/courseStore';
+import { useQuizStore } from '~/stores/quizStore';
 import { useApiService } from '~/services/api';
-import type { Exercise, CreateExerciseRequest, Course, CreateCourseRequest } from '~/types/learning';
+import type { Exercise, CreateExerciseRequest, Course, CreateCourseRequest, StepQuiz, CreateStepQuizRequest, QuizQuestion } from '~/types/learning';
 
 definePageMeta({
   layout: "formateur",
@@ -218,6 +219,23 @@ type ExerciseForm = {
   mediaUrl?: string;
 };
 
+type QuizQuestionForm = {
+  text: string;
+  options: string[];
+  correctAnswer: number;
+};
+
+type QuizForm = {
+  id?: string;
+  questions: QuizQuestionForm[];
+  passingScore?: number;
+  maxAttempts?: number;
+  timeLimitMinutes?: number;
+  xpReward?: number;
+  coinReward?: number;
+  isActive: boolean;
+};
+
 type CourseForm = {
   id?: string;
   title: string;
@@ -234,6 +252,8 @@ const exerciseStore = useExerciseStore();
 const existingExerciseId = ref<string | null>(null);
 const courseStore = useCourseStore();
 const existingCourseId = ref<string | null>(null);
+const quizStore = useQuizStore();
+const existingQuizId = ref<string | null>(null);
 const showCourseForm = ref(false);
 
 const defaultExerciseForm = (): ExerciseForm => ({
@@ -258,6 +278,18 @@ const defaultExerciseForm = (): ExerciseForm => ({
 
 const exerciseData = ref<ExerciseForm>(defaultExerciseForm());
 
+const defaultQuizForm = (): QuizForm => ({
+  questions: [],
+  passingScore: undefined,
+  maxAttempts: undefined,
+  timeLimitMinutes: undefined,
+  xpReward: undefined,
+  coinReward: undefined,
+  isActive: true,
+});
+
+const quizData = ref<QuizForm>(defaultQuizForm());
+
 const defaultCourseForm = (): CourseForm => ({
   title: '',
   description: '',
@@ -278,6 +310,148 @@ const parseMaybeJson = (value: any) => {
   } catch (err) {
     return value;
   }
+};
+
+const normalizeQuizQuestions = (source: any[]): QuizQuestionForm[] => {
+  return source.map((question) => {
+    const options = Array.isArray(question?.options) ? question.options : [];
+    const rawAnswer = question?.correctAnswer;
+    let correctIndex = 0;
+
+    if (typeof rawAnswer === 'number' && Number.isFinite(rawAnswer)) {
+      correctIndex = rawAnswer;
+    } else if (typeof rawAnswer === 'string') {
+      const optionIndex = options.findIndex((opt) => opt === rawAnswer);
+      if (optionIndex >= 0) {
+        correctIndex = optionIndex;
+      } else if (/^\d+$/.test(rawAnswer)) {
+        correctIndex = Number.parseInt(rawAnswer, 10);
+      }
+    } else if (Array.isArray(rawAnswer) && typeof rawAnswer[0] === 'string') {
+      const optionIndex = options.findIndex((opt) => opt === rawAnswer[0]);
+      if (optionIndex >= 0) {
+        correctIndex = optionIndex;
+      }
+    }
+
+    return {
+      text: typeof question?.text === 'string'
+        ? question.text
+        : typeof question?.questionText === 'string'
+          ? question.questionText
+          : '',
+      options: options.length ? options : ['', ''],
+      correctAnswer: correctIndex,
+    };
+  });
+};
+
+const mapContentToQuizQuestions = (content: any): QuizQuestionForm[] => {
+  if (Array.isArray(content)) {
+    return normalizeQuizQuestions(content);
+  }
+  if (content && Array.isArray(content.questions)) {
+    return normalizeQuizQuestions(content.questions);
+  }
+  return [];
+};
+
+const ensureQuizDefaults = () => {
+  if (quizData.value.questions.length === 0) {
+    quizData.value.questions.push({
+      text: '',
+      options: ['', ''],
+      correctAnswer: 0,
+    });
+  }
+  quizData.value.questions = quizData.value.questions.map((question) => {
+    const options = Array.isArray(question.options) ? question.options : [];
+    while (options.length < 2) {
+      options.push('');
+    }
+    const maxIndex = Math.max(options.length - 1, 0);
+    const correctAnswer = typeof question.correctAnswer === 'number' && question.correctAnswer <= maxIndex
+      ? question.correctAnswer
+      : 0;
+    return {
+      ...question,
+      options,
+      correctAnswer,
+    };
+  });
+  if (typeof quizData.value.isActive !== 'boolean') {
+    quizData.value.isActive = true;
+  }
+};
+
+const mapQuizToForm = (quiz: StepQuiz): QuizForm => ({
+  id: quiz.id,
+  questions: normalizeQuizQuestions(Array.isArray(quiz.questions) ? quiz.questions : []),
+  passingScore: quiz.passingScore ?? undefined,
+  maxAttempts: quiz.maxAttempts ?? undefined,
+  timeLimitMinutes: quiz.timeLimitMinutes ?? undefined,
+  xpReward: quiz.xpReward ?? undefined,
+  coinReward: quiz.coinReward ?? undefined,
+  isActive: quiz.isActive ?? true,
+});
+
+const mapQuizQuestionsToApi = (questions: QuizQuestionForm[]): QuizQuestion[] => {
+  return (questions || []).map((question) => {
+    const options = Array.isArray(question.options) ? question.options : [];
+    const index = typeof question.correctAnswer === 'number' ? question.correctAnswer : 0;
+    const boundedIndex = index >= 0 && index < options.length ? index : 0;
+    const answerText = options[boundedIndex] ?? '';
+
+    return {
+      questionText: question.text || '',
+      questionType: 'multiple_choice',
+      options,
+      correctAnswer: answerText,
+    };
+  }) as QuizQuestion[];
+};
+
+const buildQuizPayload = (): CreateStepQuizRequest => ({
+  stepId: id,
+  title: stepData.value.title || 'Quiz',
+  description: stepData.value.description || undefined,
+  questions: mapQuizQuestionsToApi(quizData.value.questions),
+  passingScore: quizData.value.passingScore,
+  maxAttempts: quizData.value.maxAttempts,
+  timeLimitMinutes: quizData.value.timeLimitMinutes,
+  xpReward: quizData.value.xpReward,
+  coinReward: quizData.value.coinReward,
+  isActive: quizData.value.isActive ?? stepData.value.isActive ?? true,
+});
+
+const validateQuizData = (): string | null => {
+  const questions = quizData.value.questions || [];
+  if (questions.length === 0) {
+    return 'Ajoute au moins une question.';
+  }
+  for (let i = 0; i < questions.length; i += 1) {
+    const question = questions[i];
+    const text = question.text?.trim();
+    if (!text) {
+      return `La question ${i + 1} est vide.`;
+    }
+    const options = Array.isArray(question.options) ? question.options.map((opt) => opt?.trim()) : [];
+    const nonEmpty = options.filter((opt) => opt);
+    if (nonEmpty.length < 2) {
+      return `La question ${i + 1} doit avoir au moins deux options.`;
+    }
+    const correctIndex = typeof question.correctAnswer === 'number' ? question.correctAnswer : 0;
+    const boundedIndex = correctIndex >= 0 && correctIndex < options.length ? correctIndex : 0;
+    if (!options[boundedIndex]) {
+      return `La rÃ©ponse correcte de la question ${i + 1} est vide.`;
+    }
+  }
+  if (typeof quizData.value.passingScore === 'number') {
+    if (quizData.value.passingScore < 0 || quizData.value.passingScore > 100) {
+      return 'Le score de rÃ©ussite doit Ãªtre compris entre 0 et 100.';
+    }
+  }
+  return null;
 };
 
 const mapCourseToForm = (course: Course): CourseForm => ({
@@ -373,6 +547,27 @@ const loadCourseForStep = async (fetchAll = false) => {
   courseData.value.title = stepData.value.title || '';
   courseData.value.description = stepData.value.description || '';
   courseData.value.order = stepData.value.index ?? undefined;
+};
+
+const loadQuizForStep = async () => {
+  await quizStore.fetchQuizzes(id);
+
+  const existing = quizStore.quizzes.find((q) => q.stepId === id);
+
+  if (existing) {
+    existingQuizId.value = existing.id;
+    quizData.value = mapQuizToForm(existing);
+    ensureQuizDefaults();
+    return;
+  }
+
+  const fallbackQuestions = mapContentToQuizQuestions(stepData.value.content);
+  quizData.value = {
+    ...defaultQuizForm(),
+    questions: fallbackQuestions,
+    isActive: stepData.value.isActive ?? true,
+  };
+  ensureQuizDefaults();
 };
 
 const toggleCourseForm = () => {
@@ -620,9 +815,8 @@ const buildStepPayload = () => {
   };
 
   if (stepData.value.stepType === 'quiz') {
-    payload.content = stepData.value.content
-      ? JSON.stringify(stepData.value.content)
-      : null;
+    const questions = quizData.value.questions || [];
+    payload.content = questions.length ? JSON.stringify(questions) : null;
   }
 
   return payload;
@@ -662,6 +856,9 @@ onMounted(async () => {
         await loadExerciseForStep();
         await loadCourseForStep(true);
         showCourseForm.value = false;
+      }
+      if (stepData.value.stepType === 'quiz') {
+        await loadQuizForStep();
       }
       if (stepData.value.stepType === 'lesson') {
         await loadCourseForStep();
@@ -704,6 +901,30 @@ const saveStep = async () => {
         const created = await exerciseStore.createExercise(exercisePayload);
         if (created?.id) {
           existingExerciseId.value = created.id;
+        }
+      }
+    }
+
+    if (stepData.value.stepType === 'quiz') {
+      const quizError = validateQuizData();
+      if (quizError) {
+        alert(quizError);
+        return;
+      }
+      if (!existingQuizId.value) {
+        await quizStore.fetchQuizzes(id);
+        const existing = quizStore.quizzes.find((q) => q.stepId === id);
+        if (existing) {
+          existingQuizId.value = existing.id;
+        }
+      }
+      const quizPayload = buildQuizPayload();
+      if (existingQuizId.value) {
+        await quizStore.updateQuiz(existingQuizId.value, quizPayload as Partial<StepQuiz>);
+      } else {
+        const createdQuiz = await quizStore.createQuiz(quizPayload);
+        if (createdQuiz?.id) {
+          existingQuizId.value = createdQuiz.id;
         }
       }
     }

@@ -3,103 +3,109 @@ import { ref } from 'vue';
 import { useApiService } from '~/services/api';
 import type { StepQuiz, CreateStepQuizRequest } from '~/types/learning';
 
-
-
 export const useQuizStore = defineStore('quiz', () => {
-  const apiService = useApiService()
+  const apiService = useApiService();
 
-  const quizzes = ref<StepQuiz[]>([])
-  const isLoading = ref(false)
-  const error = ref<string | null>(null)
+  const quizzes = ref<StepQuiz[]>([]);
+  const isLoading = ref(false);
+  const error = ref<string | null>(null);
 
-  // 🔹 Récupérer les quizzes (optionnellement par lessonId)
-  async function fetchQuizzes(lessonId?: string) {
-    isLoading.value = true
-    error.value = null
+  const extractQuizzes = (response: any): StepQuiz[] | null => {
+    if (Array.isArray(response)) return response as StepQuiz[];
+    if (Array.isArray(response?.data)) return response.data as StepQuiz[];
+    if (Array.isArray(response?.data?.quizzes)) return response.data.quizzes as StepQuiz[];
+    if (Array.isArray(response?.quizzes)) return response.quizzes as StepQuiz[];
+    return null;
+  };
+
+  // ðŸ”¹ RÃ©cupÃ©rer les quizzes (optionnellement par stepId)
+  async function fetchQuizzes(stepId?: string) {
+    isLoading.value = true;
+    error.value = null;
     try {
-      const response: any = await apiService.getStepQuizzes(lessonId)
-      const data = response.data || (Array.isArray(response) ? response : null)
+      const response: any = await apiService.getStepQuizzes(stepId);
+      const data = extractQuizzes(response);
 
       if (data) {
-        quizzes.value = data
+        quizzes.value = data;
       } else {
-        error.value = response.message || 'Échec du chargement des quiz'
+        error.value = response.message || 'Ã‰chec du chargement des quiz';
       }
     } catch (err: any) {
-      error.value = 'Erreur lors de la récupération des quiz'
+      error.value = 'Erreur lors de la rÃ©cupÃ©ration des quiz';
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
   }
 
-  // 🔹 Créer un quiz
-  async function createQuiz(data: CreateStepQuizRequest) {
-    isLoading.value = true
-    error.value = null
+  // ðŸ”¹ CrÃ©er un quiz
+  async function createQuiz(data: CreateStepQuizRequest): Promise<StepQuiz | null> {
+    isLoading.value = true;
+    error.value = null;
     try {
-      const response: any = await apiService.createStepQuiz(data)
-      const quizData = response.data || (response.id ? response : null)
+      const response: any = await apiService.createStepQuiz(data);
+      const quizData = response.data || (response.id ? response : null);
 
       if (quizData) {
-        quizzes.value.push(quizData)
-        return true
+        quizzes.value.push(quizData);
+        return quizData as StepQuiz;
       } else {
-        error.value = response.message || 'Échec de la création du quiz'
-        return false
+        error.value = response.message || 'Ã‰chec de la crÃ©ation du quiz';
+        return null;
       }
     } catch (err: any) {
-      error.value = err.data?.message || 'Erreur lors de la création du quiz'
-      return false
+      error.value = err.data?.message || 'Erreur lors de la crÃ©ation du quiz';
+      return null;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
   }
 
-  // 🔹 Mettre à jour un quiz
+  // ðŸ”¹ Mettre Ã  jour un quiz
   async function updateQuiz(id: string, data: Partial<StepQuiz>) {
-    isLoading.value = true
-    error.value = null
+    isLoading.value = true;
+    error.value = null;
     try {
-      const response: any = await apiService.updateStepQuiz(id, data)
-      const quizData = response.data || (response.id ? response : null)
+      const response: any = await apiService.updateStepQuiz(id, data);
+      const quizData = response.data || (response.id ? response : null);
 
       if (quizData) {
-        const index = quizzes.value.findIndex(q => q.pathId === id)
+        const index = quizzes.value.findIndex(q => q.id === id);
         if (index !== -1) {
-          quizzes.value[index] = quizData
+          quizzes.value[index] = quizData;
         }
-        return true
+        return true;
       } else {
-        error.value = response.message || 'Échec de la mise à jour du quiz'
-        return false
+        error.value = response.message || 'Ã‰chec de la mise Ã  jour du quiz';
+        return false;
       }
     } catch (err: any) {
-      error.value = err.data?.message || 'Erreur lors de la mise à jour du quiz'
-      return false
+      error.value = err.data?.message || 'Erreur lors de la mise Ã  jour du quiz';
+      return false;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
   }
 
-  // 🔹 Supprimer un quiz
+  // ðŸ”¹ Supprimer un quiz
   async function deleteQuiz(id: string) {
-    isLoading.value = true
-    error.value = null
+    isLoading.value = true;
+    error.value = null;
     try {
-      const response: any = await apiService.deleteStepQuiz(id)
+      const response: any = await apiService.deleteStepQuiz(id);
 
       if (response.success || response === true || !response || Object.keys(response).length === 0) {
-        quizzes.value = quizzes.value.filter(q => q.pathId !== id)
-        return true
+        quizzes.value = quizzes.value.filter(q => q.id !== id);
+        return true;
       } else {
-        error.value = response.message || 'Échec de la suppression du quiz'
-        return false
+        error.value = response.message || 'Ã‰chec de la suppression du quiz';
+        return false;
       }
     } catch (err: any) {
-      error.value = err.data?.message || 'Erreur lors de la suppression du quiz'
-      return false
+      error.value = err.data?.message || 'Erreur lors de la suppression du quiz';
+      return false;
     } finally {
-      isLoading.value = false
+      isLoading.value = false;
     }
   }
 
@@ -111,5 +117,5 @@ export const useQuizStore = defineStore('quiz', () => {
     createQuiz,
     updateQuiz,
     deleteQuiz
-  }
-})
+  };
+});

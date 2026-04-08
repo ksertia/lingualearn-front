@@ -1,13 +1,13 @@
-<template>
+﻿<template>
   <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
     <div class="p-6 border-b border-gray-50 flex justify-between items-center bg-gradient-to-r from-white to-gray-50/50">
       <div>
-        <h3 class="text-xl font-bold text-slate-800">Étapes du parcours</h3>
-        <p class="text-slate-500 text-sm mt-1">Gérez le contenu et l'ordre des étapes</p>
+        <h3 class="text-xl font-bold text-slate-800">{{ headerTitle }}</h3>
+        <p class="text-slate-500 text-sm mt-1">{{ headerSubtitle }}</p>
       </div>
-      <div v-if="steps.length > 0" class="flex items-center gap-2">
+      <div v-if="displaySteps.length > 0" class="flex items-center gap-2">
         <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-100 uppercase tracking-wider">
-          {{ steps.length }} Étape{{ steps.length > 1 ? 's' : '' }}
+          {{ displaySteps.length }} Étape{{ displaySteps.length > 1 ? 's' : '' }}
         </span>
       </div>
     </div>
@@ -19,14 +19,14 @@
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="steps.length === 0" class="p-16 flex flex-col items-center justify-center text-center">
+    <div v-else-if="displaySteps.length === 0" class="p-16 flex flex-col items-center justify-center text-center">
       <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
         </svg>
       </div>
-      <h4 class="text-lg font-semibold text-slate-700">Aucune étape trouvée</h4>
-      <p class="text-slate-500 max-w-xs mt-2">Commencez par ajouter une première étape à votre parcours pédagogique.</p>
+      <h4 class="text-lg font-semibold text-slate-700">{{ emptyTitle }}</h4>
+      <p class="text-slate-500 max-w-xs mt-2">{{ emptyDescription }}</p>
     </div>
 
     <!-- Table -->
@@ -37,16 +37,22 @@
             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Ordre</th>
             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Titre & Description</th>
             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
-            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Statut</th>
+            <th v-if="!isReadonly" class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Statut</th>
             <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Durée</th>
-            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+            <th v-if="!isReadonly" class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
-          <tr v-for="step in steps" :key="step.id" :class="[
-            'group transition-all duration-200',
-            step.isActive ? 'hover:bg-indigo-50/30' : 'bg-slate-50/50 opacity-70 grayscale-[0.5]'
-          ]">
+          <tr
+            v-for="step in displaySteps"
+            :key="step.id"
+            :class="[
+              'group transition-all duration-200',
+              step.isActive ? 'hover:bg-indigo-50/30' : 'bg-slate-50/50 opacity-70 grayscale-[0.5]',
+              isExternal ? 'cursor-pointer' : ''
+            ]"
+            @click="handleRowClick(step)"
+          >
             <td class="px-6 py-4">
               <span :class="[
                 'flex items-center justify-center w-8 h-8 rounded-lg font-bold text-sm transition-all',
@@ -71,9 +77,9 @@
                 {{ stepTypeLabel(step.stepType) }}
               </span>
             </td>
-            <td class="px-6 py-4">
+            <td v-if="!isReadonly" class="px-6 py-4">
               <button 
-                @click="toggleStatus(step)"
+                @click.stop="toggleStatus(step)"
                 class="relative inline-flex items-center cursor-pointer group/toggle"
               >
                 <div 
@@ -97,10 +103,10 @@
                 {{ step.estimatedMinutes }}m
               </div>
             </td>
-            <td class="px-6 py-4 text-right">
+            <td v-if="!isReadonly" class="px-6 py-4 text-right">
               <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <button 
-                  @click="editStep(step)"
+                  @click.stop="editStep(step)"
                   class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
                   title="Modifier le contenu"
                 >
@@ -109,7 +115,7 @@
                   </svg>
                 </button>
                 <button 
-                  @click="confirmDelete(step)"
+                  @click.stop="confirmDelete(step)"
                   class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
                   title="Supprimer"
                 >
@@ -127,20 +133,44 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useStepStore } from '~/stores/stepStore';
 import { storeToRefs } from 'pinia';
 import type { Step } from '~/types/learning';
 
 const props = defineProps<{
-  pathId: string;
+  pathId?: string;
+  items?: Step[];
+  readonly?: boolean;
+  title?: string;
+  subtitle?: string;
+  emptyTitle?: string;
+  emptyDescription?: string;
+}>();
+
+const emit = defineEmits<{
+  (e: 'select', step: Step): void;
 }>();
 
 const stepStore = useStepStore();
 const { steps, isLoading } = storeToRefs(stepStore);
 const router = useRouter();
 
+const isExternal = computed(() => Array.isArray(props.items));
+const isReadonly = computed(() => Boolean(props.readonly || isExternal.value));
+const displaySteps = computed(() => (props.items?.length ? props.items : steps.value));
+const headerTitle = computed(() => props.title || "Étapes du parcours");
+const headerSubtitle = computed(
+  () => props.subtitle || "Gérez le contenu et l'ordre des étapes",
+);
+const emptyTitle = computed(() => props.emptyTitle || "Aucune étape trouvée");
+const emptyDescription = computed(
+  () => props.emptyDescription || "Commencez par ajouter une première étape à votre parcours pédagogique.",
+);
+
 // Fetch steps on mount or when pathId changes
 const loadSteps = () => {
+  if (isExternal.value) return;
   if (props.pathId) {
     stepStore.fetchSteps(props.pathId);
   }
@@ -158,28 +188,38 @@ const stepTypeLabel = (type: string) => {
   return labels[type] || type;
 };
 
+const handleRowClick = (step: Step) => {
+  if (!isExternal.value) return;
+  emit('select', step);
+};
+
 const editStep = (step: Step) => {
+  if (isReadonly.value) return;
   router.push(`/module-formateur/etapes/edit/${step.id}`);
 };
 
 const toggleStatus = async (step: Step) => {
+  if (isReadonly.value) return;
   const newStatus = !step.isActive;
-  // On met à jour localement pour une réactivité immédiate (optimistique)
+  // On met Ã  jour localement pour une rÃ©activitÃ© immÃ©diate (optimistique)
   step.isActive = newStatus;
   
   const success = await stepStore.updateStep(step.id, { isActive: newStatus });
   if (!success) {
-    // Revenir en arrière si l'API échoue
+    // Revenir en arriÃ¨re si l'API Ã©choue
     step.isActive = !newStatus;
   }
 };
 
 const confirmDelete = async (step: Step) => {
-  if (confirm(`Êtes-vous sûr de vouloir supprimer l'étape "${step.title}" ?`)) {
+  if (isReadonly.value) return;
+  if (confirm(`ÃŠtes-vous sÃ»r de vouloir supprimer l'Ã©tape "${step.title}" ?`)) {
     const success = await stepStore.deleteStep(step.id);
     if (success) {
       // Refresh current list
-      stepStore.fetchSteps(props.pathId);
+      if (props.pathId) {
+        stepStore.fetchSteps(props.pathId);
+      }
     }
   }
 };

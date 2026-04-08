@@ -2,10 +2,11 @@
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
+  <SessionExpiredModal />
 </template>
 
 <script setup lang="ts">
-  
+import SessionExpiredModal from "~/components/session/SessionExpiredModal.vue";
 </script>
 
 <style>

@@ -119,7 +119,7 @@ export interface QuizQuestion {
   questionText: string
   questionType: 'multiple_choice' | 'true_false' | 'fill_blank'
   options?: string[]
-  correctAnswer: string | string[]
+  correctAnswer: string | string[] | number
   explanation?: string
   points?: number
 }
@@ -166,6 +166,7 @@ export interface CreateStepQuizRequest {
   timeLimitMinutes?: number
   xpReward?: number
   coinReward?: number
+  isActive?: boolean
 }
 
 export interface CreateCourseRequest {
