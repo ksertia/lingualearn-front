@@ -33,36 +33,61 @@ export const useCourseStore = defineStore('course', () => {
                 courses.value = items;
             } else {
                 courses.value = [];
-                error.value = response?.message || '�chec du chargement des cours';
-                console.warn('fetchCourses: r�ponse inattendue', response);
+                error.value = response?.message || '�chec du chargement des cours';
+                console.warn('fetchCourses: r�ponse inattendue', response);
             }
         } catch (err: any) {
-            error.value = 'Erreur lors de la r�cup�ration des cours';
+            error.value = 'Erreur lors de la r�cup�ration des cours';
             console.error('fetchCourses error:', err);
         } finally {
             isLoading.value = false;
         }
     }
-    async function createCourse(data: CreateCourseRequest): Promise<Course | null> {
-        isLoading.value = true;
-        error.value = null;
-        try {
-            const response: any = await apiService.createCourse(data);
-            const courseData = response.data || (response.id ? response : null);
-            if (courseData) {
-                courses.value.push(courseData);
-                return courseData as Course;
-            } else {
-                error.value = response.message || 'Échec de la création du cours';
-                return null;
-            }
-        } catch (err: any) {
-            error.value = err.data?.message || 'Erreur lors de la création du cours';
-            return null;
-        } finally {
-            isLoading.value = false;
+    // async function createCourse(data: CreateCourseRequest): Promise<Course | null> {
+    //     isLoading.value = true;
+    //     error.value = null;
+    //     try {
+    //         const response: any = await apiService.createCourse(data);
+    //         const courseData = response.data || (response.id ? response : null);
+    //         if (courseData) {
+    //             courses.value.push(courseData);
+    //             return courseData as Course;
+    //         } else {
+    //             error.value = response.message || 'Échec de la création du cours';
+    //             return null;
+    //         }
+    //     } catch (err: any) {
+    //         error.value = err.data?.message || 'Erreur lors de la création du cours';
+    //         return null;
+    //     } finally {
+    //         isLoading.value = false;
+    //     }
+    // }
+
+    //Nouvelle version de createCourse 
+
+    async function createCourse(data: CreateCourseRequest): Promise<Course> {
+    isLoading.value = true;
+    error.value = null;
+
+    try {
+        const response: any = await apiService.createCourse(data);
+        const courseData = response.data || (response.id ? response : null);
+
+        if (!courseData) {
+            throw new Error(response.message || 'Échec de la création');
         }
+
+        courses.value.push(courseData);
+        return courseData;
+
+    } catch (err: any) {
+        error.value = err.message || 'Erreur création';
+        throw err; // 🔥 IMPORTANT
+    } finally {
+        isLoading.value = false;
     }
+}
 
     async function updateCourse(id: string, data: Partial<Course>) {
         isLoading.value = true;
