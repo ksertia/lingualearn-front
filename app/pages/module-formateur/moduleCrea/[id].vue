@@ -1,12 +1,11 @@
-
-
 <template>
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <section class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100">
+  <div class="max-w-7xl mx-auto px-6 lg:px-8 py-10">
+    <section class="bg-white rounded-3xl border border-slate-200 shadow-sm">
 
       <!-- ================= HEADER ================= -->
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4 sm:gap-0">
-        <!-- Back button -->
+      <div class="flex items-center justify-between px-6 py-6 border-b border-slate-100">
+        
+        <!-- Back -->
         <button
           class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 group -ml-1 sm:-ml-2"
           @click="goBack"
@@ -16,291 +15,209 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
           </svg>
         </button>
-        
-         <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-900 to-teal-700 bg-clip-text text-transparent text-center sm:text-left">
-          Mes Modules
-        </h2> 
 
+        <!-- Action -->
         <button
-          class="group inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 font-semibold text-sm sm:text-base"
           @click="openModal"
+          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition shadow-sm"
         >
-          <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-width="2" d="M12 6v12m6-6H6"/>
           </svg>
-          Nouveau Module
+          Nouveau module
         </button>
       </div>
 
-    <!-- ================= TABLE / CARDS DES MODULES ================= -->
-      <div class="bg-white/60 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
-        <!-- État de chargement -->
-        <div
-          v-if="isFetchingModules"
-          class="p-12 sm:p-16 lg:p-20 text-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl"
-        >
-          <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl shadow-lg mb-4 mx-auto">
-            <svg class="w-8 h-8 text-white animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-          </div>
-          <p class="text-lg font-medium text-gray-700">Chargement de vos modules...</p>
+      <!-- ================= CONTENT ================= -->
+      <div class="p-6">
+
+        <!-- LOADING -->
+        <div v-if="isFetchingModules" class="text-center py-16">
+          <div class="animate-spin w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto mb-4"></div>
+          <p class="text-slate-500 text-sm">Chargement des modules...</p>
         </div>
 
-        <!-- Table Desktop/Tablet -->
+        <!-- TABLE -->
         <div v-else-if="modules.length" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gradient-to-r from-blue-900 to-blue-800">
-              <tr>
-                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-white text-opacity-95">Nom</th>
-                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-white text-opacity-95 hidden md:table-cell">Niveau</th>
-                <th class="px-4 sm:px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-white text-opacity-95 hidden lg:table-cell">Description</th>
-                <th class="px-4 sm:px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-white text-opacity-95">Parcours</th>
-                <th class="px-4 sm:px-6 py-4 text-right text-xs font-bold uppercase tracking-wider text-white text-opacity-95">Actions</th>
+          <table class="w-full">
+            
+            <!-- HEAD -->
+            <thead>
+              <tr class="text-xs text-slate-500 uppercase border-b border-slate-200">
+                <th class="py-3 text-left">Nom</th>
+                <th class="py-3 text-left hidden md:table-cell">Niveau</th>
+                <th class="py-3 text-left hidden lg:table-cell">Description</th>
+                <th class="py-3 text-center">Parcours</th>
+                <th class="py-3 text-right">Actions</th>
               </tr>
             </thead>
 
-            <tbody class="divide-y divide-gray-100">
+            <!-- BODY -->
+            <tbody class="divide-y divide-slate-100">
               <tr
                 v-for="m in paginatedModules"
                 :key="m.id"
-                class="hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 transition-all duration-200 group"
+                class="hover:bg-slate-50 transition"
               >
-                <td class="px-4 sm:px-6 py-5 sm:py-4 font-semibold text-lg text-teal-700 group-hover:text-teal-800">
+                <!-- TITLE -->
+                <td class="py-4 font-medium text-slate-800">
                   {{ m.title }}
                 </td>
 
-                <td class="px-4 sm:px-6 py-5 sm:py-4 hidden md:table-cell">
-                  <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 shadow-sm">
+                <!-- LEVEL -->
+                <td class="hidden md:table-cell">
+                  <span class="px-3 py-1 text-xs rounded-full bg-slate-100 text-slate-600">
                     {{ getLevelName(m.levelId) }}
                   </span>
                 </td>
 
-                <td class="px-4 sm:px-6 py-5 sm:py-4 text-sm text-gray-600 hidden lg:table-cell max-w-xs truncate">
+                <!-- DESC -->
+                <td class="hidden lg:table-cell text-sm text-slate-500 max-w-xs truncate">
                   {{ m.description || '—' }}
                 </td>
 
-                <td class="px-4 sm:px-6 py-5 sm:py-4 text-center">
-                  <span class="inline-flex items-center justify-center min-w-[40px] px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 text-sm font-bold shadow-sm ring-1 ring-inset ring-blue-200">
-                    {{ parcoursCount[m.id] ?? '...' }}
-                    <svg v-if="parcoursCount[m.id]" class="w-3 h-3 ml-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                    </svg>
+                <!-- COUNT -->
+                <td class="text-center">
+                  <span class="text-sm font-medium text-blue-600">
+                    {{ parcoursCount[m.id] ?? 0 }}
                   </span>
                 </td>
 
-                <td class="px-4 sm:px-6 py-5 sm:py-4 text-right space-x-6 space-x-reverse">
-                  <button
-                    class="inline-flex items-center gap-1.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm hover:-translate-y-0.5"
-                    @click="goToParcours(m.id)">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                    </svg>
-                    Parcours
-                  </button>
+                <!-- ACTIONS -->
+                <td class="text-right">
+                  <div class="flex justify-end gap-3">
+                    
+                    <button
+                      @click="goToParcours(m.id)"
+                      class="px-4 py-2 text-sm rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                    >
+                      Parcours
+                    </button>
 
-                  <button
-                    class="inline-flex items-center gap-1.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white px-3 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 font-medium text-sm hover:-translate-y-0.5"
-                    @click="removeModule(m.id)"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                    Supprimer
-                  </button>
+                    <button
+                      @click="removeModule(m.id)"
+                      class="px-4 py-2 text-sm rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition"
+                    >
+                      Supprimer
+                    </button>
+
+                  </div>
                 </td>
               </tr>
             </tbody>
+
           </table>
         </div>
 
-        <!-- Cards Mobile -->
-        <div v-else-if="modules.length" class="grid grid-cols-1 gap-4 p-4 sm:hidden">
-          <div
-            v-for="m in paginatedModules"
-            :key="m.id"
-            class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl border border-gray-100 p-6 hover:-translate-y-2 transition-all duration-300 overflow-hidden"
-          >
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
-              <div class="font-bold text-xl text-teal-700 group-hover:text-teal-800 line-clamp-2">{{ m.title }}</div>
-              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 shadow-sm">
-                {{ getLevelName(m.levelId) }}
-              </span>
-            </div>
-            <p class="text-gray-600 mb-4 line-clamp-2">{{ m.description || 'Pas de description' }}</p>
-            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-100">
-              <div class="flex items-center justify-center text-sm font-bold text-blue-700">
-                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                </svg>
-                {{ parcoursCount[m.id] ?? 0 }} parcours
-              </div>
-              <div class="flex gap-2">
-                <button
-                  class="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-2.5 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all font-medium text-sm"
-                  @click="goToParcours(m.id)">
-                  Parcours
-                </button>
-                <button
-                  class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-2.5 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all font-medium text-sm"
-                  @click="removeModule(m.id)">
-                  Supprimer
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty State -->
-        <div v-else class="p-16 sm:p-20 lg:p-24 text-center bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border-2 border-dashed border-gray-200">
-          <div class="w-24 h-24 bg-gradient-to-br from-orange-100 to-orange-200 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <svg class="w-12 h-12 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        <!-- EMPTY -->
+        <div v-else class="text-center py-20">
+          <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-width="1.5" d="M9 12h6m-6 4h6"/>
             </svg>
           </div>
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">Aucun module créé</h3>
-          <p class="text-lg text-gray-600 mb-8 max-w-md mx-auto">Commencez par créer votre premier module pour cette langue.</p>
+
+          <h3 class="text-lg font-medium text-slate-800 mb-2">
+            Aucun module
+          </h3>
+
+          <p class="text-sm text-slate-500 mb-6">
+            Commencez par créer votre premier module
+          </p>
+
           <button
-            class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 font-semibold text-lg hover:-translate-y-1"
-            @click="openModal">
-            Créer mon premier module
+            @click="openModal"
+            class="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm hover:bg-blue-700 transition"
+          >
+            Créer un module
           </button>
         </div>
 
-        <!-- ================= PAGINATION ================= -->
+        <!-- PAGINATION -->
         <div
           v-if="modules.length > perPage"
-          class="flex flex-wrap items-center justify-center sm:justify-between gap-4 px-4 sm:px-6 py-6 sm:py-8 bg-gradient-to-r from-gray-50 to-blue-50 rounded-b-2xl mt-4"
+          class="flex items-center justify-between mt-8 pt-6 border-t border-slate-100"
         >
           <button
-            class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all duration-200 font-semibold text-sm sm:text-base min-w-[140px]"
             :disabled="currentPage === 1"
-            @click="currentPage--">
-            <svg v-if="currentPage > 1" class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-            </svg>
+            @click="currentPage--"
+            class="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+          >
             Précédent
           </button>
 
-          <div class="text-base sm:text-lg font-bold text-gray-800 bg-white/60 px-6 py-3 rounded-xl shadow-md min-w-[160px] text-center">
+          <span class="text-sm text-slate-500">
             Page {{ currentPage }} / {{ totalPages }}
-          </div>
+          </span>
 
           <button
-            class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all duration-200 font-semibold text-sm sm:text-base min-w-[140px]"
             :disabled="currentPage === totalPages"
-            @click="currentPage++">
+            @click="currentPage++"
+            class="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+          >
             Suivant
-            <svg v-if="currentPage < totalPages" class="w-4 h-4 ml-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
           </button>
-
-          <div class="text-sm text-gray-600 font-medium col-span-full sm:col-span-1 text-center sm:text-left mt-2 sm:mt-0">
-            {{ modules.length }} modules au total
-          </div>
         </div>
 
       </div>
 
-    <!-- ================= MODAL CRÉATION ================= -->
-    <transition name="fade">
-      <div
-        v-if="showModal"
-        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      >
-        <div class="bg-white rounded-3xl w-full max-w-md sm:max-w-lg shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto">
-          <div class="p-8">
-            <div class="flex items-center justify-between mb-8">
-              <h3 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Nouveau Module
-              </h3>
-              <button
-                @click="closeModal"
-                class="p-2 hover:bg-gray-100 rounded-2xl transition-colors duration-200"
-              >
-                <svg class="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
+      <!-- ================= MODAL ================= -->
+      <transition name="fade">
+        <div v-if="showModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
+          <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl">
+
+            <div class="flex justify-between items-center mb-6">
+              <h3 class="text-lg font-semibold text-slate-800">Nouveau module</h3>
+              <button @click="closeModal" class="text-slate-400 hover:text-slate-600">✕</button>
             </div>
 
-            <form class="space-y-6" @submit.prevent="onSubmit">
-              <div>
-                <label class="block text-sm font-semibold text-gray-900 mb-2">Nom du module</label>
-                <input
-                  v-model="name"
-                  :disabled="isLoading"
-                  required
-                  class="w-full px-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all duration-200 text-lg placeholder-gray-500 shadow-sm hover:shadow-md"
-                  :placeholder="isLoading ? '' : 'Ex: Grammaire de base'"
-                />
-              </div>
+            <form class="space-y-4" @submit.prevent="onSubmit">
+              
+              <input
+                v-model="name"
+                placeholder="Nom du module"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-300 outline-none"
+              />
 
-              <div>
-                <label class="block text-sm font-semibold text-gray-900 mb-2">Description</label>
-                <textarea
-                  v-model="description"
-                  :disabled="isLoading"
-                  rows="3"
-                  class="w-full px-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all duration-200 resize-vertical placeholder-gray-500 shadow-sm hover:shadow-md"
-                  :placeholder="isLoading ? '' : 'Décrivez brièvement ce module...'"
-                ></textarea>
-              </div>
+              <textarea
+                v-model="description"
+                placeholder="Description"
+                rows="3"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-300 outline-none"
+              ></textarea>
 
-              <div>
-                <label class="block text-sm font-semibold text-gray-900 mb-2">Niveau</label>
-                <select
-                  v-model="selectedLevelId"
-                  :disabled="isLoading"
-                  required
-                  class="w-full px-4 py-4 rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all duration-200 text-lg shadow-sm hover:shadow-md appearance-none bg-white"
-                >
-                  <option value="" disabled class="text-gray-500">
-                    Sélectionnez un niveau
-                  </option>
-                  <option
-                    v-for="level in levels"
-                    :key="level.id"
-                    :value="level.id"
-                    class="py-4"
-                  >
-                    {{ level.name }}
-                  </option>
-                </select>
-              </div>
+              <select
+                v-model="selectedLevelId"
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-300 outline-none"
+              >
+                <option value="" disabled>Choisir un niveau</option>
+                <option v-for="level in levels" :key="level.id" :value="level.id">
+                  {{ level.name }}
+                </option>
+              </select>
 
-              <div v-if="error" class="p-4 bg-red-50 border border-red-200 rounded-2xl">
-                <p class="text-red-800 text-sm font-medium">{{ error }}</p>
-              </div>
-
-              <div class="flex flex-col sm:flex-row gap-4 pt-4">
+              <div class="flex gap-3 pt-4">
                 <button
                   type="button"
                   @click="closeModal"
-                  :disabled="isLoading"
-                  class="flex-1 bg-gradient-to-r from-gray-200 to-gray-300 hover:from-gray-300 hover:to-gray-400 text-gray-900 py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold text-lg disabled:opacity-50"
+                  class="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50"
                 >
                   Annuler
                 </button>
+
                 <button
                   type="submit"
-                  :disabled="isLoading || !name || !selectedLevelId"
-                  class="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-orange-400 disabled:to-orange-500 text-white py-4 px-8 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 font-bold text-lg disabled:opacity-50 flex items-center justify-center gap-2"
+                  class="flex-1 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
                 >
-                  <svg v-if="isLoading" class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  {{ isLoading ? 'Création en cours...' : 'Créer le module' }}
+                  Créer
                 </button>
               </div>
+
             </form>
+
           </div>
         </div>
-      </div>
-    </transition>
+      </transition>
 
     </section>
   </div>
