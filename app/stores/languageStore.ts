@@ -39,13 +39,11 @@ export const useLanguageStore = defineStore("language", () => {
     }
 
     // Apprenant / formateur → seulement langues actives
-    return languages.value.filter(l => l.isActive);
+    return languages.value.filter((l) => l.isActive);
   });
 
   const selectedLanguage = computed(() => {
-    const lang = languages.value.find(
-      l => l.id === selectedLanguageId.value
-    );
+    const lang = languages.value.find((l) => l.id === selectedLanguageId.value);
     if (!lang) return null;
 
     // Gestionnaire → tout voir
@@ -56,7 +54,7 @@ export const useLanguageStore = defineStore("language", () => {
     // Apprenant / formateur → seulement niveaux actifs
     return {
       ...lang,
-      levels: lang.levels.filter(level => level.isActive),
+      levels: lang.levels.filter((level) => level.isActive),
     };
   });
 
@@ -84,7 +82,7 @@ export const useLanguageStore = defineStore("language", () => {
       const res = await api.getLanguages();
       if (!res.success || !res.data) throw new Error(res.message);
 
-      languages.value = res.data.map((l: LanguageWithLevels)  => ({
+      languages.value = res.data.map((l: LanguageWithLevels) => ({
         ...l,
         levels: [],
         levelsLoaded: false,
@@ -99,14 +97,14 @@ export const useLanguageStore = defineStore("language", () => {
 
   // 2️⃣ Charger les niveaux d'une langue
   const loadLevelsForLanguage = async (languageId: string) => {
-    const lang = languages.value.find(l => l.id === languageId);
+    const lang = languages.value.find((l) => l.id === languageId);
     if (!lang) return;
 
     loading.value = true;
     try {
       const res = await api.getLevelsByLanguage(languageId);
       const levels = normalizeLevelsResponse(res).filter(
-        l => l.languageId === languageId
+        (l) => l.languageId === languageId,
       );
 
       lang.levels = levels;
@@ -138,8 +136,7 @@ export const useLanguageStore = defineStore("language", () => {
       languages.value.push(newLang);
       return newLang;
     } catch (e) {
-      error.value =
-        e instanceof Error ? e.message : "Erreur création langue";
+      error.value = e instanceof Error ? e.message : "Erreur création langue";
       throw e;
     } finally {
       loading.value = false;
@@ -148,62 +145,63 @@ export const useLanguageStore = defineStore("language", () => {
 
   // 4️⃣ Ajouter un niveau
   const addLevelToLanguage = async (
-  languageId: string,
-  payload: Omit<CreateLevelPayload, "languageId">
-): Promise<Level> => {
-  const lang = languages.value.find(l => l.id === languageId);
-  if (!lang) throw new Error("Langue introuvable");
+    languageId: string,
+    payload: Omit<CreateLevelPayload, "languageId">,
+  ): Promise<Level> => {
+    const lang = languages.value.find((l) => l.id === languageId);
+    if (!lang) throw new Error("Langue introuvable");
 
-  try {
-    const payloadWithId = { ...payload, languageId };
-    const res = await api.createLevelForLanguage(languageId, payloadWithId);
+    try {
+      const payloadWithId = { ...payload, languageId };
+      const res = await api.createLevelForLanguage(languageId, payloadWithId);
 
-    let newLevel: Level;
+      let newLevel: Level;
 
-    if (res && "data" in res && res.data) {
-      newLevel = res.data as Level;
-    } else if (res) {
-      // 🔹 Cast sûr : d'abord unknown puis on vérifie les champs obligatoires
-      const temp = res as unknown;
-      if (
-        typeof temp === "object" &&
-        temp !== null &&
-        "id" in temp &&
-        "languageId" in temp &&
-        "code" in temp &&
-        "name" in temp &&
-        "index" in temp &&
-        "isActive" in temp
-      ) {
-        newLevel = temp as Level;
+      if (res && "data" in res && res.data) {
+        newLevel = res.data as Level;
+      } else if (res) {
+        // 🔹 Cast sûr : d'abord unknown puis on vérifie les champs obligatoires
+        const temp = res as unknown;
+        if (
+          typeof temp === "object" &&
+          temp !== null &&
+          "id" in temp &&
+          "languageId" in temp &&
+          "code" in temp &&
+          "name" in temp &&
+          "index" in temp &&
+          "isActive" in temp
+        ) {
+          newLevel = temp as Level;
+        } else {
+          throw new Error("Réponse API invalide pour le niveau");
+        }
       } else {
-        throw new Error("Réponse API invalide pour le niveau");
+        throw new Error(
+          "Impossible de créer le niveau, réponse inattendue de l'API",
+        );
       }
-    } else {
-      throw new Error("Impossible de créer le niveau, réponse inattendue de l'API");
+
+      const exists = lang.levels.some((l) => l.id === newLevel.id);
+      if (!exists) lang.levels.push(newLevel);
+
+      return newLevel;
+    } catch (e) {
+      console.error("Erreur création niveau :", e);
+      throw e;
     }
-
-    const exists = lang.levels.some(l => l.id === newLevel.id);
-    if (!exists) lang.levels.push(newLevel);
-
-    return newLevel;
-  } catch (e) {
-    console.error("Erreur création niveau :", e);
-    throw e;
-  }
-};
-
+  };
 
   // 5️⃣ Mettre à jour un niveau
   const updateLevel = async (
     languageId: string,
     levelId: string,
-    payload: Partial<CreateLevelPayload>
+    payload: Partial<CreateLevelPayload>,
   ): Promise<Level | undefined> => {
-    const lang = languages.value.find(l => l.id === languageId);
+    const lang = languages.value.find((l) => l.id === languageId);
     if (!lang) return;
 
-    const level = lang.levels.find(l => l.id === levelId);
+    const level = lang.levels.find((l) => l.id === levelId);
     if (!level) return;
 
     try {
@@ -224,14 +222,13 @@ export const useLanguageStore = defineStore("language", () => {
     try {
       await api.deleteLevelForLanguage(levelId);
 
-      const lang = languages.value.find(l => l.id === languageId);
+      const lang = languages.value.find((l) => l.id === languageId);
       if (lang) {
-        lang.levels = lang.levels.filter(l => l.id !== levelId);
+        lang.levels = lang.levels.filter((l) => l.id !== levelId);
       }
     } catch (e) {
       console.error("Erreur suppression niveau :", e);
-      error.value =
-        e instanceof Error ? e.message : "Échec suppression niveau";
+      error.value = e instanceof Error ? e.message : "Échec suppression niveau";
       throw e;
     } finally {
       loading.value = false;
@@ -241,7 +238,7 @@ export const useLanguageStore = defineStore("language", () => {
   // 7️⃣ Sélectionner une langue
   const selectLanguage = async (id: string) => {
     selectedLanguageId.value = id;
-    const lang = languages.value.find(l => l.id === id);
+    const lang = languages.value.find((l) => l.id === id);
     if (!lang) return;
 
     if (!lang.levelsLoaded) {
@@ -256,7 +253,7 @@ export const useLanguageStore = defineStore("language", () => {
   // 8️⃣ Mettre à jour une langue
   const updateLanguage = async (
     id: string,
-    payload: Partial<CreateLanguagePayload>
+    payload: Partial<CreateLanguagePayload>,
   ) => {
     loading.value = true;
     error.value = null;
@@ -264,13 +261,13 @@ export const useLanguageStore = defineStore("language", () => {
     try {
       const cleanedPayload = {
         ...payload,
-        iconUrl: payload.iconUrl ?? undefined
+        iconUrl: payload.iconUrl ?? undefined,
       };
 
       const res = await api.updateLanguage(id, cleanedPayload);
       if (!res.success || !res.data) throw new Error(res.message);
 
-      const index = languages.value.findIndex(l => l.id === id);
+      const index = languages.value.findIndex((l) => l.id === id);
       if (index !== -1) {
         languages.value[index] = {
           ...languages.value[index],
@@ -295,7 +292,7 @@ export const useLanguageStore = defineStore("language", () => {
 
     try {
       await api.deleteLanguage(id);
-      languages.value = languages.value.filter(l => l.id !== id);
+      languages.value = languages.value.filter((l) => l.id !== id);
 
       if (selectedLanguageId.value === id) {
         selectedLanguageId.value = null;
@@ -311,7 +308,7 @@ export const useLanguageStore = defineStore("language", () => {
 
   // 🔟 Activer / désactiver une langue
   const toggleLanguageStatus = async (languageId: string) => {
-    const lang = languages.value.find(l => l.id === languageId);
+    const lang = languages.value.find((l) => l.id === languageId);
     if (!lang) return;
 
     try {

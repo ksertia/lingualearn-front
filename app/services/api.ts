@@ -115,7 +115,7 @@ class ApiService {
       }>
   > {
     return await this.api("/v1/users/profile-filters", {
-      query: filters
+      query: filters,
     });
   }
 
@@ -127,7 +127,6 @@ class ApiService {
       body: payload,
     });
   }
-
 
   /* ===================== USERS ===================== */
 
@@ -163,7 +162,6 @@ class ApiService {
   async getUserById(id: string): Promise<ApiResponse<User>> {
     return await this.api(`/v1/users/${id}`);
   }
-
 
   /* ===================== LANGUAGES ===================== */
 
@@ -298,12 +296,25 @@ class ApiService {
     return await this.api(`/v1/languages/${languageId}/levels/${levelId}/modules`);
   }
 
-  async getLearningPathsByModule(languageId: string, levelId: string, moduleId: string): Promise<ApiResponse<any[]>> {
-    return await this.api(`/v1/languages/${languageId}/levels/${levelId}/modules/${moduleId}/paths`);
+  async getLearningPathsByModule(
+    languageId: string,
+    levelId: string,
+    moduleId: string,
+  ): Promise<ApiResponse<any[]>> {
+    return await this.api(
+      `/v1/languages/${languageId}/levels/${levelId}/modules/${moduleId}/paths`,
+    );
   }
 
-  async getStepsByPath(languageId: string, levelId: string, moduleId: string, pathId: string): Promise<ApiResponse<any[]>> {
-    return await this.api(`/v1/languages/${languageId}/levels/${levelId}/modules/${moduleId}/paths/${pathId}/steps`);
+  async getStepsByPath(
+    languageId: string,
+    levelId: string,
+    moduleId: string,
+    pathId: string,
+  ): Promise<ApiResponse<any[]>> {
+    return await this.api(
+      `/v1/languages/${languageId}/levels/${levelId}/modules/${moduleId}/paths/${pathId}/steps`,
+    );
   }
 
   async getModule(levelId?: string): Promise<ApiResponse<module[]>> {
@@ -372,8 +383,8 @@ class ApiService {
     return await this.api("/v1/steps", {
       query: {
         pathId,
-        learningPathId: pathId
-      }
+        learningPathId: pathId,
+      },
     });
   }
 
@@ -622,7 +633,9 @@ class ApiService {
 
   /* ===================== DASHBOARD ===================== */
 
-  async getDashboardData(params?: UsersTotalParams): Promise<StatTotalResponse> {
+  async getDashboardData(
+    params?: UsersTotalParams,
+  ): Promise<StatTotalResponse> {
     return await this.api("/v1/admin/stats/users/total", {
       query: params,
     });

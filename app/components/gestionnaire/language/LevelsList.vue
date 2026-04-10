@@ -31,7 +31,7 @@
           <p class="level-description">{{ level.description }}</p>
 
           <div class="level-actions">
-            <button class="btn-access">Accéder</button>
+            <!-- <button class="btn-access">Accéder</button> -->
 
             <button
               :class="[

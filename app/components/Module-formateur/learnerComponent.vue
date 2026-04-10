@@ -129,7 +129,7 @@ const chartOptions = {
         <div>
           <select v-model="language" class="w-full px-4 py-3 bg-white border-0 shadow-sm rounded-xl text-sm font-bold outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500/20">
             <option value="">Toutes les langues</option>
-            <option v-for="l in langStore.languages" :key="l.id" :value="l.id">{{ l.name }}</option>
+            <option v-for="l in langStore.visibleLanguages" :key="l.id" :value="l.id">{{ l.name }}</option>
           </select>
         </div>
         <div>
@@ -243,7 +243,7 @@ const chartOptions = {
               <div>
                 <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-2 px-1">Langue d'étude</label>
                 <select v-model="languageId" @change="loadStats" class="w-full px-4 py-3 bg-white border-0 shadow-sm rounded-2xl text-sm font-bold outline-none cursor-pointer focus:ring-2 focus:ring-indigo-500/20">
-                  <option v-for="l in langStore.languages" :key="l.id" :value="l.id">{{ l.name }}</option>
+                  <option v-for="l in langStore.visibleLanguages" :key="l.id" :value="l.id">{{ l.name }}</option>
                 </select>
               </div>
               

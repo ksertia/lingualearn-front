@@ -1,49 +1,98 @@
 ﻿<template>
-  <div class="dashboard-container">
-    <!-- Langues -->
-    <div class="langue">
-      <h2 class="section-title">{{ resolvedTitle }}</h2>
+  <div class="min-h-screen bg-slate-50 px-6 py-10">
 
+    <!-- HEADER -->
+    <div class="max-w-6xl mx-auto mb-10">
+      <h1 class="text-3xl font-bold text-slate-800">
+        Choisissez une langue
+      </h1>
+      <p class="text-slate-500 mt-1">
+        Sélectionnez une langue pour accéder aux modules d’apprentissage
+      </p>
+    </div>
+
+    <!-- LOADING -->
+    <div
+      v-if="isLoading"
+      class="max-w-6xl mx-auto flex flex-col items-center justify-center py-20"
+    >
+      <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+      <p class="mt-4 text-slate-500 text-sm">Chargement des langues...</p>
+    </div>
+
+    <!-- CONTENT -->
+    <div v-else class="max-w-6xl mx-auto">
+
+      <!-- GRID -->
       <div
-        v-if="resolvedLoading"
-        class="p-8 text-center text-gray-500"
+        v-if="languages && languages.length"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
       >
-        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-900 mr-2"></div>
-        Chargement des langues...
-      </div>
 
-      <div v-else>
-        <div v-if="resolvedLanguages.length" class="cards-container">
-          <div v-for="(lang, index) in resolvedLanguages" :key="lang.id ?? index" class="language-card">
-            <div class="card-header">
-              <div class="lang-icon">
-                🌍
-              </div>
+        <div
+          v-for="lang in languages"
+          :key="lang.id"
+          class="group bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
+        >
 
-              <div class="lang-title">
-                {{ lang.name || lang.title || 'Langue' }}
-              </div>
+          <!-- HEADER CARD -->
+          <div class="flex items-center gap-3 mb-4">
+            
+            <div class="w-12 h-12 flex items-center justify-center rounded-xl bg-blue-50 text-xl">
+              🌍
             </div>
 
-            <!-- Description -->
-            <p class="lang-description">
-              {{ lang.description || 'Aucune description disponible pour cette langue.' }}
-            </p>
+            <div>
+              <h2 class="font-semibold text-slate-800 group-hover:text-blue-600 transition">
+                {{ lang.name }}
+              </h2>
+              <p class="text-xs text-slate-400">
+                Langue disponible
+              </p>
+            </div>
+          </div>
 
-            <!-- Action -->
-            <button @click="handleSelectLanguage(lang.id)" class="module-btn eye-btn">
-              <span class="eye-wrapper">
-                👁️
-              </span>
+          <!-- DESCRIPTION -->
+          <p class="text-sm text-slate-500 leading-relaxed line-clamp-3 min-h-[60px]">
+            {{ lang.description || "Aucune description disponible pour cette langue." }}
+          </p>
+
+          <!-- ACTION -->
+          <div class="mt-6 flex justify-end">
+            <button
+              @click="goToModules(lang.id)"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 active:scale-95 transition"
+            >
+              <span>Voir modules</span>
+              <span class="group-hover:translate-x-1 transition">→</span>
             </button>
           </div>
-        </div>
-        <div v-else class="empty-state">
-          <p>
-            {{ emptyLabel }}
-          </p>
+
         </div>
       </div>
+
+      <!-- EMPTY STATE -->
+      <div
+        v-else
+        class="text-center py-20 bg-white border border-slate-200 rounded-2xl shadow-sm"
+      >
+        <div class="text-5xl mb-4">📚</div>
+
+        <h3 class="text-lg font-semibold text-slate-800">
+          Aucune langue disponible
+        </h3>
+
+        <p class="text-slate-500 text-sm mt-2">
+          Les langues apparaîtront ici dès qu’elles seront ajoutées
+        </p>
+
+        <button
+          class="mt-6 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm hover:bg-blue-700 transition"
+        >
+          Rafraîchir
+        </button>
+      </div>
+
     </div>
   </div>
 </template>
@@ -109,8 +158,7 @@ onMounted(async () => {
   isLoading.value = true
   try {
     await languageStore.fetchLanguages()
-    await levelStore.fetchLevels()
-    languages.value = languageStore.languages
+    languages.value = languageStore.visibleLanguages
   } catch (error) {
     console.error('Erreur lors du chargement des langues', error)
   } finally {

@@ -2,11 +2,11 @@
   <div class="gestionnaire-page">
     <DashboardLayout />
   </div>
+  
 </template>
 
 <script setup lang="ts">
 import DashboardLayout from "../../components/gestionnaire/language/DashboardLayout.vue";
-
 definePageMeta({
   layout: "gestionnaire",
 });

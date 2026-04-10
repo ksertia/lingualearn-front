@@ -75,8 +75,8 @@ onMounted(() => {
         </section>
 
         <!-- Strategic Indicators Section -->
-        <section class="bg-white rounded-2xl shadow-md border border-slate-100 p-6">
-          <div class="flex items-center gap-3 mb-6">
+      <!-- <section class="bg-white rounded-2xl shadow-md border border-slate-100 p-6">
+           <div class="flex items-center gap-3 mb-6">
             <div class="p-2 bg-blue-50 rounded-xl">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -89,7 +89,7 @@ onMounted(() => {
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Most Active Language -->
+            
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition-shadow">
               <div class="flex items-center gap-3 mb-2">
                 <div class="p-2 bg-indigo-100 rounded-lg">
@@ -102,7 +102,7 @@ onMounted(() => {
               <p class="text-xl font-bold text-slate-900">{{ store.mostActiveLanguage }}</p>
             </div>
 
-            <!-- Most Active Level -->
+            
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition-shadow">
               <div class="flex items-center gap-3 mb-2">
                 <div class="p-2 bg-emerald-100 rounded-lg">
@@ -115,7 +115,7 @@ onMounted(() => {
               <p class="text-xl font-bold text-slate-900">{{ store.mostActiveLevel }}</p>
             </div>
 
-            <!-- Most Productive Trainer -->
+            
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition-shadow">
               <div class="flex items-center gap-3 mb-2">
                 <div class="p-2 bg-amber-100 rounded-lg">
@@ -128,7 +128,7 @@ onMounted(() => {
               <p class="text-xl font-bold text-slate-900">{{ store.mostProductiveTrainer }}</p>
             </div>
 
-            <!-- Publications Last 7 Days -->
+            
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-100 hover:shadow-md transition-shadow">
               <div class="flex items-center gap-3 mb-2">
                 <div class="p-2 bg-rose-100 rounded-lg">
@@ -141,7 +141,7 @@ onMounted(() => {
               <p class="text-xl font-bold text-slate-900">{{ store.publicationsLast7Days }} cours</p>
             </div>
           </div>
-        </section>
+        </section>  -->
 
         <!-- Charts Section -->
         <section v-if="store.publicationsLast30Days.length > 0">
