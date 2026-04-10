@@ -87,14 +87,6 @@ export interface GestionnaireDashboardData {
     total: number;      // total modules
   };
 
-
-
-
-
-
-
-  
-
   // Contenus (cours, étapes…) créés ce mois et au total
   contents: {
     createdThisMonth: number;
@@ -108,17 +100,18 @@ export interface GestionnaireDashboardData {
   };
 
   // Indicateurs stratégiques
-  strategic: {
-    mostActiveLanguage: string | null;
-    mostActiveLevel: string | null;
-    mostProductiveTrainer: string | null;
-    publicationsLast7Days: number;
-  };
+  // strategic: {
+  //   mostActiveLanguage: string | null;
+  //   mostActiveLevel: string | null;
+  //   mostProductiveTrainer: string | null;
+  //   publicationsLast7Days: number;
+  // };
 
   // Données pour graphiques
   charts: {
     publicationsLast30Days: DailyPublication[];
     contentsByLanguage: LanguageContent[];
+    
   };
 }
 
