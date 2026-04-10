@@ -134,11 +134,11 @@
             </div>
           </div>
 
-          <p v-else-if="isUploading" class="text-xs text-slate-500">Upload en cours...</p>
-          <p v-else-if="uploadError" class="text-xs text-rose-500">{{ uploadError }}</p>
-          <p v-else-if="uploadSuccess" class="text-xs text-emerald-600">
+          <p v-if="uploadSuccess" class="text-xs text-emerald-600">
             Fichier uploadé. URL mise à jour.
           </p>
+          <p v-else-if="uploadError" class="text-xs text-rose-500">{{ uploadError }}</p>
+          <p v-else-if="isUploading" class="text-xs text-slate-500">Upload en cours...</p>
         </div>
       </div>
 
@@ -325,22 +325,25 @@ const confirmUpload = async () => {
 
   isUploading.value = true;
   uploadError.value = null;
+  uploadSuccess.value = false;
 
   try {
-    const response = await api.uploadMedia(selectedFile.value);
+    const response = await api.uploadMedia(null, selectedFile.value);
     
     const url = extractUploadUrl(response);
     if (!url) {
       throw new Error("URL manquante dans la réponse d'upload.");
     }
     local.value.contentUrl = normalizeUploadUrl(url);
+    
+    // Succès - mettre à jour l'état
+    isUploading.value = false;
     uploadSuccess.value = true;
     clearFile();
   } catch (err) {
     console.error("Upload cours échoué:", err);
-    uploadError.value = "Échec de l'upload du fichier.";
-  } finally {
     isUploading.value = false;
+    uploadError.value = "Échec de l'upload du fichier.";
   }
 };
 
@@ -348,8 +351,6 @@ const clearFile = () => {
   selectedFile.value = null;
   previewUrl.value = null;
   showPreview.value = false;
-  uploadError.value = null;
-  uploadSuccess.value = false;
 };
 
 watch(
@@ -372,7 +373,6 @@ watch(
   () => local.value.contentType,
   () => {
     uploadError.value = null;
-    uploadSuccess.value = false;
     clearFile();
   }
 );

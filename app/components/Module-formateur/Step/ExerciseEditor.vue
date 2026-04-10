@@ -552,7 +552,6 @@ watch(
   () => local.value.mediaType,
   (value) => {
     mediaUploadError.value = null;
-    mediaUploadSuccess.value = false;
     if (!value) {
       local.value.mediaUrl = "";
     }

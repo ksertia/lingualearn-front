@@ -493,22 +493,34 @@ const normalizeCourseContentUrl = (value: string) => {
   return encodeURI(normalized);
 };
 
-const buildCoursePayload = (): CreateCourseRequest => {
+const buildCoursePayload = (): any => {
   const normalizedUrl = normalizeCourseContentUrl(courseData.value.contentUrl);
   if (normalizedUrl && normalizedUrl !== courseData.value.contentUrl) {
     courseData.value.contentUrl = normalizedUrl;
   }
-  return {
-    stepId: id,
-    title: courseData.value.title || stepData.value.title || 'Cours',
-    description: courseData.value.description || stepData.value.description || undefined,
-    contentType: courseData.value.contentType,
-    contentUrl: normalizedUrl,
-    duration: courseData.value.duration,
-    order: courseData.value.order ?? stepData.value.index ?? undefined,
-    isPublished: courseData.value.isPublished ?? false,
-    isActive: courseData.value.isActive ?? true,
-  };
+
+  // Map frontend fields to Prisma lesson model fields
+  const payload: any = {};
+
+  // Handle different content types
+  if (normalizedUrl) {
+    if (courseData.value.contentType === 'video') {
+      payload.videoUrl = normalizedUrl;
+    } else {
+      // For audio, image, pdf, text - store in attachments
+      payload.attachments = [{
+        type: courseData.value.contentType,
+        url: normalizedUrl
+      }];
+    }
+  }
+
+  // Map order to index
+  if (courseData.value.order !== undefined || stepData.value.index !== undefined) {
+    payload.index = courseData.value.order ?? stepData.value.index;
+  }
+
+  return payload;
 };
 
 const isValidHttpUrl = (value: string) => {

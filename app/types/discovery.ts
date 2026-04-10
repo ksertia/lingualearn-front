@@ -1,173 +1,109 @@
-/* ===================== DISCOVERY LANGUAGES ===================== */
+// ─── Enums ────────────────────────────────────────────────────────────────────
 
-export interface DiscoveryLevel {
-  id: string;
-  languageId: string;
-  code: string;
-  name: string;
-  description: string;
-  index: number;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+export type ContentMediaType = 'text' | 'audio' | 'image' | 'video' | 'file';
+export type SectionType = 'lesson' | 'exercise';
+
+// ─── Content ──────────────────────────────────────────────────────────────────
+
+export interface DiscoverContentOption {
+    value: string;
+    isCorrect: boolean;
+    order?: number;
 }
+
+export interface DiscoverContent {
+    id?: string;
+    order?: number;
+    questionType: ContentMediaType;
+    questionValue: string;
+    answerType?: ContentMediaType;
+    answerValue?: string;
+    options?: DiscoverContentOption[];
+}
+
+// ─── Section ──────────────────────────────────────────────────────────────────
+
+export interface DiscoverSection {
+    id?: string;
+    title: string;
+    type: SectionType;       // 'lesson' | 'exercise'
+    language: string;        // ex: "Wolof"
+    contents: DiscoverContent[];
+}
+
+// ─── Requests ─────────────────────────────────────────────────────────────────
+
+export interface CreateDiscoverSectionRequest {
+    title: string;
+    type: SectionType;
+    language: string;
+}
+
+export interface UpdateDiscoverSectionRequest extends Partial<CreateDiscoverSectionRequest> {}
+
+export interface CreateDiscoverContentRequest {
+    order?: number;
+    questionType: ContentMediaType;
+    questionValue: string;
+    answerType?: ContentMediaType;
+    answerValue?: string;
+    options?: DiscoverContentOption[];
+}
+
+export interface UpdateDiscoverContentRequest extends Partial<CreateDiscoverContentRequest> {}
+
+// ─── Legacy ───────────────────────────────────────────────────────────────────
 
 export interface DiscoveryLanguage {
-  id: string;
-  code: string;
-  name: string;
-  description: string;
-  iconUrl: string | null;
-  isActive: boolean;
-  index: number;
-  createdAt: string;
-  updatedAt: string;
-  flagUrl: string | null;
-  levels: DiscoveryLevel[];
-}
-
-export interface DiscoveryLanguagesResponse {
-  success: boolean;
-  data: DiscoveryLanguage[];
-  message: string;
-}
-
-/* ===================== DISCOVERY SESSION ===================== */
-
-export interface DiscoverySessionCreateResponse {
-  success: boolean;
-  data: {
-    sessionId: string;
-    message: string;
-  };
-}
-
-/* ===================== DISCOVERY EXERCISE ===================== */
-
-export interface ExerciseAnswer {
-  questionId?: string;
-  answerId?: string;
-  answer?: string | number | boolean;
-  [key: string]: any;
+    id: string;
+    code: string;
+    name: string;
 }
 
 export interface SubmitExercisePayload {
-  sessionId?: string;
-  answers: Record<string, any>;
+    answers: Record<string, any>;
 }
 
-export interface SubmitExerciseResponse {
-  success: boolean;
-  data: {
-    score?: number;
-    isCorrect?: boolean;
-    feedback?: string;
-    [key: string]: any;
-  };
-}
-
-/* ===================== DISCOVERY LESSON (ADMIN) ===================== */
-
-export interface DiscoveryLessonAdmin {
-  id: string;
-  title: string;
-  description?: string;
-  languageCode: string;
-  isPublished: boolean;
-  thumbnail?: string | null;
-  sections: DiscoverySection[];
-  createdAt: string;
-  updatedAt: string;
-  [key: string]: any;
-}
-
-export interface DiscoverySection {
-  id: string;
-  lessonId: string;
-  title: string;
-  description?: string;
-  index: number;
-  exercises: DiscoveryExerciseAdmin[];
-  [key: string]: any;
-}
-
-export interface DiscoveryExerciseAdmin {
-  id: string;
-  sectionId: string;
-  type: 'multiple_choice' | 'fill_blank' | 'matching' | 'text' | string;
-  question: string;
-  instructions?: string;
-  index: number;
-  content?: any;
-  mediaFiles?: string[];
-  [key: string]: any;
-}
-
-export interface CreateLessonPayload {
-  lessonData: string | {
+/** @deprecated */
+export interface DiscoverExercise {
     title: string;
+    type?: 'audio' | 'video' | 'qcm' | 'dragdrop';
+    mediaUrl?: string;
+    text?: string;
+    translation?: string;
+    duration?: number;
+    hint?: string;
     description?: string;
+    question?: string;
+    choices?: string[];
+    correctAnswer?: string;
+    dragItems?: string[];
+    dropZones?: string[];
+    imageUrl?: string;
+}
+
+/** @deprecated */
+export interface CreateDiscoverLessonRequest {
+    title: string;
+    description: string;
     languageCode: string;
-    sections?: DiscoverySection[];
-  };
-  thumbnail?: File;
-  audioFiles?: File[];
-  videoFiles?: File[];
-  imageFiles?: File[];
+    level: string;
+    sections: DiscoverSection[];
 }
 
-export interface UpdateLessonPayload {
-  lessonData?: string | any;
-  thumbnail?: File;
-}
+/** @deprecated */
+export interface UpdateDiscoverLessonRequest extends Partial<CreateDiscoverLessonRequest> {}
 
-export interface PublishLessonPayload {
-  isPublished: boolean;
-}
-
-export interface UploadMediaResponse {
-  success: boolean;
-  data: {
-    url: string;
-    type: string;
-    [key: string]: any;
-  };
-}
-
-/* ===================== DISCOVERY SESSION ===================== */
-
-/* ===================== DISCOVERY EXERCISE (GET) ===================== */
-
-export interface DiscoveryExercise {
-  id: string;
-  type: 'multiple_choice' | 'text' | 'matching' | 'fill_blank' | string;
-  title: string;
-  description?: string;
-  question?: string;
-  options?: {
+/** @deprecated */
+export interface DiscoverLesson {
     id: string;
-    label: string;
-    isCorrect?: boolean;
-  }[];
-  sessionId?: string;
-  [key: string]: any;
-}
-
-export interface DiscoveryExercisesResponse {
-  success: boolean;
-  data: DiscoveryExercise[];
-  message?: string;
-}
-
-/* ===================== DISCOVERY SCORE ===================== */
-
-export interface DiscoverySessionScore {
-  success: boolean;
-  data: {
-    sessionId: string;
-    score: number;
-    totalQuestions: number;
-    correctAnswers: number;
-    [key: string]: any;
-  };
+    title: string;
+    description: string;
+    languageCode: string;
+    level: string;
+    sections: DiscoverSection[];
+    published: boolean;
+    thumbnail?: string;
+    createdAt: string;
+    updatedAt: string;
 }

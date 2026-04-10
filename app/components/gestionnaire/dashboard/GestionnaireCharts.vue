@@ -73,7 +73,7 @@ const publicationsChartOptions = {
   maintainAspectRatio: false,
   interaction: {
     intersect: false,
-    mode: 'index' as const
+    mode: 'index' as const,
   },
   scales: {
     y: {

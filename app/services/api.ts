@@ -9,6 +9,14 @@ import type { CreateUserPayload, UpdateUserPayload, UserFilter } from "~/types/u
 import type { module, moduleRequest, moduleResponse } from "~/types/modules";
 import type { StatTotalResponse, UsersTotalParams } from "~/types/dashboard";
 import type {
+  CreateDiscoverSectionRequest,
+  UpdateDiscoverSectionRequest,
+  CreateDiscoverContentRequest,
+  UpdateDiscoverContentRequest,
+} from "~/types/discovery";
+
+type UploadKind = "image" | "video" | "audio" | "pdf" | "content";
+import type {
   ProgressionResponse,
   CompleteProgressionResponse,
   ProgressionStatsResponse,
@@ -38,8 +46,8 @@ class ApiService {
 
         if (token) {
           (options.headers as Headers).set(
-            "Authorization",
-            `Bearer ${token}`,
+              "Authorization",
+              `Bearer ${token}`,
           );
         }
       },
@@ -97,14 +105,14 @@ class ApiService {
   }
 
   async getFilterUsers(filters?: UserFilter): Promise<
-    ApiResponse<{
-      users: User[]
-      pagination: {
-        page: number
-        limit: number
-        total: number
-      }
-    }>
+      ApiResponse<{
+        users: User[]
+        pagination: {
+          page: number
+          limit: number
+          total: number
+        }
+      }>
   > {
     return await this.api("/v1/users/profile-filters", {
       query: filters
@@ -112,7 +120,7 @@ class ApiService {
   }
 
   async createUser(
-    payload: CreateUserPayload,
+      payload: CreateUserPayload,
   ): Promise<ApiResponse<User>> {
     return await this.api("/v1/auth/register", {
       method: "POST",
@@ -124,21 +132,21 @@ class ApiService {
   /* ===================== USERS ===================== */
 
   async getUsers(): Promise<
-    ApiResponse<{
-      users: User[]
-      pagination: {
-        page: number
-        limit: number
-        total: number
-      }
-    }>
+      ApiResponse<{
+        users: User[]
+        pagination: {
+          page: number
+          limit: number
+          total: number
+        }
+      }>
   > {
     return await this.api("/v1/users");
   }
 
   async updateUser(
-    id: string,
-    data: UpdateUserPayload,
+      id: string,
+      data: UpdateUserPayload,
   ): Promise<ApiResponse<User>> {
     return await this.api(`/v1/users/${id}`, {
       method: "PUT",
@@ -168,7 +176,7 @@ class ApiService {
   }
 
   async createLanguage(
-    data: CreateLanguagePayload,
+      data: CreateLanguagePayload,
   ): Promise<ApiResponse<any>> {
     return await this.api("/v1/languages", {
       method: "POST",
@@ -183,14 +191,14 @@ class ApiService {
   }
 
   async updateLanguage(
-    id: string,
-    data: Partial<{
-      name: string;
-      code: string;
-      description?: string;
-      iconUrl?: string;
-      isActive?: boolean;
-    }>,
+      id: string,
+      data: Partial<{
+        name: string;
+        code: string;
+        description?: string;
+        iconUrl?: string;
+        isActive?: boolean;
+      }>,
   ): Promise<ApiResponse<any>> {
     return await this.api(`/v1/languages/${id}`, {
       method: "PUT",
@@ -231,8 +239,8 @@ class ApiService {
   }
 
   async createLevelForLanguage(
-    languageId: string,
-    data: CreateLevelPayload,
+      languageId: string,
+      data: CreateLevelPayload,
   ): Promise<ApiResponse<Level>> {
     return await this.api("/v1/levels", {
       method: "POST",
@@ -245,7 +253,7 @@ class ApiService {
   }
 
   async getLevelsByLanguage(
-    languageId: string,
+      languageId: string,
   ): Promise<ApiResponse<Level[]>> {
     return await this.api("/v1/levels", {
       query: { languageId },
@@ -253,8 +261,8 @@ class ApiService {
   }
 
   async updateLevelForLanguage(
-    levelId: string,
-    data: Partial<CreateLevelPayload>,
+      levelId: string,
+      data: Partial<CreateLevelPayload>,
   ): Promise<ApiResponse<Level>> {
     return await this.api(`/v1/levels/${levelId}`, {
       method: "PUT",
@@ -263,7 +271,7 @@ class ApiService {
   }
 
   async deleteLevelForLanguage(
-    levelId: string,
+      levelId: string,
   ): Promise<ApiResponse<void>> {
     return await this.api(`/v1/levels/${levelId}`, {
       method: "DELETE",
@@ -285,8 +293,7 @@ class ApiService {
   }
 
   /* ===================== MODULES ===================== */
-  
-  //Un test 
+
   async getModulesByLevel(languageId: string, levelId: string): Promise<ApiResponse<module[]>> {
     return await this.api(`/v1/languages/${languageId}/levels/${levelId}/modules`);
   }
@@ -313,8 +320,8 @@ class ApiService {
   }
 
   async updateModule(
-    id: string,
-    data: Partial<moduleResponse>,
+      id: string,
+      data: Partial<moduleResponse>,
   ): Promise<ApiResponse<module>> {
     return await this.api(`/v1/modules/${id}`, {
       method: "PUT",
@@ -344,8 +351,8 @@ class ApiService {
   }
 
   async updateLearningPath(
-    id: string,
-    data: any,
+      id: string,
+      data: any,
   ): Promise<ApiResponse<any>> {
     return await this.api(`/v1/learning-paths/${id}`, {
       method: "PUT",
@@ -471,7 +478,7 @@ class ApiService {
   }
 
   async createStepQuiz(
-    data: CreateStepQuizRequest,
+      data: CreateStepQuizRequest,
   ): Promise<ApiResponse<StepQuiz>> {
     return await this.api("/v1/step-quizzes", {
       method: "POST",
@@ -483,8 +490,8 @@ class ApiService {
   }
 
   async updateStepQuiz(
-    id: string,
-    data: Partial<StepQuiz>,
+      id: string,
+      data: Partial<StepQuiz>,
   ): Promise<ApiResponse<StepQuiz>> {
     return await this.api(`/v1/step-quizzes/${id}`, {
       method: "PUT",
@@ -500,145 +507,117 @@ class ApiService {
 
   /* ===================== UPLOADS ===================== */
 
-async uploadMedia(file: File): Promise<string> {
-  const formData = new FormData();
+  async uploadMedia(mediaType: UploadKind | null, file: File): Promise<any> {
+    const formData = new FormData();
 
-  // ✅ Toujours utiliser la bonne clé
-  formData.append("content", file);
-
-  // ✅ Détection automatique du type
-  let endpoint = "/v1/uploads/content";
-
-  if (file.type.startsWith("image/")) {
-    endpoint = "/v1/uploads/image";
-  } else if (file.type.startsWith("video/")) {
-    endpoint = "/v1/uploads/video";
-  } else if (file.type.startsWith("audio/")) {
-    endpoint = "/v1/uploads/audio";
-  } else if (file.type === "application/pdf") {
-    endpoint = "/v1/uploads/pdf";
-  }
-
-  try {
-    const response: any = await this.api(endpoint, {
-      method: "POST",
-      body: formData,
-    });
-
-    // ✅ Gestion flexible des réponses API
-    const url =
-      response?.url ||
-      response?.path ||
-      response?.fileUrl ||
-      response?.data?.url ||
-      "";
-
-    if (!url) {
-      throw new Error("Aucune URL retournée par le serveur");
+    let fieldName = "content";
+    if (mediaType) {
+      switch (mediaType) {
+        case "image":  fieldName = "image";   break;
+        case "video":  fieldName = "video";   break;
+        case "audio":  fieldName = "audio";   break;
+        case "pdf":    fieldName = "pdf";     break;
+        default:       fieldName = "content"; break;
+      }
+    } else {
+      if (file.type.startsWith("image/"))           fieldName = "image";
+      else if (file.type.startsWith("video/"))      fieldName = "video";
+      else if (file.type.startsWith("audio/"))      fieldName = "audio";
+      else if (file.type === "application/pdf")     fieldName = "pdf";
     }
 
-    return url;
+    formData.append(fieldName, file);
 
-  } catch (error) {
-    console.error("❌ Erreur upload média :", error);
+    let endpoint = "/v1/uploads/content";
+    if (mediaType) {
+      switch (mediaType) {
+        case "image":  endpoint = "/v1/uploads/image";   break;
+        case "video":  endpoint = "/v1/uploads/video";   break;
+        case "audio":  endpoint = "/v1/uploads/audio";   break;
+        case "pdf":    endpoint = "/v1/uploads/pdf";     break;
+        default:       endpoint = "/v1/uploads/content"; break;
+      }
+    } else {
+      if (file.type.startsWith("image/"))           endpoint = "/v1/uploads/image";
+      else if (file.type.startsWith("video/"))      endpoint = "/v1/uploads/video";
+      else if (file.type.startsWith("audio/"))      endpoint = "/v1/uploads/audio";
+      else if (file.type === "application/pdf")     endpoint = "/v1/uploads/pdf";
+    }
 
-    // ✅ Message propre pour debug ou UI
-    throw new Error("Échec de l'upload du fichier");
-  }
-}
-
-
-  /* ===================== DISCOVERY ===================== */
-
-  async discoverLanguages(payload: Record<string, any> = {}): Promise<any> {
-    return await this.discoverRequest("/v1/discover/languages", {
-      method: "GET",
-      query: payload,
-    });
-  }
-
-  async createDiscoverSession(payload: Record<string, any> = {}): Promise<any> {
-    return await this.discoverRequest("/v1/discover/session/create", {
-      method: "POST",
-      body: payload,
-    });
-  }
-
-  async getDiscoverSessionScore(sessionId: string): Promise<any> {
-    return await this.discoverRequest(`/v1/discover/session/${sessionId}/score`);
+    try {
+      return await this.api(endpoint, {
+        method: "POST",
+        body: formData,
+      });
+    } catch (error) {
+      console.error("❌ Erreur upload média :", error);
+      throw new Error("Échec de l'upload du fichier");
+    }
   }
 
-  async getDiscoverLessons(params: Record<string, any> = {}): Promise<any> {
-    return await this.discoverRequest("/v1/discover/lessons", {
+  /**
+   * Upload un fichier média pour les sections discover.
+   * Détecte automatiquement le type et utilise uploadMedia en interne.
+   */
+  async uploadDiscoverMedia(file: File): Promise<any> {
+    return this.uploadMedia(null, file);
+  }
+
+  /* ===================== DISCOVER — SECTIONS ===================== */
+
+  /** GET /v1/discover/sections */
+  async getDiscoverSections(params: Record<string, any> = {}): Promise<any> {
+    return await this.discoverRequest("/v1/discover/sections", {
       query: params,
     });
   }
 
-  async getDiscoverLesson(id: string, params: Record<string, any> = {}): Promise<any> {
-    return await this.discoverRequest(`/v1/discover/lesson/${id}`, {
-      query: params,
-    });
-  }
-
-  async submitDiscoverExercise(id: string, payload: Record<string, any> = {}): Promise<any> {
-    return await this.discoverRequest(`/v1/discover/exercises/${id}/submit`, {
+  /** POST /v1/discover/sections */
+  async createDiscoverSection(payload: CreateDiscoverSectionRequest): Promise<any> {
+    return await this.discoverRequest("/v1/discover/sections", {
       method: "POST",
       body: payload,
     });
   }
 
-  // Admin methods
-  async createDiscoverLesson(payload: FormData | Record<string, any> = {}): Promise<any> {
-    return await this.discoverRequest("/v1/discover/lesson/create", {
-      method: "POST",
+  /** PATCH /v1/discover/sections/:sectionId */
+  async updateDiscoverSection(sectionId: string, payload: UpdateDiscoverSectionRequest): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/sections/${sectionId}`, {
+      method: "PATCH",
       body: payload,
     });
   }
 
-  async updateDiscoverLesson(id: string, payload: FormData | Record<string, any> = {}): Promise<any> {
-    return await this.discoverRequest(`/v1/discover/lesson/${id}`, {
-      method: "PUT",
-      body: payload,
-    });
-  }
-
-  async deleteDiscoverLesson(id: string): Promise<any> {
-    return await this.discoverRequest(`/v1/discover/lesson/${id}`, {
+  /** DELETE /v1/discover/sections/:sectionId */
+  async deleteDiscoverSection(sectionId: string): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/sections/${sectionId}`, {
       method: "DELETE",
     });
   }
 
-  async publishDiscoverLesson(id: string): Promise<any> {
-    return await this.discoverRequest(`/v1/discover/lesson/${id}/publish`, {
-      method: "PATCH",
-    });
-  }
+  /* ===================== DISCOVER — CONTENTS ===================== */
 
-  async uploadDiscoverMedia(file: File, kind: string = "discovery"): Promise<any> {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("kind", kind);
-    return await this.api("/v1/discover/upload/media", {
+  /** POST /v1/discover/sections/:sectionId/contents */
+  async addDiscoverContent(sectionId: string, payload: CreateDiscoverContentRequest): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/sections/${sectionId}/contents`, {
       method: "POST",
-      body: formData,
+      body: payload,
     });
   }
 
-  // Legacy methods (deprecated but keeping for compatibility)
-  async getDiscoverExercisesBySection(params: Record<string, any> = {}): Promise<any> {
-    return await this.getDiscoverLessons(params);
+  /** PATCH /v1/discover/contents/:contentId */
+  async updateDiscoverContent(contentId: string, payload: UpdateDiscoverContentRequest): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/contents/${contentId}`, {
+      method: "PATCH",
+      body: payload,
+    });
   }
 
-  async getDiscoverExercisesNavigate(params: Record<string, any> = {}): Promise<any> {
-    return await this.getDiscoverLessons(params);
-  }
-
-  async getDiscoverExercises(params: Record<string, any> = {}): Promise<any> {
-    return await this.getDiscoverLessons(params);
-  }
-
-  async getDiscoverExercise(id: string, params: Record<string, any> = {}): Promise<any> {
-    return await this.getDiscoverLesson(id, params);
+  /** DELETE /v1/discover/contents/:contentId */
+  async deleteDiscoverContent(contentId: string): Promise<any> {
+    return await this.discoverRequest(`/v1/discover/contents/${contentId}`, {
+      method: "DELETE",
+    });
   }
 
   /* ===================== DASHBOARD ===================== */
@@ -676,29 +655,29 @@ async uploadMedia(file: File): Promise<string> {
   /* ===================== PROGRESSION ===================== */
 
   async getProgression(
-    userId: string,
-    languageId: string,
+      userId: string,
+      languageId: string,
   ): Promise<ProgressionResponse> {
     return await this.api(
-      `/v1/progression/user/${userId}/language/${languageId}`,
+        `/v1/progression/user/${userId}/language/${languageId}`,
     );
   }
 
   async getCompleteProgression(
-    userId: string,
-    languageId: string,
+      userId: string,
+      languageId: string,
   ): Promise<CompleteProgressionResponse> {
     return await this.api(
-      `/v1/progression/complete/${userId}/${languageId}`,
+        `/v1/progression/complete/${userId}/${languageId}`,
     );
   }
 
   async getProgressionStats(
-    userId: string,
-    languageId: string,
+      userId: string,
+      languageId: string,
   ): Promise<ProgressionStatsResponse> {
     return await this.api(
-      `/v1/progression/stats/${userId}/${languageId}`,
+        `/v1/progression/stats/${userId}/${languageId}`,
     );
   }
 }
