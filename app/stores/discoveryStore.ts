@@ -80,14 +80,12 @@ export const useDiscoveryStore = defineStore("discovery", () => {
   const isUpdatingAdminSection = ref(false);
   const isDeletingAdminSection = ref(false);
 
-  // ── États contents ────────────────────────────────────────────────────────
   const isAddingContent = ref(false);
   const isUpdatingContent = ref(false);
   const isDeletingContent = ref(false);
 
   const adminError = ref<string | null>(null);
 
-  // ── Legacy : états lessons (conservés pour rétrocompatibilité) ───────────────
   const adminLessons = ref<DiscoverLesson[]>([]);
   const currentAdminLesson = ref<DiscoverLesson | null>(null);
   const isLoadingAdminLessons = ref(false);
@@ -97,7 +95,6 @@ export const useDiscoveryStore = defineStore("discovery", () => {
   const isPublishingAdminLesson = ref(false);
   const isUploadingAdminMedia = ref(false);
 
-  // ── Actions apprenant ────────────────────────────────────────────────────────
 
   const fetchLanguages = async (payload: Record<string, any> = {}): Promise<DiscoveryLanguage[]> => {
     isLoadingLanguages.value = true;
@@ -150,7 +147,6 @@ export const useDiscoveryStore = defineStore("discovery", () => {
     }
   };
 
-  // ── Actions sections (nouveau modèle) ────────────────────────────────────────
 
   /**
    * Récupère toutes les sections avec leurs contenus
@@ -185,7 +181,6 @@ export const useDiscoveryStore = defineStore("discovery", () => {
       const data = extractPayload(response);
       const newSection = data as DiscoverSection;
       if (newSection) {
-        // Initialiser contents si absent
         if (!newSection.contents) newSection.contents = [];
         adminSections.value.push(newSection);
         currentAdminSection.value = newSection;

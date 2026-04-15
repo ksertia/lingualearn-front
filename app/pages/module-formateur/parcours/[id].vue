@@ -17,9 +17,9 @@
         <h1 class="text-3xl lg:text-4xl font-light text-slate-900 tracking-tight mb-2">
           Parcours du module
         </h1>
-        <p class="text-sm font-normal text-slate-500">
+        <!--<p class="text-sm font-normal text-slate-500">
           ID du module : <span class="font-medium text-slate-700">{{ moduleId }}</span>
-        </p>
+        </p>-->
       </div>
     </div>
 

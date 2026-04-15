@@ -33,6 +33,14 @@
           </svg>
           {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder' }}
         </button>
+        <button
+          v-if="stepData.stepType === 'quiz' && existingQuizId"
+          @click="removeStepQuiz"
+          :disabled="isSaving"
+          class="px-5 py-3 bg-rose-600 text-white rounded-xl font-bold shadow-lg shadow-rose-100 hover:bg-rose-700 transform hover:-translate-y-0.5 transition-all disabled:bg-slate-300 disabled:shadow-none"
+        >
+          Supprimer le quiz
+        </button>
       </div>
     </div>
 
@@ -322,14 +330,14 @@ const normalizeQuizQuestions = (source: any[]): QuizQuestionForm[] => {
     if (typeof rawAnswer === 'number' && Number.isFinite(rawAnswer)) {
       correctIndex = rawAnswer;
     } else if (typeof rawAnswer === 'string') {
-      const optionIndex = options.findIndex((opt) => opt === rawAnswer);
+      const optionIndex = options.findIndex((opt: any) => opt === rawAnswer);
       if (optionIndex >= 0) {
         correctIndex = optionIndex;
       } else if (/^\d+$/.test(rawAnswer)) {
         correctIndex = Number.parseInt(rawAnswer, 10);
       }
     } else if (Array.isArray(rawAnswer) && typeof rawAnswer[0] === 'string') {
-      const optionIndex = options.findIndex((opt) => opt === rawAnswer[0]);
+      const optionIndex = options.findIndex((opt: any) => opt === rawAnswer[0]);
       if (optionIndex >= 0) {
         correctIndex = optionIndex;
       }
@@ -398,13 +406,15 @@ const mapQuizToForm = (quiz: StepQuiz): QuizForm => ({
 
 const mapQuizQuestionsToApi = (questions: QuizQuestionForm[]): QuizQuestion[] => {
   return (questions || []).map((question) => {
-    const options = Array.isArray(question.options) ? question.options : [];
+    const options = Array.isArray(question.options)
+      ? question.options.map((opt) => (typeof opt === 'string' ? opt.trim() : ''))
+      : [];
     const index = typeof question.correctAnswer === 'number' ? question.correctAnswer : 0;
     const boundedIndex = index >= 0 && index < options.length ? index : 0;
     const answerText = options[boundedIndex] ?? '';
 
     return {
-      questionText: question.text || '',
+      questionText: (question.text || '').trim(),
       questionType: 'multiple_choice',
       options,
       correctAnswer: answerText,
@@ -414,8 +424,8 @@ const mapQuizQuestionsToApi = (questions: QuizQuestionForm[]): QuizQuestion[] =>
 
 const buildQuizPayload = (): CreateStepQuizRequest => ({
   stepId: id,
-  title: stepData.value.title || 'Quiz',
-  description: stepData.value.description || undefined,
+  title: (stepData.value.title || 'Quiz').trim(),
+  description: stepData.value.description?.trim() || undefined,
   questions: mapQuizQuestionsToApi(quizData.value.questions),
   passingScore: quizData.value.passingScore,
   maxAttempts: quizData.value.maxAttempts,
@@ -426,25 +436,25 @@ const buildQuizPayload = (): CreateStepQuizRequest => ({
 });
 
 const validateQuizData = (): string | null => {
-  const questions = quizData.value.questions || [];
+  const questions = (quizData.value.questions || []) as QuizQuestionForm[];
   if (questions.length === 0) {
     return 'Ajoute au moins une question.';
   }
   for (let i = 0; i < questions.length; i += 1) {
     const question = questions[i];
-    const text = question.text?.trim();
+    const text = question?.text?.trim();
     if (!text) {
       return `La question ${i + 1} est vide.`;
     }
-    const options = Array.isArray(question.options) ? question.options.map((opt) => opt?.trim()) : [];
+    const options = Array.isArray(question?.options) ? question.options.map((opt) => (typeof opt === 'string' ? opt.trim() : '')) : [];
     const nonEmpty = options.filter((opt) => opt);
     if (nonEmpty.length < 2) {
       return `La question ${i + 1} doit avoir au moins deux options.`;
     }
-    const correctIndex = typeof question.correctAnswer === 'number' ? question.correctAnswer : 0;
+    const correctIndex = typeof question?.correctAnswer === 'number' ? question.correctAnswer : 0;
     const boundedIndex = correctIndex >= 0 && correctIndex < options.length ? correctIndex : 0;
     if (!options[boundedIndex]) {
-      return `La rÃ©ponse correcte de la question ${i + 1} est vide.`;
+      return `La réponse correcte de la question ${i + 1} est vide.`;
     }
   }
   if (typeof quizData.value.passingScore === 'number') {
@@ -494,31 +504,32 @@ const normalizeCourseContentUrl = (value: string) => {
   return encodeURI(normalized);
 };
 
-const buildCoursePayload = (): any => {
+const buildCoursePayload = (includeStepId = true): any => {
   const normalizedUrl = normalizeCourseContentUrl(courseData.value.contentUrl);
   if (normalizedUrl && normalizedUrl !== courseData.value.contentUrl) {
     courseData.value.contentUrl = normalizedUrl;
   }
 
-  // Map frontend fields to Prisma lesson model fields
-  const payload: any = {};
+  const payload: any = {
+    ...(includeStepId ? { stepId: id } : {}),
+    title: courseData.value.title || stepData.value.title || 'Cours',
+    description: courseData.value.description ?? '',
+    contentType: courseData.value.contentType,
+    contentUrl: normalizedUrl || courseData.value.contentUrl || '',
+    duration: courseData.value.duration,
+    order: courseData.value.order ?? stepData.value.index,
+    isPublished: courseData.value.isPublished ?? false,
+    isActive: courseData.value.isActive ?? true,
+  };
 
-  // Handle different content types
-  if (normalizedUrl) {
-    if (courseData.value.contentType === 'video') {
-      payload.videoUrl = normalizedUrl;
-    } else {
-      // For audio, image, pdf, text - store in attachments
-      payload.attachments = [{
-        type: courseData.value.contentType,
-        url: normalizedUrl
-      }];
-    }
+  if (!payload.contentUrl) {
+    delete payload.contentUrl;
   }
-
-  // Map order to index
-  if (courseData.value.order !== undefined || stepData.value.index !== undefined) {
-    payload.index = courseData.value.order ?? stepData.value.index;
+  if (payload.duration === undefined) {
+    delete payload.duration;
+  }
+  if (payload.order === undefined) {
+    delete payload.order;
   }
 
   return payload;
@@ -539,7 +550,6 @@ const loadCourseForStep = async (fetchAll = false) => {
   await courseStore.fetchCourses(fetchAll ? undefined : id);
 
   const existing = courseStore.courses.find((c) => c.stepId === id);
-  const fallback = fetchAll ? null : courseStore.courses[0];
 
   if (existing) {
     existingCourseId.value = existing.id;
@@ -547,15 +557,19 @@ const loadCourseForStep = async (fetchAll = false) => {
     return;
   }
 
-  if (fallback) {
+  if (fetchAll && courseStore.courses.length > 0) {
+    const fallback = courseStore.courses[0]!;
     if (!existingCourseId.value) {
       existingCourseId.value = fallback.id;
     }
     const selected = courseStore.courses.find((c) => c.id === existingCourseId.value) || fallback;
-    courseData.value = mapCourseToForm(selected);
-    return;
+    if (selected) {
+      courseData.value = mapCourseToForm(selected);
+      return;
+    }
   }
 
+  existingCourseId.value = null;
   courseData.value = defaultCourseForm();
   courseData.value.title = stepData.value.title || '';
   courseData.value.description = stepData.value.description || '';
@@ -887,7 +901,10 @@ onMounted(async () => {
 const saveStep = async () => {
   isSaving.value = true;
   try {
-    const stepSuccess = await stepStore.updateStep(id, buildStepPayload());
+    let stepSuccess = true;
+    if (stepData.value.stepType !== 'quiz') {
+      stepSuccess = await stepStore.updateStep(id, buildStepPayload());
+    }
 
     if (stepData.value.stepType === 'exercise') {
       let courseId = existingCourseId.value;
@@ -933,12 +950,18 @@ const saveStep = async () => {
       }
       const quizPayload = buildQuizPayload();
       if (existingQuizId.value) {
-        await quizStore.updateQuiz(existingQuizId.value, quizPayload as Partial<StepQuiz>);
+        const updated = await quizStore.updateQuiz(existingQuizId.value, quizPayload as Partial<StepQuiz>);
+        if (!updated) {
+          alert(quizStore.error || 'Impossible de mettre à jour le quiz d\'étape.');
+          return;
+        }
       } else {
         const createdQuiz = await quizStore.createQuiz(quizPayload);
-        if (createdQuiz?.id) {
-          existingQuizId.value = createdQuiz.id;
+        if (!createdQuiz) {
+          alert(quizStore.error || 'Impossible de créer le quiz d\'étape.');
+          return;
         }
+        existingQuizId.value = createdQuiz.id;
       }
     }
 
@@ -948,9 +971,9 @@ const saveStep = async () => {
       } else {
         const coursePayload = buildCoursePayload();
         if (existingCourseId.value) {
-          await courseStore.updateCourse(existingCourseId.value, coursePayload);
+          await courseStore.updateCourse(existingCourseId.value, buildCoursePayload(false));
         } else {
-          const created = await courseStore.createCourse(coursePayload);
+          const created = await courseStore.createCourse(buildCoursePayload(true));
           if (created?.id) {
             existingCourseId.value = created.id;
           }
@@ -963,6 +986,33 @@ const saveStep = async () => {
     }
   } catch (err) {
     console.error("Erreur sauvegarde:", err);
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const removeStepQuiz = async () => {
+  if (!existingQuizId.value) {
+    return;
+  }
+
+  if (!confirm("Êtes-vous sûr de vouloir supprimer ce quiz d'étape ?")) {
+    return;
+  }
+
+  isSaving.value = true;
+  try {
+    const success = await quizStore.deleteQuiz(existingQuizId.value);
+    if (success) {
+      existingQuizId.value = null;
+      await loadQuizForStep();
+      alert('Quiz d\'étape supprimé avec succès.');
+    } else {
+      alert(quizStore.error || 'Impossible de supprimer le quiz d\'étape.');
+    }
+  } catch (err) {
+    console.error('Erreur suppression quiz:', err);
+    alert('Erreur lors de la suppression du quiz d\'étape.');
   } finally {
     isSaving.value = false;
   }

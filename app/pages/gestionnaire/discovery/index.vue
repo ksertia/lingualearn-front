@@ -95,7 +95,7 @@
             </div>
 
             <!-- Aperçu des contenus -->
-            <div v-if="section.contents?.length" class="mt-3 space-y-1">
+            <!--<div v-if="section.contents?.length" class="mt-3 space-y-1">
               <div
                   v-for="(content, i) in section.contents.slice(0, 3)"
                   :key="i"
@@ -107,7 +107,7 @@
               <p v-if="section.contents.length > 3" class="text-xs text-slate-400 italic">
                 + {{ section.contents.length - 3 }} autre(s)...
               </p>
-            </div>
+            </div>-->
 
             <!-- Actions -->
             <div class="mt-4 pt-4 border-t border-slate-100 flex gap-2">
@@ -115,14 +115,14 @@
                   class="flex-1 px-3 py-2 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-bold hover:bg-indigo-100 transition-colors"
                   @click="startEditing(section.id!)"
               >
-                ✏️ Éditer
+                Éditer
               </button>
               <button
                   class="px-3 py-2 rounded-lg bg-red-50 text-red-600 text-sm font-bold hover:bg-red-100 transition-colors"
                   :disabled="store.isDeletingAdminSection"
                   @click="deleteSection(section.id!)"
               >
-                🗑️
+                supprimer
               </button>
             </div>
           </div>
@@ -159,11 +159,11 @@ const editingSectionId = ref<string | null>(null);
 
 const toast = reactive({ show: false, message: '', type: 'success' as 'success' | 'error' });
 
-// ── Helpers UI ────────────────────────────────────────────────────────────────
 
 const sectionTypeLabel = (type: string) => {
   const map: Record<string, string> = {
     audio: 'Audio', video: 'Vidéo', qcm: 'QCM', dragdrop: 'Glisser-déposer',
+    lesson: 'Cours', exercise: 'Quiz',
   };
   return map[type] ?? type;
 };
@@ -172,27 +172,27 @@ const sectionTypeIcon = (type: string) => {
   const map: Record<string, string> = {
     audio: '🎵', video: '🎬', qcm: '☑️', dragdrop: '🔀',
   };
-  return map[type] ?? '📄';
+  return map[type];
 };
 
 const sectionTypeClass = (type: string) => {
   const map: Record<string, string> = {
     audio:    'bg-blue-100 text-blue-700',
     video:    'bg-purple-100 text-purple-700',
-    qcm:      'bg-amber-100 text-amber-700',
+    qcm:      'bg-orange-100 text-orange-700',
     dragdrop: 'bg-emerald-100 text-emerald-700',
+    lesson:   'bg-indigo-100 text-indigo-700',
+    exercise:  'bg-amber-100 text-amber-700',
   };
   return map[type] ?? 'bg-slate-100 text-slate-600';
 };
 
-const mediaTypeIcon = (type: string) => {
-  const map: Record<string, string> = {
-    text: '📝', audio: '🎵', image: '🖼️', video: '🎬', file: '📎',
-  };
-  return map[type] ?? '📄';
-};
-
-// ── Actions ───────────────────────────────────────────────────────────────────
+//const mediaTypeIcon = (type: string) => {
+ // const map: Record<string, string> = {
+    //text: '📝', audio: '🎵', image: '🖼️', video: '🎬', file: '📎',
+  //};
+  //return map[type];
+//};
 
 const showToast = (message: string, type: 'success' | 'error' = 'success') => {
   toast.show    = true;

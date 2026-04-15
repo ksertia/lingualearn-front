@@ -534,7 +534,7 @@ class ApiService {
       if (file.type.startsWith("image/"))           fieldName = "image";
       else if (file.type.startsWith("video/"))      fieldName = "video";
       else if (file.type.startsWith("audio/"))      fieldName = "audio";
-      else if (file.type === "application/pdf")     fieldName = "pdf";
+      else if (file.type.startsWith("pdf/"))        fieldName = "pdf";
     }
 
     formData.append(fieldName, file);
@@ -552,7 +552,7 @@ class ApiService {
       if (file.type.startsWith("image/"))           endpoint = "/v1/uploads/image";
       else if (file.type.startsWith("video/"))      endpoint = "/v1/uploads/video";
       else if (file.type.startsWith("audio/"))      endpoint = "/v1/uploads/audio";
-      else if (file.type === "application/pdf")     endpoint = "/v1/uploads/pdf";
+      else if (file.type.startsWith("pdf/"))        endpoint = "/v1/uploads/pdf";
     }
 
     try {

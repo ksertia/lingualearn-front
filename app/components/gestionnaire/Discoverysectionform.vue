@@ -12,7 +12,7 @@
             class="px-3 py-1 rounded-full text-xs font-semibold"
             :class="formData.type === 'lesson' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'"
         >
-          {{ formData.type === 'lesson' ? '📖 Leçon' : '✏️ Exercice' }}
+          {{ formData.type === 'lesson' ? 'Leçon' : 'Exercice' }}
         </span>
       </div>
 
@@ -46,7 +46,7 @@
                 : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'"
                 @click="formData.type = 'lesson'"
             >
-              📖 Leçon
+              Leçon
             </button>
             <button
                 type="button"
@@ -56,7 +56,7 @@
                 : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'"
                 @click="formData.type = 'exercise'"
             >
-              ✏️ Exercice
+              Exercice
             </button>
           </div>
         </div>
@@ -148,7 +148,7 @@
                   class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white"
               >
                 <option v-for="mt in mediaTypes" :key="mt.value" :value="mt.value">
-                  {{ mt.icon }} {{ mt.label }}
+                  {{ mt.label }}
                 </option>
               </select>
             </div>
@@ -192,7 +192,6 @@
             </div>
           </div>
 
-          <!-- Réponse -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">
@@ -204,7 +203,7 @@
               >
                 <option value="">Aucun</option>
                 <option v-for="mt in mediaTypes" :key="mt.value" :value="mt.value">
-                  {{ mt.icon }} {{ mt.label }}
+                   {{ mt.label }}
                 </option>
               </select>
             </div>
@@ -234,7 +233,7 @@
                       :disabled="uploadingMap[`a-${cIndex}`]"
                       @click="triggerUpload(`a-${cIndex}`)"
                   >
-                    {{ uploadingMap[`a-${cIndex}`] ? '...' : '📎' }}
+                    {{ uploadingMap[`a-${cIndex}`] ? '...' : 'choisir un contenu' }}
                   </button>
                   <input
                       :ref="el => setUploadRef(el, `a-${cIndex}`)"
@@ -343,7 +342,6 @@ import { ref, reactive, onMounted } from "vue";
 import { useDiscoveryStore } from "~/stores/discoveryStore";
 import type {
   DiscoverContent,
-  ContentMediaType,
   SectionType,
   CreateDiscoverSectionRequest,
   CreateDiscoverContentRequest,
@@ -370,11 +368,11 @@ const editingId = props.sectionId ?? null;
 // ── Constantes UI ─────────────────────────────────────────────────────────────
 
 const mediaTypes = [
-  { value: 'text',  label: 'Texte',   icon: '📝' },
-  { value: 'audio', label: 'Audio',   icon: '🎵' },
-  { value: 'image', label: 'Image',   icon: '🖼️' },
-  { value: 'video', label: 'Vidéo',   icon: '🎬' },
-  { value: 'file',  label: 'Fichier', icon: '📎' },
+  { value: 'text',  label: 'Texte' },
+  { value: 'audio', label: 'Audio'},
+  { value: 'image', label: 'Image'},
+  { value: 'video', label: 'Vidéo'},
+  { value: 'file',  label: 'Fichier'},
 ];
 
 // ── État formulaire ────────────────────────────────────────────────────────────
@@ -418,16 +416,28 @@ const handleUpload = async (event: Event, cIndex: number, field: 'question' | 'a
 
   const key = `${field === 'question' ? 'q' : 'a'}-${cIndex}`;
   uploadingMap.value[key] = true;
-
+  console.log('le fichier : ', file)
+  console.log('le type : ', typeof file, file instanceof File)
   try {
-    const url = await store.uploadAdminMedia(file);
-    if (url) {
+    const extension = file.name.split('.').pop()
+    const safeName = `image-${Date.now()}.${extension}`
+    const safeFile = new File([file], safeName, { type: file.type })
+    const data = await store.uploadAdminMedia(safeFile);
+    //console.log('le data : ', data)
+    // enlever l'url
+    //const config = useRuntimeConfig();
+    //const baseUrl = config.public.apiBase
+    //const url = baseUrl  + data;
+    //console.log('le url : ', url)
+
+    if (data) {
       const content = formData.contents[cIndex];
       if (content) {
-        if (field === 'question') content.questionValue = url;
-        else content.answerValue = url;
+        if (field === 'question') content.questionValue = data;
+        else content.answerValue = data;
       }
       showToast('Fichier uploadé avec succès');
+      console.log('Reponse backend', data)
     } else {
       showToast("Échec de l'upload", 'error');
     }

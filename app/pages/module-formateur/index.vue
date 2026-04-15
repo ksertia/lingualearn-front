@@ -1,6 +1,6 @@
 <template>
   <div class="module-formateur-page">
-    <h1>Module Formateur</h1>
+    <h1><strong>Module Formateur</strong></h1>
     <dashboard />
   </div>
 </template>

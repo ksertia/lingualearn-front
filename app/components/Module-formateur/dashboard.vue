@@ -120,6 +120,10 @@ const emit = defineEmits<{
   (e: 'select-language', languageId: string): void
 }>()
 
+const goToModules = (languageId: string) => {
+  navigateTo(`module-formateur/moduleCrea/${languageId}`)
+}
+
 const languages = ref<Language[]>([])
 const languageStore = useLanguageStore()
 const levelStore = useLevelStore()
