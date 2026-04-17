@@ -479,9 +479,21 @@ class ApiService {
   /* ===================== STEP QUIZZES ===================== */
 
   async getStepQuizzes(stepId?: string): Promise<ApiResponse<StepQuiz[]>> {
-    return await this.api("/v1/step-quizzes", {
-      query: stepId ? { stepId } : {},
-    });
+    if (!stepId) {
+      return await this.api("/v1/step-quizzes");
+    }
+
+    try {
+      return await this.api("/v1/step-quizzes", {
+        query: { stepId },
+      });
+    } catch (err: any) {
+      const status = err?.statusCode ?? err?.status;
+      if (status === 404) {
+        return await this.api(`/v1/step-quizzes/${stepId}`);
+      }
+      throw err;
+    }
   }
 
   async getStepQuiz(id: string): Promise<ApiResponse<StepQuiz>> {

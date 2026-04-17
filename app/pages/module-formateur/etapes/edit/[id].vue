@@ -459,7 +459,7 @@ const validateQuizData = (): string | null => {
   }
   if (typeof quizData.value.passingScore === 'number') {
     if (quizData.value.passingScore < 0 || quizData.value.passingScore > 100) {
-      return 'Le score de rÃ©ussite doit Ãªtre compris entre 0 et 100.';
+      return 'Le score de réussite doit être compris entre 0 et 100.';
     }
   }
   return null;

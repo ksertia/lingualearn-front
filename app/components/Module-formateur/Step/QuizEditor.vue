@@ -46,7 +46,7 @@
 
           <input
             v-model="question.options[oIndex]"
-            placeholder="Option de rÃ©ponse..."
+            placeholder="Option de réponse..."
             class="flex-1 bg-white px-4 py-2 rounded-lg border border-slate-200 focus:border-indigo-500 outline-none transition-all text-sm"
           />
 

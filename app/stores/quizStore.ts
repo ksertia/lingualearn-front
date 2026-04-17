@@ -17,8 +17,7 @@ export const useQuizStore = defineStore('quiz', () => {
     if (Array.isArray(response?.quizzes)) return response.quizzes as StepQuiz[];
     return null;
   };
-
-  // ðŸ”¹ RÃ©cupÃ©rer les quizzes (optionnellement par stepId)
+  
   async function fetchQuizzes(stepId?: string) {
     isLoading.value = true;
     error.value = null;
@@ -29,16 +28,22 @@ export const useQuizStore = defineStore('quiz', () => {
       if (data) {
         quizzes.value = data;
       } else {
-        error.value = response.message || 'Ã‰chec du chargement des quiz';
+        quizzes.value = [];
+        error.value = response.message || 'Échec du chargement des quiz';
       }
     } catch (err: any) {
-      error.value = 'Erreur lors de la rÃ©cupÃ©ration des quiz';
+      const status = err?.statusCode ?? err?.status;
+      if (status === 404) {
+        quizzes.value = [];
+        error.value = null;
+      } else {
+        error.value = 'Erreur lors de la récupération des quiz';
+      }
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ðŸ”¹ CrÃ©er un quiz
   async function createQuiz(data: CreateStepQuizRequest): Promise<StepQuiz | null> {
     isLoading.value = true;
     error.value = null;
@@ -50,18 +55,17 @@ export const useQuizStore = defineStore('quiz', () => {
         quizzes.value.push(quizData);
         return quizData as StepQuiz;
       } else {
-        error.value = response.message || 'Ã‰chec de la crÃ©ation du quiz';
+        error.value = response.message || 'Echec de la création du quiz';
         return null;
       }
     } catch (err: any) {
-      error.value = err.data?.message || 'Erreur lors de la crÃ©ation du quiz';
+      error.value = err.data?.message || 'Erreur lors de la création du quiz';
       return null;
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ðŸ”¹ Mettre Ã  jour un quiz
   async function updateQuiz(id: string, data: Partial<StepQuiz>) {
     isLoading.value = true;
     error.value = null;
@@ -76,18 +80,18 @@ export const useQuizStore = defineStore('quiz', () => {
         }
         return true;
       } else {
-        error.value = response.message || 'Ã‰chec de la mise Ã  jour du quiz';
+        error.value = response.message || 'Echec de la mise à jour du quiz';
         return false;
       }
     } catch (err: any) {
-      error.value = err.data?.message || 'Erreur lors de la mise Ã  jour du quiz';
+      error.value = err.data?.message || 'Erreur lors de la mise à jour du quiz';
       return false;
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ðŸ”¹ Supprimer un quiz
+
   async function deleteQuiz(id: string) {
     isLoading.value = true;
     error.value = null;
@@ -98,7 +102,7 @@ export const useQuizStore = defineStore('quiz', () => {
         quizzes.value = quizzes.value.filter(q => q.id !== id);
         return true;
       } else {
-        error.value = response.message || 'Ã‰chec de la suppression du quiz';
+        error.value = response.message || 'Echec de la suppression du quiz';
         return false;
       }
     } catch (err: any) {
@@ -119,3 +123,6 @@ export const useQuizStore = defineStore('quiz', () => {
     deleteQuiz
   };
 });
+
+export class useQuizzStore {
+}
