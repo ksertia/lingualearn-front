@@ -9,6 +9,10 @@ definePageMeta({
 
 const store = useGestionnaireDashboardStore()
 
+const refreshData = () => {
+  window.location.reload()
+}
+
 const handleKpiDetail = (kpi: string) => {
   console.log('KPI clicked:', kpi)
   // Navigation vers les pages détaillées (à implémenter)
@@ -29,10 +33,10 @@ onMounted(() => {
           <p class="text-slate-500 mt-1">Vue d'ensemble de la plateforme LinguaLearn</p>
         </div>
         <button 
-          @click="store.fetchDashboardData()" 
+          @click="refreshData" 
           class="inline-flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors"
           :disabled="store.isLoading"
-        >
+          >
           <svg 
             xmlns="http://www.w3.org/2000/svg" 
             :class="{ 'animate-spin': store.isLoading }" 
@@ -150,7 +154,7 @@ onMounted(() => {
         </section>
 
         <!-- Quick Actions / Alerts Section -->
-        <section v-if="store.reportsPending > 0" class="bg-orange-50 border border-orange-200 rounded-2xl p-6">
+        <!-- <section v-if="store.reportsPending > 0" class="bg-orange-50 border border-orange-200 rounded-2xl p-6">
           <div class="flex items-center gap-3 mb-4">
             <div class="p-2 bg-orange-100 rounded-xl">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -175,7 +179,7 @@ onMounted(() => {
               Voir les signalements
             </NuxtLink>
           </div>
-        </section>
+        </section> -->
 
       </div>
     </div>

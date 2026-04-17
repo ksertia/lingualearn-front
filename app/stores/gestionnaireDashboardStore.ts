@@ -2,14 +2,13 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { useApiService } from "~/services/api";
 import { useLanguageStore } from "./languageStore";
-import { useModuleStore } from './moduleStore';
-import { useParcoursStore } from './parcoursStore';
-import { useStepStore } from './stepStore';
+import { useModuleStore } from "./moduleStore";
+import { useParcoursStore } from "./parcoursStore";
+import { useStepStore } from "./stepStore";
 import type {
   GestionnaireDashboardData,
   DailyPublication,
   LanguageContent,
-
 } from "~/types/gestionnaire-dashboard";
 import type { StatTotalResponse } from "~/types/dashboard";
 
@@ -25,28 +24,6 @@ const EMPTY_DATA: GestionnaireDashboardData = {
     contentsByLanguage: [],
   },
 };
-
-function generateLast30DaysData(): DailyPublication[] {
-  const data: DailyPublication[] = [];
-  const now = new Date();
-
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - i);
-
-    // Générer des données aléatoires avec tendance
-    const baseCount = 3 + Math.floor(Math.random() * 5);
-    const dayOfWeek = date.getDay();
-    const weekendFactor = dayOfWeek === 0 || dayOfWeek === 6 ? 0.5 : 1;
-
-    data.push({
-      date: date.toISOString().split("T")[0]!,
-      count: Math.floor(baseCount * weekendFactor),
-    });
-  }
-
-  return data;
-}
 
 // Helper pour parser la réponse API
 const toTotal = (response?: StatTotalResponse) => {
@@ -171,7 +148,7 @@ export const useGestionnaireDashboardStore = defineStore(
               ).length
             : 0;
 
-// 👉 FETCH CONTENTS STATS FROM BACKEND API (async safeTotal)
+        // 👉 FETCH CONTENTS STATS FROM BACKEND API (async safeTotal)
         await moduleStore.fetchModule();
         await parcoursStore.fetchAll();
         await stepStore.fetchSteps();
@@ -181,13 +158,47 @@ export const useGestionnaireDashboardStore = defineStore(
 
         // 👉 FETCH ALL LANGUAGES FROM BACKEND AND COMPUTE STATS CLIENT-SIDE
         await languageStore.fetchLanguages();
+
+        // Charger tous les niveaux pour pouvoir mapper levelId -> languageId
+        for (const lang of languageStore.languages) {
+          if (!lang.levelsLoaded) {
+            await languageStore.loadLevelsForLanguage(lang.id);
+          }
+        }
+
         const totalLanguagesReal = languageStore.languages.length;
-        const activeLanguagesReal = languageStore.languages.filter((l: any) => l.isActive).length;
+        const activeLanguagesReal = languageStore.languages.filter(
+          (l: any) => l.isActive,
+        ).length;
+
+        // Construire map levelId -> languageId
+        const levelToLangId = new Map<string, string>();
+        for (const lang of languageStore.languages) {
+          for (const level of lang.levels) {
+            levelToLangId.set(level.id, lang.id);
+          }
+        }
+
+        // Compter modules par langue
+        const langCounts = new Map<string, number>();
+        for (const mod of moduleStore.module) {
+          const langId = levelToLangId.get(mod.levelId);
+          if (langId) {
+            langCounts.set(langId, (langCounts.get(langId) || 0) + 1);
+          }
+        }
+
+        // Construire contentsByLanguage avec vraies données
+        const contentsByLanguage: LanguageContent[] =
+          languageStore.languages.map((lang) => ({
+            languageId: lang.id,
+            languageName: lang.name,
+            courseCount: langCounts.get(lang.id) || 0,
+          }));
 
         // Simulation d'un appel API
         await new Promise((resolve) => setTimeout(resolve, 800));
 
-        
         stats.value = {
           trainers: {
             total: trainersTotal,
@@ -210,15 +221,45 @@ export const useGestionnaireDashboardStore = defineStore(
             pending: 8,
             resolved: 47,
           },
-          
+
           charts: {
-            publicationsLast30Days: generateLast30DaysData(),
-            contentsByLanguage: [
-              { languageId: '1', languageName: 'Wolof', courseCount: 68 },
-              { languageId: '2', languageName: 'Serer', courseCount: 42 },
-              { languageId: '3', languageName: 'Pulaar', courseCount: 38 },
-              { languageId: '4', languageName: 'Diola', courseCount: 8 },
-            ],
+            publicationsLast30Days: (() => {
+              const currentYear = new Date().getFullYear();
+              const monthCounts = new Array(12).fill(0);
+
+              const countContentMonth = (content: any) => {
+                const createdAtStr = content.createdAt || content.created_at;
+                if (!createdAtStr) return;
+
+                try {
+                  const date = new Date(createdAtStr);
+                  if (isNaN(date.getTime())) return;
+
+                  if (date.getFullYear() === currentYear) {
+                    monthCounts[date.getMonth()]++;
+                  }
+                } catch {}
+              };
+
+              // Use store instances
+              const moduleStoreInst = useModuleStore();
+              const parcoursStoreInst = useParcoursStore();
+              const stepStoreInst = useStepStore();
+
+              moduleStoreInst.module.forEach(countContentMonth);
+              parcoursStoreInst.parcours.forEach(countContentMonth);
+              stepStoreInst.steps.forEach(countContentMonth);
+
+              const data: DailyPublication[] = [];
+              for (let m = 0; m < 12; m++) {
+                data.push({
+                  date: `${currentYear}-${String(m+1).padStart(2,'0')}-01`,
+                  count: monthCounts[m]
+                });
+              }
+              return data;
+            })(),
+            contentsByLanguage,
           },
         };
       } catch (err: any) {
@@ -256,8 +297,6 @@ export const useGestionnaireDashboardStore = defineStore(
       // coursesDisabled,
       // contentsThisMonth,
       reportsPending,
-
-      
 
       // Computed - Données graphiques
       publicationsLast30Days,
