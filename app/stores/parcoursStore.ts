@@ -10,6 +10,7 @@ export const useParcoursStore = defineStore('parcours', () => {
   const allParcours = ref<LearningPath[]>([])
   const isLoading = ref(false)
   const error = ref<string | null>(null)
+  const message = ref<string | null>(null)
 
   // Computed pour récupérer tous les parcours
   const parcours = computed(() => allParcours.value)
@@ -85,9 +86,11 @@ export const useParcoursStore = defineStore('parcours', () => {
     error.value = null
     try {
       const response: any = await apiService.deleteLearningPath(id)
+      const isSuccess = response === undefined || response === null || response === true || response?.success === true || (typeof response === 'object' && object.keys(response).length === 0)
 
-      if (response.success || response === true || !response || Object.keys(response).length === 0) {
+      if (isSuccess) {
         allParcours.value = allParcours.value.filter(p => p.id !== id)
+        message.value = "La suppression est effectué"
         return true
       } else {
         throw new Error(response.message || 'Suppression échouée')
