@@ -49,6 +49,13 @@
 
     <!-- ================= CONTENU ================= -->
     <div v-else class="max-w-4xl mx-auto space-y-8">
+      <div
+        v-if="toast.message"
+        class="rounded-xl px-4 py-3 text-sm font-medium"
+        :class="toast.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'"
+      >
+        {{ toast.message }}
+      </div>
 
       <!-- ================= AJOUT D'UN PARCOURS ================= -->
       <div class="bg-white/80 backdrop-blur-sm shadow-sm rounded-3xl border border-slate-100 p-8 hover:shadow-md transition-shadow duration-300">
@@ -172,6 +179,17 @@
         </div>
       </div>
     </div>
+
+    <div v-if="pathToDelete" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">Supprimer le parcours</h3>
+        <p class="text-sm text-slate-600 mb-6">Voulez-vous supprimer le parcours "{{ pathToDelete.title }}" ?</p>
+        <div class="flex justify-end gap-3">
+          <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="pathToDelete = null">Annuler</button>
+          <button class="px-4 py-2 rounded-lg bg-rose-600 text-white" @click="confirmRemovePath">Supprimer</button>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -204,6 +222,13 @@ const goBack = () => router.back()
 const titleInput = ref('')
 const pathDescription = ref('')
 const errorPath = ref('')
+const pathToDelete = ref<any | null>(null)
+const toast = ref({ message: '', type: 'success' as 'success' | 'error' })
+
+const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  toast.value = { message, type }
+  setTimeout(() => (toast.value.message = ''), 3000)
+}
 
 const addPath = async () => {
   errorPath.value = ''
@@ -213,9 +238,10 @@ const addPath = async () => {
   }
 
   try {
+    const createdTitle = titleInput.value.trim()
     await parcoursStore.create({
       moduleId: moduleId,
-      title: titleInput.value.trim(),
+      title: createdTitle,
       description: pathDescription.value.trim(),
       tempResaListime: 0,
       thumbnailUrl: "",
@@ -225,8 +251,10 @@ const addPath = async () => {
     })
     titleInput.value = ''
     pathDescription.value = ''
+    showToast(`Le parcours "${createdTitle}" a été créé avec succès.`)
   } catch (err: any) {
     errorPath.value = err.message || 'Erreur lors de la création'
+    showToast(errorPath.value, 'error')
   }
 }
 
@@ -236,8 +264,15 @@ const goToEtapes = (p: any) => {
 }
 
 const removePath = async (p: any) => {
-  if (!confirm(`Supprimer le parcours "${p.title}" ?`)) return
-  await parcoursStore.removePath(p.id)
+  pathToDelete.value = p
+}
+
+const confirmRemovePath = async () => {
+  if (!pathToDelete.value) return
+  const title = pathToDelete.value.title
+  await parcoursStore.removePath(pathToDelete.value.id)
+  pathToDelete.value = null
+  showToast(`Le parcours "${title}" a été supprimé avec succès.`)
 }
 </script>
 

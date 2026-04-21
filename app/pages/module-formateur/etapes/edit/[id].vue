@@ -33,7 +33,7 @@
           </svg>
           {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder' }}
         </button>
-        <div v-if="message" class="success-message">
+        <div v-if="message" :class="messageType === 'error' ? 'error-message' : 'success-message'">
           {{ message }}
         </div>
         <button
@@ -155,6 +155,16 @@
       </div>
     </div>
   </section>
+  <div v-if="confirmDeleteQuiz" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+      <h3 class="text-lg font-semibold text-slate-900 mb-2">Supprimer le quiz</h3>
+      <p class="text-sm text-slate-600 mb-6">Voulez-vous vraiment supprimer ce quiz d'étape ?</p>
+      <div class="flex justify-end gap-3">
+        <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="confirmDeleteQuiz = false">Annuler</button>
+        <button class="px-4 py-2 rounded-lg bg-rose-600 text-white" @click="confirmRemoveStepQuiz">Supprimer</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -268,6 +278,22 @@ const quizStore = useQuizStore();
 const existingQuizId = ref<string | null>(null);
 const showCourseForm = ref(false);
 const message = ref<string | null>(null);
+const confirmDeleteQuiz = ref(false);
+const messageType = ref<'success' | 'error'>('success');
+let messageTimer: ReturnType<typeof setTimeout> | null = null;
+
+const showMessage = (text: string, type: 'success' | 'error' = 'success', duration = 3000) => {
+  messageType.value = type;
+  message.value = text;
+  if (messageTimer) {
+    clearTimeout(messageTimer);
+  }
+  if (duration > 0) {
+    messageTimer = setTimeout(() => {
+      message.value = null;
+    }, duration);
+  }
+};
 
 const defaultExerciseForm = (): ExerciseForm => ({
   title: '',
@@ -915,7 +941,7 @@ const saveStep = async () => {
 
       if (!courseId) {
         if (!isValidHttpUrl(courseData.value.contentUrl)) {
-          alert('Vous devez fournir du contenu.');
+          showMessage('Vous devez fournir du contenu valide pour le cours.', 'error');
           return;
         }
 
@@ -942,7 +968,7 @@ const saveStep = async () => {
     if (stepData.value.stepType === 'quiz') {
       const quizError = validateQuizData();
       if (quizError) {
-        alert(quizError);
+        showMessage(quizError, 'error');
         return;
       }
       if (!existingQuizId.value) {
@@ -956,13 +982,13 @@ const saveStep = async () => {
       if (existingQuizId.value) {
         const updated = await quizStore.updateQuiz(existingQuizId.value, quizPayload as Partial<StepQuiz>);
         if (!updated) {
-          alert(quizStore.error || 'Impossible de mettre à jour le quiz d\'étape.');
+          showMessage(quizStore.error || 'Impossible de modifier le quiz de l’étape.', 'error');
           return;
         }
       } else {
         const createdQuiz = await quizStore.createQuiz(quizPayload);
         if (!createdQuiz) {
-          alert(quizStore.error || 'Impossible de créer le quiz d\'étape.');
+          showMessage(quizStore.error || 'Impossible de créer le quiz de l’étape.', 'error');
           return;
         }
         existingQuizId.value = createdQuiz.id;
@@ -971,7 +997,7 @@ const saveStep = async () => {
 
     if (stepData.value.stepType === 'lesson') {
       if (!isValidHttpUrl(courseData.value.contentUrl)) {
-        alert('Vous devez fournir du contenu');
+        showMessage('Vous devez fournir du contenu valide pour le cours.', 'error');
       } else {
         const coursePayload = buildCoursePayload();
         if (existingCourseId.value) {
@@ -986,8 +1012,9 @@ const saveStep = async () => {
     }
     if (stepSuccess) {
       message.value = stepData.value.stepType === 'quiz'
-          ? "Le quiz a été créé avec succès"
-          : "Le cours a été créé avec succès";
+          ? "Le quiz de l'étape a été enregistré avec succès."
+          : "Le cours de l'étape a été enregistré avec succès.";
+      messageType.value = 'success';
 
       setTimeout(() => {
         router.back(); // retourne à la page d'où vous venez
@@ -1009,23 +1036,24 @@ const removeStepQuiz = async () => {
     return;
   }
 
-  if (!confirm("Êtes-vous sûr de vouloir supprimer ce quiz d'étape ?")) {
-    return;
-  }
+  confirmDeleteQuiz.value = true;
+};
 
+const confirmRemoveStepQuiz = async () => {
+  confirmDeleteQuiz.value = false;
   isSaving.value = true;
   try {
     const success = await quizStore.deleteQuiz(existingQuizId.value);
     if (success) {
       existingQuizId.value = null;
       await loadQuizForStep();
-      alert('Quiz d\'étape supprimé avec succès.');
+      showMessage('Le quiz de l’étape a été supprimé avec succès.');
     } else {
-      alert(quizStore.error || 'Impossible de supprimer le quiz d\'étape.');
+      showMessage(quizStore.error || 'Impossible de supprimer le quiz de l’étape.', 'error');
     }
   } catch (err) {
     console.error('Erreur suppression quiz:', err);
-    alert('Erreur lors de la suppression du quiz d\'étape.');
+    showMessage('Erreur lors de la suppression du quiz de l’étape.', 'error');
   } finally {
     isSaving.value = false;
   }
@@ -1033,3 +1061,22 @@ const removeStepQuiz = async () => {
 
 
 </script>
+
+<style scoped>
+.success-message,
+.error-message {
+  border-radius: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+}
+
+.success-message {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #991b1b;
+}
+</style>

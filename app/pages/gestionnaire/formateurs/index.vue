@@ -11,6 +11,16 @@ const router = useRouter()
 
 const searchInput = ref('')
 const statusFilter = ref<'all' | 'active' | 'suspended'>('all')
+const feedback = ref({ show: false, message: '', type: 'success' as 'success' | 'error' })
+let feedbackTimer: ReturnType<typeof setTimeout> | null = null
+
+const showFeedback = (message: string, type: 'success' | 'error' = 'success') => {
+  if (feedbackTimer) clearTimeout(feedbackTimer)
+  feedback.value = { show: true, message, type }
+  feedbackTimer = setTimeout(() => {
+    feedback.value.show = false
+  }, 2500)
+}
 
 const handleSearch = (value: string) => {
   store.setSearch(value)
@@ -27,14 +37,18 @@ const handleViewFormateur = (id: string) => {
 const handleSuspend = async (id: string) => {
   const success = await store.suspendFormateur(id)
   if (success) {
-    alert('Formateur suspendu avec succès')
+    showFeedback('Le formateur a été suspendu avec succès.')
+  } else {
+    showFeedback('La suspension du formateur a échoué.', 'error')
   }
 }
 
 const handleReactivate = async (id: string) => {
   const success = await store.reactivateFormateur(id)
   if (success) {
-    alert('Formateur réactivé avec succès')
+    showFeedback('Le formateur a été réactivé avec succès.')
+  } else {
+    showFeedback('La réactivation du formateur a échoué.', 'error')
   }
 }
 </script>
@@ -153,6 +167,29 @@ const handleReactivate = async (id: string) => {
         @reactivate="handleReactivate"
       />
     </div>
+
+    <transition name="toast-fade">
+      <div
+        v-if="feedback.show"
+        class="fixed bottom-6 right-6 z-50 rounded-xl px-4 py-3 shadow-lg text-white"
+        :class="feedback.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'"
+      >
+        {{ feedback.message }}
+      </div>
+    </transition>
   </div>
 </template>
+
+<style scoped>
+.toast-fade-enter-active,
+.toast-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast-fade-enter-from,
+.toast-fade-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+</style>
 

@@ -139,6 +139,16 @@
           <span class="font-medium">{{ toast.message }}</span>
         </div>
       </Transition>
+      <div v-if="sectionToDeleteId" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+          <h3 class="text-lg font-semibold text-slate-900 mb-2">Supprimer la section</h3>
+          <p class="text-sm text-slate-600 mb-6">La section et ses contenus seront supprimés définitivement.</p>
+          <div class="flex justify-end gap-3">
+            <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="sectionToDeleteId = null">Annuler</button>
+            <button class="px-4 py-2 rounded-lg bg-red-600 text-white" @click="confirmDeleteSection">Supprimer</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -156,6 +166,7 @@ const store = useDiscoveryStore();
 
 const showForm      = ref(false);
 const editingSectionId = ref<string | null>(null);
+const sectionToDeleteId = ref<string | null>(null);
 
 const toast = reactive({ show: false, message: '', type: 'success' as 'success' | 'error' });
 
@@ -231,13 +242,18 @@ const handleSaved = async () => {
 };
 
 const deleteSection = async (sectionId: string) => {
-  if (!confirm('Êtes-vous sûr de vouloir supprimer cette section et tous ses contenus ?')) return;
-  const success = await store.deleteAdminSection(sectionId);
+  sectionToDeleteId.value = sectionId;
+};
+
+const confirmDeleteSection = async () => {
+  if (!sectionToDeleteId.value) return;
+  const success = await store.deleteAdminSection(sectionToDeleteId.value);
   if (success) {
-    showToast('Section supprimée');
+    showToast('La section a été supprimée avec succès.');
   } else {
     showToast(store.adminError ?? 'Erreur lors de la suppression', 'error');
   }
+  sectionToDeleteId.value = null;
 };
 
 // ── Init ──────────────────────────────────────────────────────────────────────

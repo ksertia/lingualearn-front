@@ -8,6 +8,9 @@
               <h3 class="modal-title">Ajouter une nouvelle langue</h3>
               <button class="btn-close" @click="closeModal">✕</button>
             </div>
+            <p v-if="feedback.message" :class="['feedback-message', feedback.type === 'error' ? 'feedback-error' : 'feedback-success']">
+              {{ feedback.message }}
+            </p>
 
             <form @submit.prevent="submitForm" class="form">
               <!-- Nom langue -->
@@ -88,6 +91,7 @@ const languageStore = useLanguageStore();
 
 const isOpen = ref(false);
 const loading = ref(false);
+const feedback = ref({ message: "", type: "success" as "success" | "error" });
 
 // niveaux par défaut
 const defaultLevels = () => [
@@ -115,11 +119,16 @@ const resetForm = () => {
     nativeLanguage: "",
     levels: defaultLevels(),
   };
+  feedback.value.message = "";
+};
+
+const showFeedback = (message: string, type: "success" | "error" = "success") => {
+  feedback.value = { message, type };
 };
 
 const submitForm = async () => {
   if (!formData.value.name.trim() || !formData.value.nativeLanguage.trim()) {
-    alert("Veuillez remplir tous les champs");
+    showFeedback("Veuillez remplir tous les champs.", "error");
     return;
   }
 
@@ -153,10 +162,13 @@ const submitForm = async () => {
       });
     }
 
-    closeModal();
+    showFeedback(`La langue ${newLanguage.name} a été créée avec succès.`);
+    setTimeout(() => {
+      closeModal();
+    }, 1200);
   } catch (error) {
     console.error(error);
-    alert("Erreur lors de la création");
+    showFeedback("Erreur lors de la création de la langue.", "error");
   } finally {
     loading.value = false;
   }
@@ -225,6 +237,24 @@ const submitForm = async () => {
   max-width: 420px;
   overflow: hidden;
   animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feedback-message {
+  margin: 12px 24px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.feedback-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.feedback-error {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 @keyframes slideUp {

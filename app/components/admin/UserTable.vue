@@ -445,13 +445,6 @@ const roleIcon = (role: string) => {
 }
 
 const handleToggle = (user: User) => {
-  if (user.isActive) {
-    const confirmDeactivate = confirm(
-      `Voulez-vous vraiment désactiver le compte de ${user.profile.firstName} ${user.profile.lastName} ?`
-    )
-    if (!confirmDeactivate) return
-  }
-
   emit('toggle-status', user)
 }
 

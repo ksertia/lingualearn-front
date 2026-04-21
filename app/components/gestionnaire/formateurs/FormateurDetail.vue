@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useFormateurStore } from '~/stores/formateurStore'
 
 const props = defineProps<{
@@ -12,6 +13,7 @@ const emit = defineEmits<{
 }>()
 
 const store = useFormateurStore()
+const confirmSuspendModal = ref(false)
 
 const formatDate = (dateString?: string | Date) => {
   if (!dateString) return "-"
@@ -51,12 +53,7 @@ const getModuleStatusBadge = (isActive: boolean, isPublished: boolean) => {
 
 const handleSuspend = () => {
   if (store.currentFormateur) {
-    const confirmSuspend = confirm(
-      `Êtes-vous sûr de vouloir suspendre ${store.currentFormateur.firstName} ${store.currentFormateur.lastName} ?\n\nCette action rendra tous ses modules invisibles pour les apprenants.`
-    )
-    if (confirmSuspend) {
-      store.suspendFormateur(store.currentFormateur.id)
-    }
+    confirmSuspendModal.value = true
   }
 }
 
@@ -341,6 +338,24 @@ onMounted(() => {
             </span>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="confirmSuspendModal && store.currentFormateur" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+      <h3 class="text-lg font-semibold text-slate-900 mb-2">Suspendre le formateur</h3>
+      <p class="text-sm text-slate-600 mb-6">
+        Voulez-vous suspendre {{ store.currentFormateur.firstName }} {{ store.currentFormateur.lastName }} ?
+      </p>
+      <div class="flex justify-end gap-3">
+        <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="confirmSuspendModal = false">Annuler</button>
+        <button
+          class="px-4 py-2 rounded-lg bg-red-600 text-white"
+          @click="store.suspendFormateur(store.currentFormateur.id); confirmSuspendModal = false"
+        >
+          Suspendre
+        </button>
       </div>
     </div>
   </div>

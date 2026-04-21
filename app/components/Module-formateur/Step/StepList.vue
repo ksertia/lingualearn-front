@@ -129,6 +129,19 @@
         </tbody>
       </table>
     </div>
+
+    <div v-if="stepToDelete" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl p-6 w-full max-w-md">
+        <h4 class="text-lg font-bold text-slate-800 mb-2">Confirmer la suppression</h4>
+        <p class="text-sm text-slate-600 mb-5">
+          Êtes-vous sûr de vouloir supprimer l'étape "{{ stepToDelete.title }}" ?
+        </p>
+        <div class="flex justify-end gap-3">
+          <button class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700" @click="stepToDelete = null">Annuler</button>
+          <button class="px-4 py-2 rounded-lg bg-rose-600 text-white" @click="deleteStepConfirmed">Supprimer</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -155,6 +168,7 @@ const emit = defineEmits<{
 const stepStore = useStepStore();
 const { steps, isLoading } = storeToRefs(stepStore);
 const router = useRouter();
+const stepToDelete = ref<Step | null>(null);
 
 const isExternal = computed(() => Array.isArray(props.items));
 const isReadonly = computed(() => Boolean(props.readonly || isExternal.value));
@@ -213,14 +227,15 @@ const toggleStatus = async (step: Step) => {
 
 const confirmDelete = async (step: Step) => {
   if (isReadonly.value) return;
-  if (confirm(`ÃŠtes-vous sÃ»r de vouloir supprimer l'Ã©tape "${step.title}" ?`)) {
-    const success = await stepStore.deleteStep(step.id);
-    if (success) {
-      // Refresh current list
-      if (props.pathId) {
-        stepStore.fetchSteps(props.pathId);
-      }
-    }
+  stepToDelete.value = step;
+};
+
+const deleteStepConfirmed = async () => {
+  if (!stepToDelete.value) return;
+  const success = await stepStore.deleteStep(stepToDelete.value.id);
+  if (success && props.pathId) {
+    stepStore.fetchSteps(props.pathId);
   }
+  stepToDelete.value = null;
 };
 </script>

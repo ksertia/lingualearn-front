@@ -139,6 +139,29 @@
       </div>
     </div>
 
+    <transition name="toast-fade">
+      <div
+        v-if="toast.show"
+        class="fixed bottom-6 right-6 z-[60] rounded-xl px-4 py-3 shadow-lg text-white"
+        :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'"
+      >
+        {{ toast.message }}
+      </div>
+    </transition>
+
+    <div v-if="userToDelete" class="fixed inset-0 z-[70] bg-black/40 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">Supprimer l'utilisateur</h3>
+        <p class="text-sm text-slate-600 mb-6">
+          Voulez-vous supprimer {{ userToDelete.profile.firstName }} {{ userToDelete.profile.lastName }} ?
+        </p>
+        <div class="flex justify-end gap-3">
+          <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="userToDelete = null">Annuler</button>
+          <button class="px-4 py-2 rounded-lg bg-red-600 text-white" @click="confirmDeleteUser">Supprimer</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -159,6 +182,23 @@ const route = useRoute()
 const openModal = ref(false)
 const selectedUser = ref<User | null>(null)
 const editingUser = ref<User | null>(null)
+const userToDelete = ref<User | null>(null)
+const toast = ref({
+  show: false,
+  message: '',
+  type: 'success' as 'success' | 'error'
+})
+let toastTimer: ReturnType<typeof setTimeout> | null = null
+
+const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  if (toastTimer) {
+    clearTimeout(toastTimer)
+  }
+  toast.value = { show: true, message, type }
+  toastTimer = setTimeout(() => {
+    toast.value.show = false
+  }, 3000)
+}
 
 // -------------------
 // FETCH USERS ON MOUNT
@@ -183,11 +223,12 @@ const addUser = async (newUser: any) => {
       parentId: null
     }
     await userStore.createUser(userData)
+    showToast(`L'utilisateur ${userData.firstName} ${userData.lastName} a été créé avec succès.`)
     openModal.value = false
     await userStore.fetchUsers()
   } catch (err) {
     console.error('Error creating user:', err)
-    alert('Erreur lors de la création')
+    showToast('Erreur lors de la création de l’utilisateur.', 'error')
   }
 }
 
@@ -196,15 +237,21 @@ const addUser = async (newUser: any) => {
 // -------------------
 const deleteUser = async (user: User) => {
   if (!user?.id) return
-  if (confirm(`Supprimer ${user.profile.firstName} ${user.profile.lastName} ?`)) {
-    try {
-      await userStore.deleteUser(user.id)
-      // Mise à jour locale
-      userStore.users = userStore.users.filter(u => u.id !== user.id)
-    } catch (err) {
-      console.error('Delete user error:', err)
-      alert('Erreur lors de la suppression')
-    }
+  userToDelete.value = user
+}
+
+const confirmDeleteUser = async () => {
+  if (!userToDelete.value) return
+  try {
+    const user = userToDelete.value
+    await userStore.deleteUser(user.id)
+    userStore.users = userStore.users.filter(u => u.id !== user.id)
+    showToast(`L'utilisateur ${user.profile.firstName} ${user.profile.lastName} a été supprimé avec succès.`)
+  } catch (err) {
+    console.error('Delete user error:', err)
+    showToast('Erreur lors de la suppression de l’utilisateur.', 'error')
+  } finally {
+    userToDelete.value = null
   }
 }
 
@@ -236,10 +283,10 @@ const verifyUser = async (user: User) => {
     }
     await userStore.putUser(user.id, payload)
     user.isVerified = true
-    alert(`L'utilisateur ${profile.firstName} ${profile.lastName} a été vérifié.`)
+    showToast(`L'utilisateur ${profile.firstName} ${profile.lastName} a été vérifié.`)
   } catch (err) {
     console.error(err)
-    alert('Erreur lors de la vérification')
+    showToast('Erreur lors de la vérification de l’utilisateur.', 'error')
   }
 }
 
@@ -266,9 +313,12 @@ const toggleUserStatus = async (user: User) => {
     }
     await userStore.putUser(user.id, payload)
     user.isActive = newStatus
+    showToast(
+      `Le statut de ${profile.firstName} ${profile.lastName} a été ${newStatus ? 'activé' : 'désactivé'}.`
+    )
   } catch (err) {
     console.error(err)
-    alert('Erreur lors de la mise à jour du statut')
+    showToast('Erreur lors de la mise à jour du statut.', 'error')
   }
 }
 
@@ -319,12 +369,25 @@ const saveEdit = async () => {
     await userStore.putUser(id, payload)
     
     // Si on est ici, c'est que ça a marché
-    alert('Utilisateur mis à jour !')
+    showToast(`L'utilisateur ${profile.firstName} ${profile.lastName} a été modifié avec succès.`)
     editingUser.value = null
   } catch (err) {
     console.error('Put user error:', err)
-    alert('Erreur lors de la mise à jour')
+    showToast('Erreur lors de la modification de l’utilisateur.', 'error')
   }
 }
 
 </script>
+
+<style scoped>
+.toast-fade-enter-active,
+.toast-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.toast-fade-enter-from,
+.toast-fade-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+</style>

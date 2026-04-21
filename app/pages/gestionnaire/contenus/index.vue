@@ -19,6 +19,7 @@ const formateurStore = useFormateurStore();
 const showDrawer = ref(false);
 const selectedContenuId = ref<string | null>(null);
 const showStats = ref(false);
+const contenuToDeleteId = ref<string | null>(null);
 
 // Toast notifications
 const toast = ref<{
@@ -76,20 +77,19 @@ const handleEnable = async (id: string) => {
 };
 
 const handleDelete = async (id: string) => {
-  const confirmDelete = confirm(
-    "Êtes-vous sûr de vouloir supprimer définitivement ce contenu ?\n\nCette action est irréversible et supprimera toutes les données associées.",
-  );
+  contenuToDeleteId.value = id;
+};
 
-  if (confirmDelete) {
-    const result = await store.deleteContenu(id);
-
-    if (result.success) {
-      showToast("Contenu supprimé définitivement", "success");
-      showDrawer.value = false;
-    } else {
-      showToast(result.message, "error");
-    }
+const confirmDeleteContent = async () => {
+  if (!contenuToDeleteId.value) return;
+  const result = await store.deleteContenu(contenuToDeleteId.value);
+  if (result.success) {
+    showToast("Le contenu a été supprimé définitivement.", "success");
+    showDrawer.value = false;
+  } else {
+    showToast(result.message, "error");
   }
+  contenuToDeleteId.value = null;
 };
 
 const closeDrawer = () => {
@@ -292,6 +292,17 @@ const closeDrawer = () => {
             />
           </svg>
           <span class="font-medium">{{ toast.message }}</span>
+        </div>
+      </div>
+
+      <div v-if="contenuToDeleteId" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+          <h3 class="text-lg font-semibold text-slate-900 mb-2">Supprimer le contenu</h3>
+          <p class="text-sm text-slate-600 mb-6">Cette action est irréversible. Voulez-vous continuer ?</p>
+          <div class="flex justify-end gap-3">
+            <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="contenuToDeleteId = null">Annuler</button>
+            <button class="px-4 py-2 rounded-lg bg-red-600 text-white" @click="confirmDeleteContent">Supprimer</button>
+          </div>
         </div>
       </div>
     </div>
