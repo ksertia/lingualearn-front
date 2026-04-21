@@ -2,7 +2,7 @@
   <nav class="h-16 bg-[#000099] px-6 flex items-center justify-between sticky top-0 z-50 shadow-md">
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center border border-white/20">
-        <span class="text-white font-black text-xs">LL</span>
+        <span class="text-white font-black text-xs">TB</span>
       </div>
       <span class="text-xl font-bold text-white tracking-tight">Ti<span class="text-brand-cyan text-[#00CED1]">Bi</span></span>
     </div>

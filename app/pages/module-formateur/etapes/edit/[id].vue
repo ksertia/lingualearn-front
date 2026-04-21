@@ -33,6 +33,9 @@
           </svg>
           {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder' }}
         </button>
+        <div v-if="message" class="success-message">
+          {{ message }}
+        </div>
         <button
           v-if="stepData.stepType === 'quiz' && existingQuizId"
           @click="removeStepQuiz"
@@ -264,6 +267,7 @@ const existingCourseId = ref<string | null>(null);
 const quizStore = useQuizStore();
 const existingQuizId = ref<string | null>(null);
 const showCourseForm = ref(false);
+const message = ref<string | null>(null);
 
 const defaultExerciseForm = (): ExerciseForm => ({
   title: '',
@@ -911,7 +915,7 @@ const saveStep = async () => {
 
       if (!courseId) {
         if (!isValidHttpUrl(courseData.value.contentUrl)) {
-          alert('Le champ URL du contenu doit contenir une URL valide (http/https) pour creer le cours associe.');
+          alert('Vous devez fournir du contenu.');
           return;
         }
 
@@ -967,7 +971,7 @@ const saveStep = async () => {
 
     if (stepData.value.stepType === 'lesson') {
       if (!isValidHttpUrl(courseData.value.contentUrl)) {
-        alert('Le champ URL du contenu doit contenir une URL valide (http/https).');
+        alert('Vous devez fournir du contenu');
       } else {
         const coursePayload = buildCoursePayload();
         if (existingCourseId.value) {
@@ -979,6 +983,15 @@ const saveStep = async () => {
           }
         }
       }
+    }
+    if (stepSuccess) {
+      message.value = stepData.value.stepType === 'quiz'
+          ? "Le quiz a été créé avec succès"
+          : "Le cours a été créé avec succès";
+
+      setTimeout(() => {
+        router.back(); // retourne à la page d'où vous venez
+      }, 2000);
     }
 
     if (!stepSuccess) {
