@@ -17,7 +17,7 @@ interface LoginLog {
 const logs = ref<LoginLog[]>([
   { id: 1, user: 'Jean Dupont', email: 'jean.dupont@email.com', ip: '192.168.1.100', device: 'Chrome / Windows', location: 'Paris, France', status: 'success', date: '2024-01-15 14:30:25' },
   { id: 2, user: 'Marie Martin', email: 'marie.martin@email.com', ip: '192.168.1.101', device: 'Safari / macOS', location: 'Lyon, France', status: 'success', date: '2024-01-15 14:25:10' },
-  { id: 3, user: 'Pierre Durant', email: 'pierre.durant@email.com', ip: '45.33.22.111', device: 'Firefox / Linux', location: 'Unknown', status: 'failed', date: '2024-01-15 14:20:45' },
+  { id: 3, user: 'Pierre Durant', email: 'pierre.durant@email.com', ip: '45.33.22.111', device: 'Firefox / Linux', location: 'Inconnu', status: 'failed', date: '2024-01-15 14:20:45' },
   { id: 4, user: 'Sophie Bernard', email: 'sophie.bernard@email.com', ip: '192.168.1.102', device: 'Chrome / Android', location: 'Marseille, France', status: 'success', date: '2024-01-15 14:15:30' },
   { id: 5, user: 'Lucas Moreau', email: 'lucas.moreau@email.com', ip: '78.45.12.34', device: 'Safari / iOS', location: 'Toulouse, France', status: 'success', date: '2024-01-15 14:10:55' },
   { id: 6, user: 'Admin System', email: 'admin@lingualearn.com', ip: '192.168.1.1', device: 'Chrome / Windows', location: 'Paris, France', status: 'success', date: '2024-01-15 14:05:00' },

@@ -38,7 +38,7 @@
 
       <div>
         <label class="block text-gray-600 font-medium mb-1">Rôle</label>
-        <input type="text" :value="authStore.user?.accountType" readonly  disabled class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700"/>
+        <input type="text" :value="accountTypeLabel[authStore.user?.accountType] || authStore.user?.accountType" readonly  disabled class="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 text-gray-700"/>
       </div>
 
     </div>
@@ -48,6 +48,7 @@
 <script setup>
 import { onMounted, computed } from 'vue'
 import { useAuthStore } from '~/stores/authStore';
+import { accountTypeLabel } from '~/utils/labels';
 
 
 const defaultAvatar = '/default-avatar.png' 

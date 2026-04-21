@@ -100,11 +100,11 @@
               v-model="editingUser.accountType"
               class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#00ced1] outline-none"
             >
-              <option value="learner">Learner</option>
-              <option value="sub_account_learner">Sub learner</option>
-              <option value="teacher">Teacher</option>
-              <option value="plateform_manager">Plateform manager</option>
-              <option value="admin">Admin</option>
+              <option value="learner">Apprenant</option>
+              <option value="sub_account_learner">Sous-compte apprenant</option>
+              <option value="teacher">Formateur</option>
+              <option value="plateform_manager">Gestionnaire de plateforme</option>
+              <option value="admin">Administrateur</option>
             </select>
           </div>
 

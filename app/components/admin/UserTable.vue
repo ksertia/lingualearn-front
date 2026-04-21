@@ -153,12 +153,7 @@
    <!-- Rôle (texte seul) -->
 <div class="text-sm font-semibold text-gray-700">
   <span>
-    {{
-      user.accountType === 'admin' ? 'Administrateur' :
-      user.accountType === 'plateform_manager' ? 'Gestionnaire' :
-      user.accountType === 'teacher' ? 'Formateur' :
-      user.accountType === 'learner' ? 'Apprenant' : ''
-    }}
+    {{ accountTypeLabel[user.accountType] || user.accountType }}
   </span>
 </div>
 
@@ -298,6 +293,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import type { User } from '~/types/auth'
+import { accountTypeLabel } from '~/utils/labels'
 
 const props = defineProps<{ 
   users: User[],

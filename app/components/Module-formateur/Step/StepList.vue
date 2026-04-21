@@ -74,7 +74,7 @@
                 step.stepType === 'quiz' ? 'bg-amber-50 text-amber-700 border-amber-100' : 
                 'bg-blue-50 text-blue-700 border-blue-100'
               ]">
-                {{ stepTypeLabel(step.stepType) }}
+                {{ getStepTypeLabel(step.stepType) }}
               </span>
             </td>
             <td v-if="!isReadonly" class="px-6 py-4">
@@ -150,6 +150,7 @@ import { computed } from 'vue';
 import { useStepStore } from '~/stores/stepStore';
 import { storeToRefs } from 'pinia';
 import type { Step } from '~/types/learning';
+import { stepTypeLabel } from '~/utils/labels';
 
 const props = defineProps<{
   pathId?: string;
@@ -193,14 +194,7 @@ const loadSteps = () => {
 onMounted(loadSteps);
 watch(() => props.pathId, loadSteps);
 
-const stepTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    'lesson': 'Cours',
-    'quiz': 'Quiz',
-    'exercise': 'Exercice'
-  };
-  return labels[type] || type;
-};
+const getStepTypeLabel = (type: string) => stepTypeLabel[type] || type;
 
 const handleRowClick = (step: Step) => {
   if (!isExternal.value) return;

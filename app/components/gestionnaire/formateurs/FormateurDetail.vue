@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useFormateurStore } from '~/stores/formateurStore'
+import { signalementStatusLabel } from '~/utils/labels'
 
 const props = defineProps<{
   id: string
@@ -334,7 +335,7 @@ onMounted(() => {
               class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider"
               :class="report.status === 'pending' ? 'bg-orange-200 text-orange-700' : 'bg-gray-200 text-gray-600'"
             >
-              {{ report.status === 'pending' ? 'En attente' : report.status }}
+              {{ signalementStatusLabel[report.status] || report.status }}
             </span>
           </div>
         </div>

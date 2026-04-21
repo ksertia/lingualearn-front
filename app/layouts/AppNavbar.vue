@@ -26,7 +26,7 @@
           </div>
           <div class="text-left hidden sm:block">
             <p class="text-xs font-black text-white leading-none">{{ authStore.fullname }}</p>
-            <p class="text-[10px] text-white/70 font-medium mt-1 uppercase">{{ authStore.user?.accountType || 'professeur' }}</p>
+            <p class="text-[10px] text-white/70 font-medium mt-1 uppercase">{{ accountTypeLabel[authStore.user?.accountType ?? ''] || 'Formateur' }}</p>
           </div>
         <svg 
           class="w-4 h-4 text-white/70 transition-transform duration-200"
@@ -85,6 +85,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useAuthStore } from '~/stores/authStore';
+import { accountTypeLabel } from '~/utils/labels';
 
 const authStore = useAuthStore();
 const isDropdownOpen = ref(false);
