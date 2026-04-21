@@ -168,6 +168,16 @@ const validateForm = () => {
     errors.value.password = 'Le mot de passe doit contenir au moins 6 caractères'
     isValid = false
   }
+  if (!form.value.password) {
+    errors.value.password = 'Le mot de passe est requis'
+    isValid = false
+  } else if (form.value.password.length < 6) {
+    errors.value.password = 'Le mot de passe doit contenir au moins 6 caractères'
+    isValid = false
+  } else if (!/[a-zA-Z]/.test(form.value.password)) {
+    errors.value.password = 'Le mot de passe doit contenir au moins une lettre'
+    isValid = false
+  }
 
   return isValid
 }

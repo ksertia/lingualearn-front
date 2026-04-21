@@ -225,6 +225,7 @@ const normalize = (value: any): CourseForm => {
 };
 
 const local = ref<CourseForm>(normalize(props.modelValue));
+const syncingFromParent = ref(false);
 
 const api = useApiService();
 const config = useRuntimeConfig();
@@ -364,7 +365,11 @@ const clearFile = () => {
 watch(
   () => props.modelValue,
   (value) => {
+    syncingFromParent.value = true;
     local.value = normalize(value);
+    queueMicrotask(() => {
+      syncingFromParent.value = false;
+    });
   },
   { deep: true }
 );
@@ -372,6 +377,7 @@ watch(
 watch(
   local,
   (value) => {
+    if (syncingFromParent.value) return;
     emit("update:modelValue", value);
   },
   { deep: true }

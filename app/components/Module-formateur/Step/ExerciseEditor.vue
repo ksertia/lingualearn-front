@@ -403,6 +403,7 @@ const normalize = (value: any): ExerciseForm => {
 };
 
 const local = ref<ExerciseForm>(normalize(props.modelValue));
+const syncingFromParent = ref(false);
 
 const api = useApiService();
 const config = useRuntimeConfig();
@@ -527,8 +528,12 @@ ensureDefaults();
 watch(
   () => props.modelValue,
   (value) => {
+    syncingFromParent.value = true;
     local.value = normalize(value);
     ensureDefaults();
+    queueMicrotask(() => {
+      syncingFromParent.value = false;
+    });
   },
   { deep: true }
 );
@@ -536,6 +541,7 @@ watch(
 watch(
   local,
   (value) => {
+    if (syncingFromParent.value) return;
     emit("update:modelValue", value);
   },
   { deep: true }
