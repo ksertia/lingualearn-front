@@ -34,9 +34,9 @@ const statCards = computed<StatCard[]>(() => [
     title: "Formateurs",
     value: store.trainersTotal,
     icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
-    color: "indigo",
+    color: "brand-blue",
     route : "/gestionnaire/formateurs",
-    gradient: "from-indigo-600 to-indigo-800",
+    gradient: "from-[#000099] to-[#0f1b3b]",
     subStats: store.stats?.trainers.active
       ? [{ label: "Actifs", value: store.stats.trainers.active }]
       : [],
@@ -48,8 +48,8 @@ const statCards = computed<StatCard[]>(() => [
   // 👉 total global des langues
   value: store.totalLanguages || 0,
   icon: 'M3 5h12M9 3v2m1.5 13.5L15 10M12 21l-3-8-3 8m3-8h6',
-  color: 'cyan',
-  gradient: 'from-cyan-500 to-cyan-700',
+  color: 'brand-cyan',
+  gradient: 'from-[#00CED1] to-[#0097a7]',
   route: '/gestionnaire',
   // variation: null,
   // variationLabel: null,
@@ -77,8 +77,8 @@ const statCards = computed<StatCard[]>(() => [
       (store.totalEtapes || 0),
 
     icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
-    color: "amber",
-    gradient: "from-amber-500 to-amber-700",
+    color: "brand-orange",
+    gradient: "from-[#FF7F00] to-[#c96000]",
 
     // // ❌ inutile ici
     // variation: null,

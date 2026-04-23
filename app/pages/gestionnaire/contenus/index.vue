@@ -103,13 +103,14 @@ const closeDrawer = () => {
   <div class="min-h-screen bg-slate-50">
     <div class="max-w-7xl mx-auto p-6 lg:p-8">
       <!-- Header -->
-      <header class="mb-8">
-        <h1 class="text-3xl font-bold text-slate-900 tracking-tight">
-          Gestion des Contenus
-        </h1>
-        <p class="text-slate-500 mt-1">
-          Surveillez et gérez tous les contenus publiés sur la plateforme.
-        </p>
+      <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-1 h-10 rounded-full bg-gradient-to-b from-[#000099] to-[#00CED1] flex-shrink-0"></div>
+          <div>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Gestion des Contenus</h1>
+            <p class="text-slate-500 mt-1">Surveillez et gérez tous les contenus publiés sur la plateforme.</p>
+          </div>
+        </div>
       </header>
 
       <!-- Stats Cards -->

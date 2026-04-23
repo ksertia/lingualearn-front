@@ -10,7 +10,7 @@ definePageMeta({
 const store = useGestionnaireDashboardStore()
 
 const refreshData = () => {
-  window.location.reload()
+  store.fetchDashboardData()
 }
 
 const handleKpiDetail = (kpi: string) => {
@@ -28,9 +28,12 @@ onMounted(() => {
     <div class="max-w-7xl mx-auto">
       <!-- Header -->
       <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-          <p class="text-slate-500 mt-1">Vue d'ensemble de la plateforme LinguaLearn</p>
+        <div class="flex items-center gap-4">
+          <div class="w-1 h-10 rounded-full bg-gradient-to-b from-[#000099] to-[#00CED1] flex-shrink-0"></div>
+          <div>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
+            <p class="text-slate-500 mt-1">Vue d'ensemble de la plateforme LinguaLearn</p>
+          </div>
         </div>
         <button 
           @click="refreshData" 
@@ -53,7 +56,7 @@ onMounted(() => {
       <div v-if="store.isLoading && !store.stats" class="flex flex-col items-center justify-center py-20">
         <div class="relative w-20 h-20">
           <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
-          <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+          <div class="absolute inset-0 border-4 border-[#000099] rounded-full border-t-transparent animate-spin"></div>
         </div>
         <p class="mt-4 text-slate-500 font-medium">Récupération des données...</p>
       </div>

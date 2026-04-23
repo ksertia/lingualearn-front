@@ -12,16 +12,17 @@
         </div> -->
         
         <div class="nav-items">
-          <NuxtLink 
-              v-for="item in menuItems" 
+          <NuxtLink
+              v-for="item in menuItems"
               :key="item.path"
               :to="item.path"
               class="nav-item"
-              :class="{ 'active': $route.path === item.path }">
+              :class="{ 'active': $route.path === item.path }"
+              :title="item.label">
 
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path :d="item.icon" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-              </svg> 
+              </svg>
               <span class="nav-text">{{ item.label }}</span>
           </NuxtLink>
         </div>
@@ -58,7 +59,7 @@ const menuItems = [
   {
     label: 'Langues',
     path: '/gestionnaire',
-    icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
+    icon: 'M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129'
   },
   {
     label: 'Découverte',

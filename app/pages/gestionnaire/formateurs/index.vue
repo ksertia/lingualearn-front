@@ -57,14 +57,19 @@ const handleReactivate = async (id: string) => {
   <div class="min-h-screen p-4 lg:p-8">
     <div class="max-w-7xl mx-auto">
       <!-- Header -->
-      <header class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Gestion des Formateurs</h1>
-        <p class="text-gray-500 mt-1">Surveillez l'activité et gérez les formateurs de la plateforme.</p>
+      <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-1 h-10 rounded-full bg-gradient-to-b from-[#000099] to-[#00CED1] flex-shrink-0"></div>
+          <div>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Gestion des Formateurs</h1>
+            <p class="text-slate-500 mt-1">Surveillez l'activité et gérez les formateurs de la plateforme.</p>
+          </div>
+        </div>
       </header>
 
       <!-- Stats Cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
           <div class="flex items-center gap-3">
             <div class="p-2.5 rounded-xl bg-[#000099]/10">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#000099]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -72,13 +77,13 @@ const handleReactivate = async (id: string) => {
               </svg>
             </div>
             <div>
-              <p class="text-xs text-gray-500 font-medium">Total</p>
-              <p class="text-xl font-bold text-gray-900">{{ store.statsSummary.total }}</p>
+              <p class="text-xs text-slate-500 font-medium">Total</p>
+              <p class="text-xl font-bold text-slate-900">{{ store.statsSummary.total }}</p>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
           <div class="flex items-center gap-3">
             <div class="p-2.5 rounded-xl bg-green-500/10">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -86,13 +91,13 @@ const handleReactivate = async (id: string) => {
               </svg>
             </div>
             <div>
-              <p class="text-xs text-gray-500 font-medium">Actifs</p>
+              <p class="text-xs text-slate-500 font-medium">Actifs</p>
               <p class="text-xl font-bold text-green-600">{{ store.statsSummary.active }}</p>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
           <div class="flex items-center gap-3">
             <div class="p-2.5 rounded-xl bg-red-500/10">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,13 +105,13 @@ const handleReactivate = async (id: string) => {
               </svg>
             </div>
             <div>
-              <p class="text-xs text-gray-500 font-medium">Suspendus</p>
+              <p class="text-xs text-slate-500 font-medium">Suspendus</p>
               <p class="text-xl font-bold text-red-600">{{ store.statsSummary.suspended }}</p>
             </div>
           </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
           <div class="flex items-center gap-3">
             <div class="p-2.5 rounded-xl bg-orange-500/10">
               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,7 +119,7 @@ const handleReactivate = async (id: string) => {
               </svg>
             </div>
             <div>
-              <p class="text-xs text-gray-500 font-medium">Signalements</p>
+              <p class="text-xs text-slate-500 font-medium">Signalements</p>
               <p class="text-xl font-bold text-orange-600">{{ store.statsSummary.withReports }}</p>
             </div>
           </div>
@@ -122,7 +127,7 @@ const handleReactivate = async (id: string) => {
       </div>
 
       <!-- Filters -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6">
         <div class="flex flex-col md:flex-row gap-4">
           <!-- Search -->
           <div class="relative flex-1">
@@ -136,7 +141,7 @@ const handleReactivate = async (id: string) => {
               @input="handleSearch(searchInput)"
               type="text"
               placeholder="Rechercher un formateur..."
-              class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm"
+              class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm"
             />
           </div>
 
@@ -145,7 +150,7 @@ const handleReactivate = async (id: string) => {
             <select
               v-model="statusFilter"
               @change="handleStatusFilter(statusFilter)"
-              class="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium"
+              class="appearance-none w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium"
             >
               <option value="all">Tous les statuts</option>
               <option value="active">Actifs</option>
