@@ -311,7 +311,7 @@ const formatFeatures = (features: any): string[] => {
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Prix mensuel (€)</label>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Prix mensuel (Fcfa)</label>
                 <input
                   v-model.number="editingPlan.priceMonthly"
                   type="number"
@@ -321,7 +321,7 @@ const formatFeatures = (features: any): string[] => {
                 />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Prix annuel (€)</label>
+                <label class="block text-sm font-medium text-slate-700 mb-2">Prix annuel (Fcfa)</label>
                 <input
                   v-model.number="editingPlan.priceYearly"
                   type="number"
