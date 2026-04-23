@@ -25,6 +25,9 @@ const handleKpiDetail = (kpi: string) => {
     query
   })
 }
+const refreshData = () => {
+  window.location.reload()
+}
 
 onMounted(() => {
   dashboardStore.fetchDashboardData()
@@ -39,14 +42,15 @@ onMounted(() => {
           <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Vue d'ensemble</h1>
           <p class="text-slate-500 mt-1">Gérez et suivez les performances de la plateforme LinguaLearn.</p>
         </div>
-        <button 
-          @click="dashboardStore.fetchDashboardData()" 
+         <button
+          @click="refreshData()"
           class="inline-flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors"
           :disabled="dashboardStore.isLoading"
         >
           <svg xmlns="http://www.w3.org/2000/svg" :class="{ 'animate-spin': dashboardStore.isLoading }" class="w-4 h-4 text-slate-500" viewBox="0 0 256 256"><path fill="currentColor" d="M224 128a96 96 0 0 1-96 96A96 96 0 0 1 32 128A96 96 0 0 1 128 32a96 96 0 0 1 96 96Zm-16 0a80 80 0 1 0-80 80a80 80 0 0 0 80-80Z"/></svg>
           Actualiser
         </button>
+        <!--<button @click="actualisation()"> Actualiser </button> -->
       </header>
 
       <div v-if="dashboardStore.isLoading && !dashboardStore.stats" class="flex flex-col items-center justify-center py-20">

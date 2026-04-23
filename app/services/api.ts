@@ -705,6 +705,36 @@ class ApiService {
         `/v1/progression/stats/${userId}/${languageId}`,
     );
   }
+
+  /* ===================== SUBSCRIPTION PLANS ===================== */
+
+  async getSubscriptionPlans(): Promise<any> {
+    return await this.api("/v1/subscription-plans");
+  }
+
+  async getSubscriptionPlan(id: string): Promise<any> {
+    return await this.api(`/v1/subscription-plans/${id}`);
+  }
+
+  async createSubscriptionPlan(data: any): Promise<any> {
+    return await this.api("/v1/subscription-plans", {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  async updateSubscriptionPlan(id: string, data: any): Promise<any> {
+    return await this.api(`/v1/subscription-plans/${id}`, {
+      method: "PUT",
+      body: data,
+    });
+  }
+
+  async deleteSubscriptionPlan(id: string): Promise<any> {
+    return await this.api(`/v1/subscription-plans/${id}`, {
+      method: "DELETE",
+    });
+  }
 }
 
 /* ===================== SINGLETON ===================== */

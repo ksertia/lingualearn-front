@@ -22,7 +22,7 @@
         >
           <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white overflow-hidden border border-white/30">
             <img v-if="authStore.user?.profile?.avatarUrl" :src="authStore.user.profile.avatarUrl" alt="Avatar" class="w-full h-full object-cover">
-            <span v-else class="font-bold text-sm">{{ authStore.fullname.charAt(0) }}</span>
+            <span v-else class="font-bold text-sm">{{ authStore.fullname.charAt(0) }}{{ authStore.fullname.charAt(1) }}</span>
           </div>
           <div class="text-left hidden sm:block">
             <p class="text-xs font-black text-white leading-none">{{ authStore.fullname }}</p>
@@ -78,7 +78,6 @@
     </div>
   </div>
 </nav>
-
   <div v-if="isDropdownOpen" @click="isDropdownOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
 </template>
 
