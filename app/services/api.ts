@@ -21,6 +21,8 @@ import type {
   CompleteProgressionResponse,
   ProgressionStatsResponse,
 } from "~/types/progression";
+import type { Notification, NotificationsListResponse, CreateNotificationPayload } from "~/types/notification";
+import type { Message, Conversation, MessagesListResponse, SendMessagePayload } from "~/types/message";
 import { useSessionStore } from "~/stores/sessionStore";
 
 class ApiService {
@@ -733,6 +735,85 @@ class ApiService {
   async deleteSubscriptionPlan(id: string): Promise<any> {
     return await this.api(`/v1/subscription-plans/${id}`, {
       method: "DELETE",
+    });
+  }
+
+  /* ===================== NOTIFICATIONS ===================== */
+
+  async createNotification(payload: CreateNotificationPayload): Promise<{ success: boolean; data?: Notification }> {
+    const body: Record<string, any> = {
+      userId: payload.userId,
+      title: payload.title,
+      message: payload.message,
+      notificationType: payload.notificationType ?? "info",
+    };
+    if (payload.actionUrl) body.actionUrl = payload.actionUrl;
+    return await this.api("/v1/notifications", {
+      method: "POST",
+      body,
+    });
+  }
+
+  async getUserNotifications(userId: string, params?: { page?: number; limit?: number }): Promise<{ success: boolean; data?: NotificationsListResponse }> {
+    return await this.api(`/v1/notifications/user/${userId}`, {
+      query: params,
+    });
+  }
+
+  async markAllNotificationsRead(userId: string): Promise<{ success: boolean }> {
+    return await this.api(`/v1/notifications/user/${userId}/read-all`, {
+      method: "PUT",
+    });
+  }
+
+  async markNotificationRead(id: string): Promise<{ success: boolean }> {
+    return await this.api(`/v1/notifications/${id}/read`, {
+      method: "PUT",
+    });
+  }
+
+  async deleteNotification(id: string): Promise<{ success: boolean }> {
+    return await this.api(`/v1/notifications/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  /* ===================== MESSAGES ===================== */
+
+  async sendMessage(payload: SendMessagePayload): Promise<{ success: boolean; data?: Message }> {
+    const body: Record<string, any> = {
+      senderId: payload.senderId,
+      recipientId: payload.recipientId,
+      content: payload.content,
+      type: payload.type ?? "text",
+    };
+    if (payload.metadata) body.metadata = payload.metadata;
+    return await this.api("/v1/messages-ws", { method: "POST", body });
+  }
+
+  async getConversations(): Promise<{ success: boolean; data?: Conversation[] }> {
+    return await this.api("/v1/messages-ws/conversations");
+  }
+
+  async getMessagesUnreadCount(): Promise<{ unreadCount: number }> {
+    return await this.api("/v1/messages-ws/unread-count");
+  }
+
+  async getConversationMessages(
+    userA: string,
+    userB: string,
+    page = 1,
+    limit = 30,
+  ): Promise<{ success: boolean; data?: MessagesListResponse }> {
+    return await this.api("/v1/messages-ws/conversation", {
+      query: { userA, userB, page, limit },
+    });
+  }
+
+  async markMessagesRead(senderId: string): Promise<{ success: boolean }> {
+    return await this.api("/v1/messages-ws/read", {
+      method: "PUT",
+      body: { senderId },
     });
   }
 }

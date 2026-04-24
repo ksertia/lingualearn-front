@@ -21,8 +21,11 @@
 
               <svg class="nav-icon" width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path :d="item.icon" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-              </svg> 
+              </svg>
               <span class="nav-text">{{ item.label }}</span>
+              <span v-if="item.path === '/admin/messages' && messageStore.unreadCount > 0" class="nav-msg-badge">
+                {{ messageStore.unreadCount > 99 ? '99+' : messageStore.unreadCount }}
+              </span>
           </NuxtLink>
         </div>
         
@@ -47,7 +50,15 @@
 
 <script setup>
 import AppNavbar from '~/layouts/AppNavbar.vue'
-const authStore = useAuthStore();
+import { useMessageStore } from '~/stores/messageStore'
+
+const authStore = useAuthStore()
+const messageStore = useMessageStore()
+
+onMounted(() => {
+  const userId = authStore.user?.id
+  if (userId) messageStore.fetchUnreadCount()
+})
 
 const menuItems = [
   {
@@ -61,6 +72,16 @@ const menuItems = [
     icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'
   },
 
+  {
+    label: 'Messages',
+    path: '/admin/messages',
+    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'
+  },
+  {
+    label: 'Notifications',
+    path: '/admin/notifications',
+    icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
+  },
   {
     label: 'Paramètres',
     path: '/admin/settings',
@@ -187,14 +208,24 @@ const logout = () => {
 }
 
 @keyframes icon-shine {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.12);
-  }
-  100% {
-    transform: scale(1);
-  }
+  0% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.nav-msg-badge {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f43f5e;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 900;
+  color: white;
+  padding: 0 4px;
+  line-height: 1;
 }
 </style>

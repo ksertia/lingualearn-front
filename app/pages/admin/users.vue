@@ -3,36 +3,40 @@
     <!-- Modal création -->
     <CreateNewUser v-if="openModal" @close="openModal = false" @create="addUser"/>
 
-    <!-- Indicateur de chargement -->
-    <div v-if="userStore.isLoading" class="text-center py-4">
-      <p class="text-gray-500">Chargement des utilisateurs...</p>
+    <!-- Chargement -->
+    <div v-if="userStore.isLoading" class="flex flex-col items-center justify-center py-20">
+      <div class="relative w-16 h-16">
+        <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+        <div class="spinner-ring"></div>
+      </div>
+      <p class="mt-4 text-slate-500 font-medium text-sm">Chargement des utilisateurs...</p>
     </div>
 
-    <!-- Message d'erreur -->
-    <div v-else-if="userStore.error" class="text-center py-4">
-      <p class="text-red-500">Erreur : {{ userStore.error }}</p>
-      <button @click="userStore.fetchUsers()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded">Réessayer</button>
+    <!-- Erreur -->
+    <div v-else-if="userStore.error" class="error-state">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 flex-shrink-0" viewBox="0 0 256 256">
+        <path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm-8 56a8 8 0 0 1 16 0v56a8 8 0 0 1-16 0Zm8 104a12 12 0 1 1 12-12a12 12 0 0 1-12 12Z"/>
+      </svg>
+      <div>
+        <p class="font-bold">Une erreur est survenue</p>
+        <p class="text-sm opacity-80">{{ userStore.error }}</p>
+        <button @click="userStore.fetchUsers()" class="retry-btn mt-2">Réessayer</button>
+      </div>
     </div>
 
-    <!-- Tableau utilisateurs -->
+    <!-- Tableau -->
     <UserTable
       v-else
-        :users="userStore.users"
-        :initial-role="route.query.role as string"
-        :initial-status="route.query.status as string"
+      :users="userStore.users"
+      :initial-role="route.query.role as string"
+      :initial-status="route.query.status as string"
       @create="openModal = true"
-      @delete="deleteUser" 
+      @delete="deleteUser"
       @show-details="showUserDetails"
       @toggle-status="toggleUserStatus"
       @verify="verifyUser"
       @edit="editUser"
     />
-
-    <!-- Message si aucun utilisateur -->
-    <!-- <div v-else class="text-center py-4">
-      {{ users }}
-      <p class="text-gray-500">Aucun utilisateur trouvé.</p>
-    </div> -->
 
     <!-- Modal détails -->
     <CreateUserDetails
@@ -41,127 +45,134 @@
       @close="selectedUser = null"
     />
 
-    <!-- Popup édition -->
-    <div
-      v-if="editingUser"
-      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-    >
-      <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg space-y-4">
-        <h2 class="text-lg font-bold text-[#000099]">
-          Modifier {{ editingUser.profile.firstName }} {{ editingUser.profile.lastName }}
-        </h2>
-
-        <div class="space-y-3">
-          <div>
-            <label class="block text-sm font-medium">Prénom</label>
-            <input
-              v-model="editingUser.profile.firstName"
-              class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#00ced1] outline-none"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">Nom</label>
-            <input
-              v-model="editingUser.profile.lastName"
-              class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#00ced1] outline-none"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">Email</label>
-            <input
-              v-model="editingUser.email"
-              class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#00ced1] outline-none"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">Username</label>
-            <input
-              v-model="editingUser.username"
-              class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#00ced1] outline-none"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">Mot de passe (laisser vide pour ne pas changer)</label>
-            <input
-              v-model="editingUser.password"
-              type="password"
-              placeholder="••••••"
-              class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#00ced1] outline-none"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">Rôle</label>
-            <select
-              v-model="editingUser.accountType"
-              class="w-full px-4 py-2 rounded-full border border-gray-300 focus:ring-2 focus:ring-[#00ced1] outline-none"
-            >
-              <option value="learner">Apprenant</option>
-              <option value="sub_account_learner">Sous-compte apprenant</option>
-              <option value="teacher">Formateur</option>
-              <option value="plateform_manager">Gestionnaire de plateforme</option>
-              <option value="admin">Administrateur</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium">Statut</label>
-            <button
-              @click="toggleStatusInPopup"
-              class="px-3 py-1 rounded-full font-semibold transition"
-              :class="editingUser.isActive
-                ? 'bg-[#c0c0c0] text-[#000099] hover:bg-[#a0a0a0]'   /* Désactiver */
-                : 'bg-[#00ced1] text-[#000099] hover:bg-[#00b6b9]'    /* Activer */"
-            >
-              {{ editingUser.isActive ? 'Actif' : 'Inactif' }}
+    <!-- Modal Édition -->
+    <Teleport to="body">
+      <div v-if="editingUser" class="modal-overlay" @click.self="editingUser = null">
+        <div class="modal-box">
+          <!-- Header -->
+          <div class="modal-header">
+            <div class="modal-icon-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="modal-title">Modifier l'utilisateur</h2>
+              <p class="modal-subtitle">{{ editingUser.profile.firstName }} {{ editingUser.profile.lastName }}</p>
+            </div>
+            <button class="modal-close" @click="editingUser = null">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
             </button>
           </div>
 
-          <div class="flex justify-end gap-3 mt-4">
-            <button
-              @click="editingUser = null"
-              class="px-4 py-2 rounded-full bg-gray-200 text-black font-semibold hover:bg-gray-300"
-            >
-              Annuler
-            </button>
-            <button
-              @click="saveEdit"
-              class="px-4 py-2 rounded-full bg-[#00ced1] text-[#000099] font-semibold hover:bg-[#00b6b9]"
-            >
-              Enregistrer
-            </button>
+          <!-- Body -->
+          <div class="modal-body">
+            <div class="field-grid">
+              <div class="field">
+                <label class="field-label">Prénom</label>
+                <input v-model="editingUser.profile.firstName" type="text" class="field-input" placeholder="Prénom"/>
+              </div>
+              <div class="field">
+                <label class="field-label">Nom</label>
+                <input v-model="editingUser.profile.lastName" type="text" class="field-input" placeholder="Nom"/>
+              </div>
+              <div class="field field-full">
+                <label class="field-label">Adresse email</label>
+                <input v-model="editingUser.email" type="email" class="field-input" placeholder="email@exemple.com"/>
+              </div>
+              <div class="field">
+                <label class="field-label">Nom d'utilisateur</label>
+                <input v-model="editingUser.username" type="text" class="field-input" placeholder="@username"/>
+              </div>
+              <div class="field">
+                <label class="field-label">Nouveau mot de passe</label>
+                <input v-model="editingUser.password" type="password" class="field-input" placeholder="Laisser vide pour ne pas modifier"/>
+              </div>
+              <div class="field">
+                <label class="field-label">Rôle</label>
+                <div class="field-select-wrap">
+                  <select v-model="editingUser.accountType" class="field-select">
+                    <option value="learner">Apprenant</option>
+                    <option value="sub_account_learner">Sous-compte apprenant</option>
+                    <option value="teacher">Formateur</option>
+                    <option value="plateform_manager">Gestionnaire</option>
+                    <option value="admin">Administrateur</option>
+                  </select>
+                  <div class="select-chevron">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div class="field">
+                <label class="field-label">Statut</label>
+                <button
+                  @click="toggleStatusInPopup"
+                  :class="['status-toggle', editingUser.isActive ? 'status-toggle-active' : 'status-toggle-inactive']"
+                >
+                  <span class="status-dot"></span>
+                  {{ editingUser.isActive ? 'Actif' : 'Inactif' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="modal-footer">
+            <button @click="editingUser = null" class="btn-cancel">Annuler</button>
+            <button @click="saveEdit" class="btn-save">Enregistrer</button>
           </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
+    <!-- Modal Suppression -->
+    <Teleport to="body">
+      <div v-if="userToDelete" class="modal-overlay" @click.self="userToDelete = null">
+        <div class="modal-box modal-box-sm">
+          <div class="flex items-center gap-4 mb-5">
+            <div class="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center flex-shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Supprimer l'utilisateur</h3>
+              <p class="text-sm text-slate-500 mt-0.5">Cette action est irréversible</p>
+            </div>
+          </div>
+          <p class="text-sm text-slate-600 mb-6">
+            Vous êtes sur le point de supprimer
+            <span class="font-semibold text-slate-900">{{ userToDelete.profile.firstName }} {{ userToDelete.profile.lastName }}</span>.
+            Toutes ses données seront définitivement supprimées.
+          </p>
+          <div class="flex justify-end gap-3">
+            <button class="btn-cancel" @click="userToDelete = null">Annuler</button>
+            <button class="btn-delete" @click="confirmDeleteUser">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Toast -->
     <transition name="toast-fade">
       <div
         v-if="toast.show"
-        class="fixed bottom-6 right-6 z-[60] rounded-xl px-4 py-3 shadow-lg text-white"
-        :class="toast.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'"
+        class="toast"
+        :class="toast.type === 'success' ? 'toast-success' : 'toast-error'"
       >
+        <svg v-if="toast.type === 'success'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+        <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
         {{ toast.message }}
       </div>
     </transition>
-
-    <div v-if="userToDelete" class="fixed inset-0 z-[70] bg-black/40 flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl p-6 w-full max-w-md">
-        <h3 class="text-lg font-semibold text-slate-900 mb-2">Supprimer l'utilisateur</h3>
-        <p class="text-sm text-slate-600 mb-6">
-          Voulez-vous supprimer {{ userToDelete.profile.firstName }} {{ userToDelete.profile.lastName }} ?
-        </p>
-        <div class="flex justify-end gap-3">
-          <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="userToDelete = null">Annuler</button>
-          <button class="px-4 py-2 rounded-lg bg-red-600 text-white" @click="confirmDeleteUser">Supprimer</button>
-        </div>
-      </div>
-    </div>
-
   </div>
 </template>
 
@@ -191,25 +202,15 @@ const toast = ref({
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 
 const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-  if (toastTimer) {
-    clearTimeout(toastTimer)
-  }
+  if (toastTimer) clearTimeout(toastTimer)
   toast.value = { show: true, message, type }
-  toastTimer = setTimeout(() => {
-    toast.value.show = false
-  }, 3000)
+  toastTimer = setTimeout(() => { toast.value.show = false }, 3000)
 }
 
-// -------------------
-// FETCH USERS ON MOUNT
-// -------------------
 onMounted(async () => {
   await userStore.fetchUsers()
 })
 
-// -------------------
-// Ajouter un utilisateur
-// -------------------
 const addUser = async (newUser: any) => {
   try {
     const userData = {
@@ -228,13 +229,10 @@ const addUser = async (newUser: any) => {
     await userStore.fetchUsers()
   } catch (err) {
     console.error('Error creating user:', err)
-    showToast('Erreur lors de la création de l’utilisateur.', 'error')
+    showToast('Erreur lors de la création de l\'utilisateur.', 'error')
   }
 }
 
-// -------------------
-// Supprimer un utilisateur
-// -------------------
 const deleteUser = async (user: User) => {
   if (!user?.id) return
   userToDelete.value = user
@@ -249,145 +247,369 @@ const confirmDeleteUser = async () => {
     showToast(`L'utilisateur ${user.profile.firstName} ${user.profile.lastName} a été supprimé avec succès.`)
   } catch (err) {
     console.error('Delete user error:', err)
-    showToast('Erreur lors de la suppression de l’utilisateur.', 'error')
+    showToast('Erreur lors de la suppression de l\'utilisateur.', 'error')
   } finally {
     userToDelete.value = null
   }
 }
 
-// -------------------
-// Afficher les détails
-// -------------------
 const showUserDetails = (user: User) => {
   selectedUser.value = user
 }
 
-// -------------------
-// Vérifier un utilisateur
-// -------------------
 const verifyUser = async (user: User) => {
   try {
     const { email, accountType, profile, username, phone, isActive } = user
-    const payload = { 
-      firstName: profile.firstName, 
-      lastName: profile.lastName, 
-      email, 
+    const payload = {
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      email,
       username,
       phone,
-      accountType, 
+      accountType,
       isActive,
       isVerified: true,
-      profile: {
-        ...profile,
-      }
+      profile: { ...profile }
     }
     await userStore.putUser(user.id, payload)
     user.isVerified = true
     showToast(`L'utilisateur ${profile.firstName} ${profile.lastName} a été vérifié.`)
   } catch (err) {
     console.error(err)
-    showToast('Erreur lors de la vérification de l’utilisateur.', 'error')
+    showToast('Erreur lors de la vérification de l\'utilisateur.', 'error')
   }
 }
 
-// -------------------
-// Toggle status direct depuis le tableau
-// -------------------
 const toggleUserStatus = async (user: User) => {
   try {
     const newStatus = !user.isActive
     const { email, accountType, profile, username, phone } = user
-    const payload = { 
-      firstName: profile.firstName, 
-      lastName: profile.lastName, 
-      email, 
+    const payload = {
+      firstName: profile.firstName,
+      lastName: profile.lastName,
+      email,
       username,
       phone,
-      accountType, 
+      accountType,
       isActive: newStatus,
-      profile: {
-        ...profile,
-        firstName: profile.firstName,
-        lastName: profile.lastName,
-      }
+      profile: { ...profile, firstName: profile.firstName, lastName: profile.lastName }
     }
     await userStore.putUser(user.id, payload)
     user.isActive = newStatus
-    showToast(
-      `Le statut de ${profile.firstName} ${profile.lastName} a été ${newStatus ? 'activé' : 'désactivé'}.`
-    )
+    showToast(`Le statut de ${profile.firstName} ${profile.lastName} a été ${newStatus ? 'activé' : 'désactivé'}.`)
   } catch (err) {
     console.error(err)
     showToast('Erreur lors de la mise à jour du statut.', 'error')
   }
 }
 
-// -------------------
-// Édition popup
-// -------------------
-
-// Ouvrir le modal d'édition (clone profond pour éviter les effets de bord)
 const editUser = (user: User) => {
   editingUser.value = JSON.parse(JSON.stringify(user))
 }
 
-// Toggle Actif/Inactif dans le popup
 const toggleStatusInPopup = () => {
   if (!editingUser.value) return
   editingUser.value.isActive = !editingUser.value.isActive
 }
 
-// Sauvegarder les modifications depuis le popup
 const saveEdit = async () => {
   if (!editingUser.value) return
-
   const { id, accountType, isActive, email, profile, username, phone } = editingUser.value
-  
-  // On envoie à la fois à la racine et dans l'objet profile
-  // pour maximiser les chances de compatibilité avec le backend
-  const payload: any = { 
-    firstName: profile.firstName, 
-    lastName: profile.lastName, 
-    email, 
+  const payload: any = {
+    firstName: profile.firstName,
+    lastName: profile.lastName,
+    email,
     username,
     phone,
-    accountType, 
+    accountType,
     isActive,
-    profile: {
-      ...profile,
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-    }
+    profile: { ...profile, firstName: profile.firstName, lastName: profile.lastName }
   }
-
-  // On n'envoie le mot de passe que s'il a été saisi
   if (editingUser.value.password) {
     payload.password = editingUser.value.password
   }
-
   try {
     await userStore.putUser(id, payload)
-    
-    // Si on est ici, c'est que ça a marché
     showToast(`L'utilisateur ${profile.firstName} ${profile.lastName} a été modifié avec succès.`)
     editingUser.value = null
   } catch (err) {
     console.error('Put user error:', err)
-    showToast('Erreur lors de la modification de l’utilisateur.', 'error')
+    showToast('Erreur lors de la modification de l\'utilisateur.', 'error')
   }
 }
-
 </script>
 
 <style scoped>
-.toast-fade-enter-active,
-.toast-fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+/* ─── Spinner ──────────────────────────────── */
+.spinner-ring {
+  position: absolute;
+  inset: 0;
+  border: 4px solid transparent;
+  border-top-color: #000099;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── Error ────────────────────────────────── */
+.error-state {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  color: #dc2626;
+}
+.retry-btn {
+  display: inline-block;
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: white;
+  border: 1.5px solid #fca5a5;
+  color: #dc2626;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.retry-btn:hover { background: #fee2e2; }
+
+/* ─── Modal Overlay ────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
 }
 
-.toast-fade-enter-from,
-.toast-fade-leave-to {
-  opacity: 0;
-  transform: translateY(8px);
+/* ─── Modal Box ────────────────────────────── */
+.modal-box {
+  background: white;
+  border-radius: 1.25rem;
+  width: 100%;
+  max-width: 540px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
 }
+.modal-box-sm {
+  max-width: 420px;
+  padding: 1.5rem;
+}
+
+/* ─── Modal Header ─────────────────────────── */
+.modal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fafbff;
+}
+.modal-icon-wrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: rgba(0, 0, 153, 0.08);
+  color: #000099;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.modal-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+.modal-subtitle {
+  font-size: 0.8125rem;
+  color: #64748b;
+  margin-top: 0.125rem;
+}
+.modal-close {
+  margin-left: auto;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.modal-close:hover { background: #f1f5f9; color: #475569; }
+
+/* ─── Modal Body ───────────────────────────── */
+.modal-body { padding: 1.5rem; }
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.field-full { grid-column: 1 / -1; }
+.field-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.375rem;
+  letter-spacing: 0.01em;
+}
+.field-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.field-input:focus {
+  border-color: #00ced1;
+  box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.12);
+  background: white;
+}
+.field-select-wrap { position: relative; }
+.field-select {
+  width: 100%;
+  padding: 0.625rem 2.25rem 0.625rem 0.875rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.field-select:focus {
+  border-color: #00ced1;
+  box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.12);
+  background: white;
+}
+.select-chevron {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #94a3b8;
+}
+
+/* ─── Status Toggle ────────────────────────── */
+.status-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.status-toggle-active {
+  background: rgba(0, 206, 209, 0.1);
+  color: #000099;
+  border-color: rgba(0, 206, 209, 0.3);
+}
+.status-toggle-active .status-dot { background: #00ced1; }
+.status-toggle-inactive {
+  background: #f1f5f9;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+.status-toggle-inactive .status-dot { background: #94a3b8; }
+
+/* ─── Modal Footer ─────────────────────────── */
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbff;
+}
+
+/* ─── Buttons ──────────────────────────────── */
+.btn-cancel {
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; color: #475569; }
+.btn-save {
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: white;
+  background: #000099;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-save:hover { background: #0000bb; }
+.btn-delete {
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: white;
+  background: #dc2626;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-delete:hover { background: #b91c1c; }
+
+/* ─── Toast ────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 0.875rem;
+  padding: 0.75rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  max-width: 360px;
+}
+.toast-success { background: #000099; color: white; }
+.toast-error { background: #dc2626; color: white; }
+
+/* ─── Transitions ──────────────────────────── */
+.toast-fade-enter-active,
+.toast-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.toast-fade-enter-from,
+.toast-fade-leave-to { opacity: 0; transform: translateY(8px); }
 </style>
