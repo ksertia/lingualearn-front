@@ -189,7 +189,7 @@
               :disabled="isLoading"
               class="w-full rounded-md bg-[#2D5BFF] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#FFA500]/90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {{ isLoading ? "Création..." : "Sign Up" }}
+              {{ isLoading ? "Création..." : "S'inscrire" }}
             </button>
 
             <p class="text-sm text-white/60">

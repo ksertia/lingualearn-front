@@ -225,6 +225,7 @@ const normalize = (value: any): QuizForm => {
 
 const mode = ref<EditorMode>(detectMode(props.modelValue));
 const local = ref<QuizForm>(normalize(props.modelValue));
+const syncingFromParent = ref(false);
 
 const ensureDefaults = () => {
   if (local.value.questions.length === 0) {
@@ -256,14 +257,19 @@ ensureDefaults();
 watch(
   () => props.modelValue,
   (value) => {
+    syncingFromParent.value = true;
     mode.value = detectMode(value);
     local.value = normalize(value);
     ensureDefaults();
+    queueMicrotask(() => {
+      syncingFromParent.value = false;
+    });
   },
   { deep: true }
 );
 
 watch(local, (newVal) => {
+  if (syncingFromParent.value) return;
   if (mode.value === "questions") {
     emit("update:modelValue", newVal.questions);
   } else {

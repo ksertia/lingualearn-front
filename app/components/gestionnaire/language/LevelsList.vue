@@ -14,6 +14,12 @@
             </p>
           </div>
         </div>
+        <p
+          v-if="feedback.message"
+          :class="['status-message', feedback.type === 'error' ? 'status-error' : 'status-success']"
+        >
+          {{ feedback.message }}
+        </p>
       </div>
 
       <!-- Levels Grid -->
@@ -70,11 +76,19 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useLanguageStore } from "../../../stores/languageStore";
 import type { Level } from "~/types/language-level";
 
 const languageStore = useLanguageStore();
+const feedback = ref({ message: "", type: "success" as "success" | "error" });
+
+const showFeedback = (message: string, type: "success" | "error" = "success") => {
+  feedback.value = { message, type };
+  setTimeout(() => {
+    feedback.value.message = "";
+  }, 2500);
+};
 
 // Fonction locale pour vider la selection
 const clearSelection = () => {
@@ -123,14 +137,33 @@ const toggleLevel = async (level: any) => {
 
     // Mise a jour locale pour feedback instantane
     level.isActive = !level.isActive;
+    showFeedback(`Le niveau ${level.name} a été ${level.isActive ? "activé" : "désactivé"} avec succès.`);
   } catch (error) {
     console.error("Erreur changement statut niveau", error);
-    alert("Impossible de modifier le statut du niveau");
+    showFeedback("Impossible de modifier le statut du niveau.", "error");
   }
 };
 </script>
 
 <style scoped>
+.status-message {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
 .levels-section {
   width: 100%;
 }

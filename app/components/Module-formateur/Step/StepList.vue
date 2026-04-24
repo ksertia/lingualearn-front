@@ -74,7 +74,7 @@
                 step.stepType === 'quiz' ? 'bg-amber-50 text-amber-700 border-amber-100' : 
                 'bg-blue-50 text-blue-700 border-blue-100'
               ]">
-                {{ stepTypeLabel(step.stepType) }}
+                {{ getStepTypeLabel(step.stepType) }}
               </span>
             </td>
             <td v-if="!isReadonly" class="px-6 py-4">
@@ -129,6 +129,19 @@
         </tbody>
       </table>
     </div>
+
+    <div v-if="stepToDelete" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl p-6 w-full max-w-md">
+        <h4 class="text-lg font-bold text-slate-800 mb-2">Confirmer la suppression</h4>
+        <p class="text-sm text-slate-600 mb-5">
+          Êtes-vous sûr de vouloir supprimer l'étape "{{ stepToDelete.title }}" ?
+        </p>
+        <div class="flex justify-end gap-3">
+          <button class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700" @click="stepToDelete = null">Annuler</button>
+          <button class="px-4 py-2 rounded-lg bg-rose-600 text-white" @click="deleteStepConfirmed">Supprimer</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -137,6 +150,7 @@ import { computed } from 'vue';
 import { useStepStore } from '~/stores/stepStore';
 import { storeToRefs } from 'pinia';
 import type { Step } from '~/types/learning';
+import { stepTypeLabel } from '~/utils/labels';
 
 const props = defineProps<{
   pathId?: string;
@@ -155,6 +169,7 @@ const emit = defineEmits<{
 const stepStore = useStepStore();
 const { steps, isLoading } = storeToRefs(stepStore);
 const router = useRouter();
+const stepToDelete = ref<Step | null>(null);
 
 const isExternal = computed(() => Array.isArray(props.items));
 const isReadonly = computed(() => Boolean(props.readonly || isExternal.value));
@@ -179,14 +194,7 @@ const loadSteps = () => {
 onMounted(loadSteps);
 watch(() => props.pathId, loadSteps);
 
-const stepTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    'lesson': 'Cours',
-    'quiz': 'Quiz',
-    'exercise': 'Exercice'
-  };
-  return labels[type] || type;
-};
+const getStepTypeLabel = (type: string) => stepTypeLabel[type] || type;
 
 const handleRowClick = (step: Step) => {
   if (!isExternal.value) return;
@@ -213,14 +221,15 @@ const toggleStatus = async (step: Step) => {
 
 const confirmDelete = async (step: Step) => {
   if (isReadonly.value) return;
-  if (confirm(`ÃŠtes-vous sÃ»r de vouloir supprimer l'Ã©tape "${step.title}" ?`)) {
-    const success = await stepStore.deleteStep(step.id);
-    if (success) {
-      // Refresh current list
-      if (props.pathId) {
-        stepStore.fetchSteps(props.pathId);
-      }
-    }
+  stepToDelete.value = step;
+};
+
+const deleteStepConfirmed = async () => {
+  if (!stepToDelete.value) return;
+  const success = await stepStore.deleteStep(stepToDelete.value.id);
+  if (success && props.pathId) {
+    stepStore.fetchSteps(props.pathId);
   }
+  stepToDelete.value = null;
 };
 </script>

@@ -219,6 +219,19 @@
         </div>
       </transition>
 
+      <transition name="fade">
+        <div v-if="moduleToDeleteId" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl">
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Supprimer le module</h3>
+            <p class="text-sm text-slate-600 mb-6">Cette action est irréversible. Voulez-vous continuer ?</p>
+            <div class="flex justify-end gap-3">
+              <button @click="moduleToDeleteId = null" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600">Annuler</button>
+              <button @click="confirmDeleteModule" class="px-4 py-2 rounded-lg bg-red-600 text-white">Supprimer</button>
+            </div>
+          </div>
+        </div>
+      </transition>
+
     </section>
   </div>
 </template>
@@ -359,6 +372,7 @@ const description = ref('')
 const error = ref('')
 const isLoading = ref(false)
 const isFetchingModules = ref(false)
+const moduleToDeleteId = ref<string | null>(null)
 
 // Récupérer le nom du niveau via son ID
 const getLevelName = (levelId: string) => {
@@ -447,13 +461,15 @@ const onSubmit = async () => {
 
 /* ================= DELETE MODULE ================= */
 const removeModule = async (id: string) => {
-  if (!confirm('Supprimer ce module ?')) return
-  await moduleStore.deleteModule(id)
+  moduleToDeleteId.value = id
+}
+
+const confirmDeleteModule = async () => {
+  if (!moduleToDeleteId.value) return
+  await moduleStore.deleteModule(moduleToDeleteId.value)
   await fetchModulesByLanguage(route.params.id as string)
   currentPage.value = 1
-
- 
-
+  moduleToDeleteId.value = null
 }
 
 /* ================= PAGINATION ================= */

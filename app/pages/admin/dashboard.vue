@@ -25,6 +25,9 @@ const handleKpiDetail = (kpi: string) => {
     query
   })
 }
+const refreshData = () => {
+  dashboardStore.fetchDashboardData()
+}
 
 onMounted(() => {
   dashboardStore.fetchDashboardData()
@@ -35,24 +38,28 @@ onMounted(() => {
   <div class="min-h-screen bg-slate-50/50 p-4 lg:p-8">
     <div class="max-w-7xl mx-auto">
       <header class="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Vue d'ensemble</h1>
-          <p class="text-slate-500 mt-1">Gérez et suivez les performances de la plateforme LinguaLearn.</p>
+        <div class="flex items-center gap-4">
+          <div class="w-1 h-10 rounded-full bg-gradient-to-b from-[#000099] to-[#00CED1] flex-shrink-0"></div>
+          <div>
+            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Vue d'ensemble</h1>
+            <p class="text-slate-500 mt-1">Gérez et suivez les performances de la plateforme LinguaLearn.</p>
+          </div>
         </div>
-        <button 
-          @click="dashboardStore.fetchDashboardData()" 
+         <button
+          @click="refreshData()"
           class="inline-flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 transition-colors"
           :disabled="dashboardStore.isLoading"
         >
           <svg xmlns="http://www.w3.org/2000/svg" :class="{ 'animate-spin': dashboardStore.isLoading }" class="w-4 h-4 text-slate-500" viewBox="0 0 256 256"><path fill="currentColor" d="M224 128a96 96 0 0 1-96 96A96 96 0 0 1 32 128A96 96 0 0 1 128 32a96 96 0 0 1 96 96Zm-16 0a80 80 0 1 0-80 80a80 80 0 0 0 80-80Z"/></svg>
           Actualiser
         </button>
+        <!--<button @click="actualisation()"> Actualiser </button> -->
       </header>
 
       <div v-if="dashboardStore.isLoading && !dashboardStore.stats" class="flex flex-col items-center justify-center py-20">
         <div class="relative w-20 h-20">
           <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
-          <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+          <div class="absolute inset-0 border-4 border-[#000099] rounded-full border-t-transparent animate-spin"></div>
         </div>
         <p class="mt-4 text-slate-500 font-medium">Récupération des données...</p>
       </div>

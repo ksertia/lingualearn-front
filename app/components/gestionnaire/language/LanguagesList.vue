@@ -55,6 +55,17 @@
       </div>
     </div>
 
+    <div v-if="languageToDeleteId" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">Supprimer la langue</h3>
+        <p class="text-sm text-slate-600 mb-6">Voulez-vous vraiment supprimer cette langue ?</p>
+        <div class="flex justify-end gap-3">
+          <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="languageToDeleteId = null">Annuler</button>
+          <button class="px-4 py-2 rounded-lg bg-red-600 text-white" @click="confirmDeleteLanguage">Supprimer</button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="languageStore.languages.length === 0" class="empty-state">
       <p class="empty-icon">🌍</p>
       <p class="empty-text">Aucune langue disponible</p>
@@ -64,10 +75,12 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
 import { useLanguageStore } from "../../../stores/languageStore";
 import type { LanguageWithLevels } from "~/types/language-level";
 
 const languageStore = useLanguageStore();
+const languageToDeleteId = ref<string | null>(null);
 
 const selectLanguage = (languageId: string | undefined) => {
   if (!languageId) return;
@@ -81,9 +94,13 @@ const toggleLanguage = (language: LanguageWithLevels) => {
 
 const deleteLanguage = (languageId: string | undefined) => {
   if (!languageId) return;
-  if (confirm("Êtes-vous sûr de vouloir supprimer cette langue ?")) {
-    languageStore.deleteLanguage(languageId);
-  }
+  languageToDeleteId.value = languageId;
+};
+
+const confirmDeleteLanguage = () => {
+  if (!languageToDeleteId.value) return;
+  languageStore.deleteLanguage(languageToDeleteId.value);
+  languageToDeleteId.value = null;
 };
 
 const formatDate = (date: string | undefined) => {

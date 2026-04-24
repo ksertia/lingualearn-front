@@ -82,6 +82,7 @@ export const useUserStore = defineStore('user', () => {
   // CREATE USER
   // -----------------------
   async function createUser(userData: CreateUserPayload) {
+    console.log('🔑 Password reçu par le store:', userData.password) // ← ajoute ça
     isLoading.value = true
     error.value = null
 
@@ -96,7 +97,6 @@ export const useUserStore = defineStore('user', () => {
         username: userData.username,
         parentId: userData.parentId
       }
-
       const response: ApiResponse<User> =
         await apiService.createUser(payload)
 

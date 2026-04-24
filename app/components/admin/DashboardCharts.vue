@@ -122,9 +122,11 @@ const contentChartOptions = {
 </template>
 
 <style scoped>
-@reference "~/assets/css/main.css";
-
 .chart-container {
-  @apply bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100;
+  background: white;
+  padding: 2rem;
+  border-radius: 2rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+  border: 1px solid #f1f5f9;
 }
 </style>

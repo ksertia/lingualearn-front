@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#0B1220] text-white">
+  <div class="min-h-screen bg-[#0f1b3b] text-white">
     <div class="mx-auto grid min-h-screen max-w-7xl grid-cols-1 lg:grid-cols-2">
       <div class="px-6 py-10 lg:px-10">
         <!-- <NuxtLink to="/" class="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white">
@@ -51,7 +51,7 @@
                 type="email"
                 autocomplete="email"
                 placeholder="info@gmail.com"
-                class="mt-2 w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-[#2D5BFF] focus:ring-2 focus:ring-[#2D5BFF]/30"
+                class="mt-2 w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-[#00CED1] focus:ring-2 focus:ring-[#00CED1]/30"
                 required
               />
             </div>
@@ -65,7 +65,7 @@
                   :type="showPassword ? 'text' : 'password'"
                   autocomplete="current-password"
                   placeholder="Entrez votre mot de passe"
-                  class="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white placeholder:text-white/40 outline-none focus:border-[#2D5BFF] focus:ring-2 focus:ring-[#2D5BFF]/30"
+                  class="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white placeholder:text-white/40 outline-none focus:border-[#00CED1] focus:ring-2 focus:ring-[#00CED1]/30"
                   required
                 />
                 <button
@@ -93,7 +93,7 @@
                 <input
                   v-model="remember"
                   type="checkbox"
-                  class="h-4 w-4 rounded border-white/20 bg-white/10 text-[#2D5BFF] focus:ring-[#2D5BFF]/40"
+                  class="h-4 w-4 rounded border-white/20 bg-white/10 text-[#00CED1] focus:ring-[#00CED1]/40"
                 />
                 <span>se souvenir de moi</span>
               </label>
@@ -112,9 +112,9 @@
             <button
               type="submit"
               :disabled="isLoading"
-              class="w-full rounded-md bg-[#2D5BFF] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#FFA500]/90 disabled:cursor-not-allowed disabled:opacity-60"
+              class="w-full rounded-md bg-[#000099] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#00CED1] hover:shadow-lg hover:shadow-[#00CED1]/20 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {{ isLoading ? "Connexion..." : "Sign In" }}
+              {{ isLoading ? "Connexion..." : "Se connecter" }}
             </button>
 
             <!-- <p class="text-sm text-white/60">
@@ -125,20 +125,49 @@
         </div>
       </div>
 
-      <div class="relative hidden overflow-hidden lg:block">
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(45,91,255,0.35),transparent_55%)]"></div>
-        <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 64px 64px;"></div>
-        <div class="relative flex h-full items-center justify-center px-10">
+      <div class="relative hidden overflow-hidden lg:block bg-gradient-to-br from-[#000099] via-[#0a0a7a] to-[#0f1b3b]">
+        <!-- Grid pattern -->
+        <div class="absolute inset-0 opacity-10" style="background-image: linear-gradient(rgba(0,206,209,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(0,206,209,0.15) 1px, transparent 1px); background-size: 48px 48px;"></div>
+        <!-- Glow top-right -->
+        <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-20" style="background: radial-gradient(circle, #00CED1, transparent 70%);"></div>
+        <!-- Glow bottom-left -->
+        <div class="absolute -bottom-20 -left-20 w-64 h-64 rounded-full opacity-15" style="background: radial-gradient(circle, #FF7F00, transparent 70%);"></div>
+
+        <div class="relative flex h-full flex-col items-center justify-center px-12 gap-10">
+          <!-- Logo -->
           <div class="text-center">
-            <div class="mx-auto mb-6 inline-flex items-center gap-4">
-              <div class="grid h-12 w-12 place-items-center rounded-xl bg-[#2D5BFF]/20">
-                <div class="h-6 w-6 rounded bg-[#2D5BFF]"></div>
+            <div class="mx-auto mb-4 inline-flex items-center gap-3">
+              <div class="grid h-14 w-14 place-items-center rounded-2xl border border-[#00CED1]/30" style="background: rgba(0,206,209,0.15); backdrop-filter: blur(8px);">
+                <span class="text-[#00CED1] font-black text-lg">TB</span>
               </div>
-              <div class="text-3xl font-semibold">TiBi</div>
+              <span class="text-4xl font-extrabold tracking-tight">Ti<span class="text-[#00CED1]">Bi</span></span>
             </div>
-            <p class="mx-auto max-w-sm text-sm text-white/70">
-              Vos racines ont une langue. Faites-la revivre
+            <p class="text-white/60 text-sm font-medium max-w-xs mx-auto leading-relaxed">
+              Vos racines ont une langue.<br>Faites-la revivre.
             </p>
+          </div>
+
+          <!-- Floating language cards -->
+          <div class="w-full max-w-xs space-y-3">
+            <div v-for="lang in langs" :key="lang.name"
+              class="flex items-center gap-4 rounded-2xl px-4 py-3 border border-white/10"
+              style="background: rgba(255,255,255,0.06); backdrop-filter: blur(8px);"
+            >
+              <span class="text-2xl">{{ lang.flag }}</span>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-white">{{ lang.name }}</p>
+                <div class="mt-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                  <div class="h-full rounded-full bg-[#00CED1]" :style="{ width: lang.progress + '%' }"></div>
+                </div>
+              </div>
+              <span class="text-xs text-white/40 font-medium">{{ lang.progress }}%</span>
+            </div>
+          </div>
+
+          <!-- Tagline badge -->
+          <div class="inline-flex items-center gap-2 rounded-full border border-[#00CED1]/30 px-4 py-2 text-xs text-[#00CED1] font-semibold" style="background: rgba(0,206,209,0.08);">
+            <span class="w-2 h-2 rounded-full bg-[#00CED1] animate-pulse"></span>
+            Plateforme d'apprentissage des langues
           </div>
         </div>
       </div>
@@ -159,6 +188,12 @@ const password = ref('');
 const remember = ref(false);
 const showPassword = ref(false);
 const loginSuccess = ref('');
+
+const langs = [
+  { name: 'Mooré', flag: '🇲🇱', progress: 78 },
+  { name: 'Dioula', flag: '🇸🇳', progress: 55 },
+  { name: 'Fulfudé', flag: '🇳🇬', progress: 42 },
+];
 
 const onSubmit = async () => {
   const success = await authStore.login({

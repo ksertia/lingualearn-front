@@ -2,7 +2,7 @@
   <nav class="h-16 bg-[#000099] px-6 flex items-center justify-between sticky top-0 z-50 shadow-md">
     <div class="flex items-center gap-2">
       <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center border border-white/20">
-        <span class="text-white font-black text-xs">LL</span>
+        <span class="text-white font-black text-xs">TB</span>
       </div>
       <span class="text-xl font-bold text-white tracking-tight">Ti<span class="text-brand-cyan text-[#00CED1]">Bi</span></span>
     </div>
@@ -22,11 +22,11 @@
         >
           <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-white overflow-hidden border border-white/30">
             <img v-if="authStore.user?.profile?.avatarUrl" :src="authStore.user.profile.avatarUrl" alt="Avatar" class="w-full h-full object-cover">
-            <span v-else class="font-bold text-sm">{{ authStore.fullname.charAt(0) }}</span>
+            <span v-else class="font-bold text-sm">{{ authStore.fullname.charAt(0) }}{{ authStore.fullname.charAt(1) }}</span>
           </div>
           <div class="text-left hidden sm:block">
             <p class="text-xs font-black text-white leading-none">{{ authStore.fullname }}</p>
-            <p class="text-[10px] text-white/70 font-medium mt-1 uppercase">{{ authStore.user?.accountType || 'professeur' }}</p>
+            <p class="text-[10px] text-white/70 font-medium mt-1 uppercase">{{ accountTypeLabel[authStore.user?.accountType ?? ''] || 'Formateur' }}</p>
           </div>
         <svg 
           class="w-4 h-4 text-white/70 transition-transform duration-200"
@@ -78,13 +78,13 @@
     </div>
   </div>
 </nav>
-
   <div v-if="isDropdownOpen" @click="isDropdownOpen = false" class="fixed inset-0 z-40 bg-transparent"></div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useAuthStore } from '~/stores/authStore';
+import { accountTypeLabel } from '~/utils/labels';
 
 const authStore = useAuthStore();
 const isDropdownOpen = ref(false);

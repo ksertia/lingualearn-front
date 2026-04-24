@@ -10,7 +10,7 @@
         <p><strong>Username:</strong> {{ user.username }}</p>
         <p><strong>Mot de passe:</strong> {{ user.password || '********' }}</p>
         <p><strong>Date d'inscription:</strong> {{ formattedDate }}</p>
-        <p><strong>Rôle:</strong> {{ user.accountType }}</p>
+        <p><strong>Rôle:</strong> {{ accountTypeLabel[user.accountType] || user.accountType }}</p>
       </div>
 
       <div class="flex justify-end mt-4">
@@ -25,6 +25,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { User } from '~/types/auth'
+import { accountTypeLabel } from '~/utils/labels'
 
 const props = defineProps<{
   user: User & { createdAt?: string | Date; password?: string }

@@ -8,6 +8,15 @@ const isLoading = ref(false)
 const isSaving = ref(false)
 const showSuccess = ref(false)
 const dragOver = ref(false)
+const feedback = ref({ message: '', type: 'success' as 'success' | 'error' })
+const confirmRemove = ref(false)
+
+const showFeedback = (message: string, type: 'success' | 'error' = 'success') => {
+  feedback.value = { message, type }
+  setTimeout(() => {
+    feedback.value.message = ''
+  }, 3000)
+}
 
 // Gérer le drag & drop
 const handleDragOver = (e: DragEvent) => {
@@ -47,13 +56,13 @@ const handleFile = (file: File) => {
   // Valider le type de fichier
   const validTypes = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp']
   if (!validTypes.includes(file.type)) {
-    alert('Veuillez sélectionner un fichier image (JPEG, PNG, SVG ou WebP)')
+    showFeedback('Veuillez sélectionner un fichier image (JPEG, PNG, SVG ou WebP).', 'error')
     return
   }
 
   // Valider la taille (max 2MB)
   if (file.size > 2 * 1024 * 1024) {
-    alert('La taille du fichier ne doit pas dépasser 2MB')
+    showFeedback('La taille du fichier ne doit pas dépasser 2MB.', 'error')
     return
   }
 
@@ -77,6 +86,7 @@ const saveLogo = async () => {
   
   isSaving.value = false
   showSuccess.value = true
+  showFeedback('Le logo a été enregistré avec succès.')
   setTimeout(() => {
     showSuccess.value = false
   }, 3000)
@@ -89,13 +99,17 @@ const cancelUpload = () => {
 
 // Supprimer le logo
 const removeLogo = async () => {
-  if (!confirm('Êtes-vous sûr de vouloir supprimer le logo ?')) return
-  
+  confirmRemove.value = true
+}
+
+const confirmRemoveLogo = async () => {
+  confirmRemove.value = false
   isLoading.value = true
   await new Promise(resolve => setTimeout(resolve, 500))
   currentLogo.value = null
   isLoading.value = false
   showSuccess.value = true
+  showFeedback('Le logo a été supprimé avec succès.')
   setTimeout(() => {
     showSuccess.value = false
   }, 3000)
@@ -211,6 +225,23 @@ const removeLogo = async () => {
           <path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm45.66 85.66l-56 56a8 8 0 0 1-11.32 0l-24-24a8 8 0 0 1 11.32-11.32L112 148.69l50.34-50.35a8 8 0 0 1 11.32 11.32Z"/>
         </svg>
         Logo enregistré avec succès
+      </div>
+      <div
+        v-if="feedback.message"
+        class="p-4 rounded-xl flex items-center gap-2"
+        :class="feedback.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'"
+      >
+        {{ feedback.message }}
+      </div>
+    </div>
+    <div v-if="confirmRemove" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">Supprimer le logo</h3>
+        <p class="text-sm text-slate-600 mb-6">Voulez-vous vraiment supprimer le logo actuel ?</p>
+        <div class="flex justify-end gap-3">
+          <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="confirmRemove = false">Annuler</button>
+          <button class="px-4 py-2 rounded-lg bg-red-600 text-white" @click="confirmRemoveLogo">Supprimer</button>
+        </div>
       </div>
     </div>
   </div>

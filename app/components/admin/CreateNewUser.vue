@@ -84,9 +84,9 @@
             v-model="form.accountType"
             class="w-full border px-3 py-2 rounded"
           >
-            <option value="admin">Admin</option>
-            <option value="plateform_manager">Plateform manager</option>
-            <option value="teacher">Teacher</option>
+            <option value="admin">Administrateur</option>
+            <option value="plateform_manager">Gestionnaire de plateforme</option>
+            <option value="teacher">Formateur</option>
           </select>
         </div>
       </div>
@@ -114,6 +114,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useUserStore } from '~/stores/userStore'
+import type { AccountType } from '~/types/user'
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -168,6 +169,16 @@ const validateForm = () => {
     errors.value.password = 'Le mot de passe doit contenir au moins 6 caractères'
     isValid = false
   }
+  if (!form.value.password) {
+    errors.value.password = 'Le mot de passe est requis'
+    isValid = false
+  } else if (form.value.password.length < 6) {
+    errors.value.password = 'Le mot de passe doit contenir au moins 6 caractères'
+    isValid = false
+  } else if (!/[a-zA-Z]/.test(form.value.password)) {
+    errors.value.password = 'Le mot de passe doit contenir au moins une lettre'
+    isValid = false
+  }
 
   return isValid
 }
@@ -181,7 +192,7 @@ await userStore.createUser({
   lastName: form.value.nom,
   email: form.value.email,
   password: form.value.password,
-  accountType: form.value.accountType,
+  accountType: form.value.accountType as AccountType,
 });
 
 

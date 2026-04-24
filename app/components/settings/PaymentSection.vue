@@ -15,13 +15,13 @@ defineEmits<{
     <Subscriptions />
 
     <!-- Méthodes de paiement -->
-    <PaymentMethods />
+    <!--<PaymentMethods />-->
 
     <!-- Restrictions d'accès -->
-    <AccessRestrictions />
+    <!--<AccessRestrictions />-->
 
     <!-- Historique des transactions -->
-    <Transactions />
+    <!--<Transactions />-->
   </div>
 </template>
 
