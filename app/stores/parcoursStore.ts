@@ -52,7 +52,7 @@ export const useParcoursStore = defineStore('parcours', () => {
     title: string
     description: string
     // index?: number
-    tempResaListime?: number
+    //tempResaListime?: number
     thumbnailUrl?: string
     difficulty?: string
     estimatedHours?: number

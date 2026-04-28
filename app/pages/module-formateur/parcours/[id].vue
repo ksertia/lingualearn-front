@@ -243,7 +243,6 @@ const addPath = async () => {
       moduleId: moduleId,
       title: createdTitle,
       description: pathDescription.value.trim(),
-      tempResaListime: 0,
       thumbnailUrl: "",
       difficulty: "easy",
       estimatedHours: 0,

@@ -7,7 +7,7 @@ import type { LoginCredentials, User } from '~/types/auth';
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null);
   const apiService = useApiService();
-  const token = useCookie<string | null>('token');
+  const token = useCookie<string | null>('token', { maxAge: 60 * 60 * 24 * 2 });
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const isAuthenticated = computed(() => !!token.value);
@@ -18,10 +18,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   function setToken(newToken: string) {
     token.value = newToken;
+    // Forcer un cookie persistant côté navigateur (maxAge = 2 jours)
+    if (import.meta.client) {
+      document.cookie = `token=${encodeURIComponent(newToken)}; max-age=${60 * 60 * 24 * 2}; path=/; SameSite=Lax`;
+    }
   }
 
   function clearAuth() {
-    const cookie = useCookie<string | null>('token')
+    const cookie = useCookie<string | null>('token', { maxAge: 60 * 60 * 24 * 2 })
     cookie.value = null
     user.value = null
     token.value = null
