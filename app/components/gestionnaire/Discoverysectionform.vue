@@ -403,7 +403,7 @@ const setUploadRef = (el: any, key: string) => {
 const triggerUpload = (key: string) => uploadRefs.value[key]?.click();
 
 const acceptForType = (type?: string) => {
-  if (type === 'audio') return 'audio/*';
+  if (type === 'audio') return 'audio/*,video/mp4,.mp4,.m4a';
   if (type === 'video') return 'video/*';
   if (type === 'image') return 'image/*';
   return '*/*';

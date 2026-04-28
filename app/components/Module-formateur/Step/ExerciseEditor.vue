@@ -418,7 +418,7 @@ const mediaAccept = computed(() => {
     case "video":
       return "video/*";
     case "audio":
-      return "audio/*";
+      return "audio/*,video/mp4,.mp4,.m4a";
     case "pdf":
       return "application/pdf";
     default:
