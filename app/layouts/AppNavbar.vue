@@ -36,37 +36,14 @@
         >
           <div v-if="isNotifOpen" class="drop-panel">
 
-            <!-- Header avec tabs -->
+            <!-- Header -->
             <div class="drop-header">
-              <h3 class="drop-title">Centre de notifications</h3>
-              <span v-if="totalUnread > 0" class="drop-total-badge">{{ totalUnread }} non lu(s)</span>
+              <h3 class="drop-title">Notifications</h3>
+              <span v-if="notifStore.unreadCount > 0" class="drop-total-badge">{{ notifStore.unreadCount }} non lu(s)</span>
             </div>
 
-            <div class="drop-tabs">
-              <button
-                @click="activeTab = 'notifications'"
-                :class="['drop-tab', activeTab === 'notifications' ? 'drop-tab-active' : '']"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
-                Notifications
-                <span v-if="notifStore.unreadCount > 0" class="tab-count">{{ notifStore.unreadCount }}</span>
-              </button>
-              <button
-                @click="activeTab = 'messages'"
-                :class="['drop-tab', activeTab === 'messages' ? 'drop-tab-active' : '']"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-                Messages
-                <span v-if="messageStore.unreadCount > 0" class="tab-count tab-count-msg">{{ messageStore.unreadCount }}</span>
-              </button>
-            </div>
-
-            <!-- ── Onglet Notifications ── -->
-            <div v-if="activeTab === 'notifications'" class="drop-body">
+            <!-- ── Liste des notifications ── -->
+            <div class="drop-body">
               <div v-if="notifStore.isLoading" class="drop-state">
                 <div class="drop-spinner"></div>
               </div>
@@ -94,41 +71,6 @@
               </div>
               <NuxtLink v-if="isAdmin" to="/admin/notifications" @click="isNotifOpen = false" class="drop-footer-link">
                 Voir toutes les notifications
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
-                </svg>
-              </NuxtLink>
-            </div>
-
-            <!-- ── Onglet Messages ── -->
-            <div v-if="activeTab === 'messages'" class="drop-body">
-              <div v-if="messageStore.isLoadingConversations" class="drop-state">
-                <div class="drop-spinner"></div>
-              </div>
-              <div v-else-if="recentConvs.length === 0" class="drop-state">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.25">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                </svg>
-                <p>Aucune conversation</p>
-              </div>
-              <div v-else class="drop-list">
-                <button
-                  v-for="conv in recentConvs"
-                  :key="conv.user.id"
-                  :class="['drop-item', conv.unreadCount > 0 ? 'drop-item-unread' : '']"
-                  @click="handleConvClick(conv)"
-                >
-                  <div class="conv-ava">{{ convInitials(conv.user) }}</div>
-                  <div class="drop-item-body">
-                    <p class="drop-item-title">{{ conv.user.profile?.firstName }} {{ conv.user.profile?.lastName }}</p>
-                    <p class="drop-item-sub">{{ conv.lastMessage?.content ?? '…' }}</p>
-                    <p class="drop-item-time">{{ conv.lastMessage?.createdAt ? relativeTime(conv.lastMessage.createdAt) : '' }}</p>
-                  </div>
-                  <span v-if="conv.unreadCount > 0" class="conv-badge">{{ conv.unreadCount }}</span>
-                </button>
-              </div>
-              <NuxtLink v-if="isAdmin" to="/admin/messages" @click="isNotifOpen = false" class="drop-footer-link">
-                Voir tous les messages
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
                 </svg>
@@ -222,7 +164,6 @@ import { useMessageStore } from '~/stores/messageStore';
 import { useNotificationSound } from '~/composables/useNotificationSound';
 import { accountTypeLabel } from '~/utils/labels';
 import type { Notification } from '~/types/notification';
-import type { Conversation, MessageUser } from '~/types/message';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -232,13 +173,11 @@ const { playMessage, playNotification } = useNotificationSound();
 
 const isDropdownOpen = ref(false);
 const isNotifOpen = ref(false);
-const activeTab = ref<'notifications' | 'messages'>('notifications');
 
 const totalUnread = computed(() => notifStore.unreadCount + messageStore.unreadCount);
 const isAdmin = computed(() => authStore.user?.accountType === 'admin');
 
 const recentNotifs = computed(() => notifStore.notifications.slice(0, 8));
-const recentConvs = computed(() => messageStore.conversations.slice(0, 8));
 
 const typeColors: Record<string, string> = {
   info:    '#000099',
@@ -259,12 +198,6 @@ const relativeTime = (dateStr: string) => {
   return `il y a ${d}j`;
 };
 
-const convInitials = (user: MessageUser) => {
-  const f = user.profile?.firstName?.charAt(0) ?? '';
-  const l = user.profile?.lastName?.charAt(0) ?? '';
-  return (f + l).toUpperCase() || user.email?.charAt(0).toUpperCase() || '?';
-};
-
 const toggleNotif = () => {
   isNotifOpen.value = !isNotifOpen.value;
   isDropdownOpen.value = false;
@@ -272,9 +205,6 @@ const toggleNotif = () => {
     const userId = authStore.user?.id;
     if (userId && notifStore.notifications.length === 0) {
       notifStore.fetchUserNotifications(userId);
-    }
-    if (messageStore.conversations.length === 0) {
-      messageStore.fetchConversations();
     }
   }
 };
@@ -285,16 +215,12 @@ const handleNotifClick = async (n: Notification) => {
   if (n.actionUrl) router.push(n.actionUrl);
 };
 
-const handleConvClick = (_conv: Conversation) => {
-  isNotifOpen.value = false;
-  router.push('/admin/messages');
-};
-
 function handleLogout() {
   isDropdownOpen.value = false;
   authStore.logout();
 }
 
+// Initial load — wait for auth to be ready
 watch(
   () => authStore.user?.id,
   (userId) => {
@@ -306,19 +232,19 @@ watch(
   { immediate: true },
 );
 
-// Play sound when new messages arrive
+// Sound on new messages
 watch(
   () => messageStore.unreadCount,
   (next, prev) => { if (next > (prev ?? 0)) playMessage(); },
 );
 
-// Play sound when new notifications arrive
+// Sound on new notifications
 watch(
   () => notifStore.unreadCount,
   (next, prev) => { if (next > (prev ?? 0)) playNotification(); },
 );
 
-// Poll every 30 s to detect incoming messages / notifications in real time
+// Poll every 30 s — pollForNew never lowers the badge count
 let _pollTimer: ReturnType<typeof setInterval> | null = null;
 
 onMounted(() => {
@@ -326,7 +252,7 @@ onMounted(() => {
     const userId = authStore.user?.id;
     if (!userId) return;
     messageStore.fetchUnreadCount();
-    notifStore.fetchUserNotifications(userId);
+    notifStore.pollForNew(userId);
   }, 30_000);
 });
 

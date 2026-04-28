@@ -35,7 +35,8 @@ export interface SubscriptionPlan {
   features: Record<string, any>; // Changed to match backend
   maxSubAccounts: number;
   isActive: boolean;
-  subscribers: number;
+  subscribers?: number;
+  _count?: { subscriptions: number };
   createdAt?: string;
   updatedAt?: string;
 }

@@ -122,22 +122,44 @@ const deletePlan = async () => {
   }
 }
 
-// Formater les features pour l'affichage
+const featureLabels: Record<string, string> = {
+  trial: "Période d'essai",
+  maxSubAccounts: 'Sous-comptes max',
+  maxUsers: 'Utilisateurs max',
+  storage: 'Stockage',
+  support: 'Support',
+  analytics: 'Analytiques',
+  api: 'Accès API',
+}
+
 const formatFeatures = (features: any): string[] => {
   if (!features) return []
-  if (Array.isArray(features)) {
-    return features.map((f: any) => {
+
+  // Le backend renvoie parfois un string JSON
+  let parsed = features
+  if (typeof features === 'string') {
+    try { parsed = JSON.parse(features) } catch { return [features] }
+  }
+
+  if (Array.isArray(parsed)) {
+    return parsed.map((f: any) => {
       if (typeof f === 'string') return f
-      if (f && typeof f === 'object') {
-        return f.name || f.label || f.description || JSON.stringify(f)
-      }
+      if (f && typeof f === 'object') return f.name || f.label || f.description || JSON.stringify(f)
       return String(f)
     })
   }
-  if (typeof features === 'object') {
-    return Object.values(features).map(String)
+
+  if (typeof parsed === 'object' && parsed !== null) {
+    return Object.entries(parsed)
+      .filter(([, v]) => v !== false && v !== null && v !== undefined)
+      .map(([k, v]) => {
+        const label = featureLabels[k] || k
+        if (v === true) return label
+        return `${label} : ${v}`
+      })
   }
-  return [String(features)]
+
+  return [String(parsed)]
 }
 </script>
 
@@ -175,7 +197,7 @@ const formatFeatures = (features: any): string[] => {
 <!-- Liste des plans -->
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
       <div
-        v-for="(plan, index) in plans"
+        v-for="plan in plans"
         :key="plan.id"
         class="relative p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg"
         :class="[
@@ -240,7 +262,7 @@ const formatFeatures = (features: any): string[] => {
         <!-- Abonnés -->
         <div class="pt-4 border-t border-gray-100">
           <p class="text-sm text-slate-500">
-            <span class="font-semibold">{{ plan.subscribers }}</span> abonnés
+            <span class="font-semibold">{{ plan._count?.subscriptions ?? plan.subscribers ?? 0 }}</span> abonné(s)
           </p>
         </div>
 
