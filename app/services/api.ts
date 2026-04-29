@@ -53,11 +53,15 @@ class ApiService {
           );
         }
       },
-      onResponseError: ({ response }) => {
+      onResponseError: ({ response, request }) => {
         if (!process.client) return;
 
         const status = response?.status;
         if (status !== 401 && status !== 403) return;
+
+        // Endpoints background — un 401 ne doit pas expirer la session
+        const url = String(request ?? "");
+        if (url.includes("/notifications") || url.includes("/messages-ws")) return;
 
         const token = this.accessToken || useCookie("token").value;
         if (!token) return;
