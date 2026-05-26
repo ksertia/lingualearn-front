@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware(async(  to, from  ) => {
+export default defineNuxtRouteMiddleware(async(to) => {
 
     const protections = {
         '/admin': 'admin',
@@ -20,7 +20,7 @@ export default defineNuxtRouteMiddleware(async(  to, from  ) => {
         of Object.entries(protections)) {
             if (to.path.startsWith(pathPrefix)) {
                 if (authStore.user?.accountType !== requiredRole && authStore.user?.accountType !== 'admin') {
-                    return navigateTo ('/')
+                    return navigateTo('/connexion')
                 }
             }
         }

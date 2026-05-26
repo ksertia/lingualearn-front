@@ -7,6 +7,11 @@
     --color-brand-cyan: rgb(0, 206, 209);
     --color-brand-orange: rgb(255, 127, 0);
     --color-brand-gray-light: rgb(192, 192, 192);
+
+    /* TiBi logo colors */
+    --color-tibi-green: rgb(26, 122, 26);
+    --color-tibi-gold: rgb(240, 180, 41);
+    --color-tibi-orange: rgb(224, 101, 16);
 }
 
 @layer base {
