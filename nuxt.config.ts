@@ -33,7 +33,7 @@ export default defineNuxtConfig({
     //   name: 'page', mode: 'out-in'
     // },
     head: {
-      title: 'LinguaLearn',
+      title: 'TiBi - Plateforme de gestion de contenu de langues',
       htmlAttrs: {
         lang: 'fr'
       },
@@ -42,7 +42,7 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       ],
       link: [
-        { rel: 'icon', type: 'image/jpeg', href: '/icons/Tibi-icon.jpeg' },
+        { rel: 'icon', type: 'image/png', href: '/icons/tibi-logo-final.png' },
       ]
   }
   }

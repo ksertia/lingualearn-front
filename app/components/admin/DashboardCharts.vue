@@ -1,132 +1,85 @@
 <script setup lang="ts">
-import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-  ArcElement,
-  PointElement,
-  LineElement
-} from 'chart.js'
-import { Bar, Doughnut } from 'vue-chartjs'
 import type { DashboardData } from '~/types/dashboard'
 import { computed } from 'vue'
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  PointElement,
-  LineElement
-)
 
 const props = defineProps<{
   stats: DashboardData
 }>()
 
-const userChartData = computed(() => ({
-  labels: ['Admin', 'Sous-comptes', 'Avec Abonnement', 'Utilisateurs'],
-  datasets: [
-    {
-      backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#0bf59e'],
-      data: [props.stats.users.admin, props.stats.users.subAccounts, props.stats.users.withSubscription, props.stats.users.user]
-    }
+/*
+  SVG Donut trick:
+  - viewBox "0 0 36 36", center (18,18), r=15.915
+  - Circumference = 2π × 15.915 ≈ 100  → percentages map directly
+  - stroke-dasharray="${pct} 100"  (gap=100 covers full circumference)
+  - stroke-dashoffset="-${cumulativeOffset}"  (shifts start past prev segments)
+  - SVG rotated -90deg so segments start at 12 o'clock
+*/
+const segments = computed(() => {
+  const total = props.stats.users.total || 1
+  const a = Math.round((props.stats.users.admin / total) * 100)
+  const b = Math.round((props.stats.users.subAccounts / total) * 100)
+  const c = Math.round((props.stats.users.withSubscription / total) * 100)
+  const d = 100 - a - b - c
+
+  return [
+    { color: '#1B5E20', label: 'Admin',            pct: a, offset: 0 },
+    { color: '#EF6C00', label: 'Sous-comptes',     pct: b, offset: a },
+    { color: '#FBC02D', label: 'Avec Abonnement',  pct: c, offset: a + b },
+    { color: '#D32F2F', label: 'Utilisateurs',     pct: d, offset: a + b + c },
   ]
-}))
-
-const userChartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      position: 'bottom' as const,
-      labels: {
-        usePointStyle: true,
-        padding: 20,
-        font: {
-          family: 'Inter',
-          size: 12
-        }
-      }
-    }
-  }
-}
-
-const contentChartData = computed(() => ({
-  labels: ['Leçons', 'Exercices', 'Quiz'],
-  datasets: [
-    {
-      label: 'Volume de contenu',
-      backgroundColor: '#3b82f6',
-      borderRadius: 8,
-      data: [props.stats.lessons, props.stats.exercises, props.stats.stepQuizzes]
-    }
-  ]
-}))
-
-const contentChartOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  scales: {
-    y: {
-      beginAtZero: true,
-      grid: {
-        display: false
-      }
-    },
-    x: {
-      grid: {
-        display: false
-      }
-    }
-  },
-  plugins: {
-    legend: {
-      display: false
-    }
-  }
-}
+})
 </script>
 
 <template>
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-    <!-- User Segments Chart -->
-    <div class="chart-container">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-lg font-semibold text-slate-800">Répartition Utilisateurs</h3>
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" viewBox="0 0 256 256"><path fill="currentColor" d="M117.33 144A10.67 10.67 0 0 1 128 154.67v42.66A10.67 10.67 0 1 1 106.67 197.33v-42.66A10.67 10.67 0 0 1 117.33 144Zm42.67 0a10.67 10.67 0 0 1 10.67 10.67v42.66a10.67 10.67 0 1 1-21.34 0v-42.66A10.67 10.67 0 0 1 160 144ZM240 128a112 112 0 1 1-224 0a112 112 0 0 1 224 0Zm-21.33 0a90.67 90.67 0 1 0-181.34 0a90.67 90.67 0 0 0 181.34 0Z"/></svg>
+  <!-- ── Donut Chart Section ── -->
+  <section class="bg-white rounded-xl shadow-sm p-6 mb-8">
+    <h2 class="text-lg font-bold text-gray-800 mb-6">Répartition Utilisateurs</h2>
+    <div class="flex flex-col items-center">
+
+      <!-- SVG Donut — 256×256, rotated -90deg so 12 o'clock is start -->
+      <div class="relative mb-10" style="width: 256px; height: 256px;">
+        <svg
+          class="w-full h-full"
+          style="transform: rotate(-90deg);"
+          viewBox="0 0 36 36"
+        >
+          <!-- Background track -->
+          <circle cx="18" cy="18" fill="none" r="15.915" stroke="#eee" stroke-width="6" />
+
+          <!-- Coloured segments -->
+          <circle
+            v-for="seg in segments"
+            :key="seg.color"
+            cx="18"
+            cy="18"
+            fill="none"
+            r="15.915"
+            :stroke="seg.color"
+            :stroke-dasharray="`${seg.pct} 100`"
+            :stroke-dashoffset="`${-seg.offset}`"
+            stroke-width="6"
+          />
+
+          <!-- Centre hole -->
+          <circle cx="18" cy="18" fill="white" r="10" />
+        </svg>
       </div>
-      <div class="h-[300px]">
-        <Doughnut :data="userChartData" :options="userChartOptions" />
+
+      <!-- Legend -->
+      <div class="flex flex-wrap justify-center gap-6">
+        <div
+          v-for="seg in segments"
+          :key="seg.label"
+          class="flex items-center gap-2"
+        >
+          <span
+            class="w-3 h-3 rounded"
+            :style="{ background: seg.color }"
+          ></span>
+          <span class="text-xs font-semibold text-gray-600">{{ seg.label }}</span>
+        </div>
       </div>
+
     </div>
-
-    <!-- Content Bar Chart -->
-    <!-- <div class="chart-container">
-      <div class="flex items-center justify-between mb-6">
-        <h3 class="text-lg font-semibold text-slate-800">Production de Contenu</h3>
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-400" viewBox="0 0 256 256"><path fill="currentColor" d="M232 208a8 8 0 0 1-8 8H32a8 8 0 0 1-8-8v-32a8 8 0 0 1 8-16h48v-24a8 8 0 0 1 8-8h48v-24a8 8 0 0 1 8-8h48v-24a8 8 0 0 1 16 0v104h24a8 8 0 0 1 8 8Z"/></svg>
-      </div>
-      <div class="h-[300px]">
-        <Bar :data="contentChartData" :options="contentChartOptions" />
-      </div>
-    </div> -->
-  </div>
+  </section>
 </template>
-
-<style scoped>
-.chart-container {
-  background: white;
-  padding: 2rem;
-  border-radius: 2rem;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
-  border: 1px solid #f1f5f9;
-}
-</style>

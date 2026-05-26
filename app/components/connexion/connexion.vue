@@ -1,221 +1,212 @@
 <template>
-  <div class="min-h-screen bg-[#0f1b3b] text-white">
-    <div class="mx-auto grid min-h-screen max-w-7xl grid-cols-1 lg:grid-cols-2">
-      <div class="px-6 py-10 lg:px-10">
-        <!-- <NuxtLink to="/" class="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white">
-          <span aria-hidden="true">←</span>
-          <span>Accueil</span>
-        </NuxtLink> -->
+  <div class="h-screen w-full flex overflow-hidden">
 
-        <div class="mt-10 max-w-md">
-          <h1 class="text-4xl font-semibold tracking-tight">Connectez-vous</h1>
-          <p class="mt-2 text-sm text-white/70">Entrez votre email et mot de passe pour vous connecter!</p>
+    <!-- ══════════════ PANNEAU GAUCHE ══════════════ -->
+    <section class="w-1/2 bg-tibi-dark flex flex-col justify-center items-center px-16 py-8 relative overflow-hidden">
+      <div class="absolute inset-0 tribal-pattern-left pointer-events-none"></div>
 
-          <!-- <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              class="inline-flex items-center justify-center gap-2 rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10"
-            >
-              <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-                <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.651 32.657 29.194 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/>
-                <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 16.108 19.01 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4c-7.682 0-14.344 4.335-17.694 10.691z"/>
-                <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.197l-6.19-5.238C29.154 35.092 26.715 36 24 36c-5.173 0-9.62-3.315-11.288-7.946l-6.522 5.025C9.508 39.556 16.227 44 24 44z"/>
-                <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.793 2.219-2.255 4.092-4.094 5.565l.003-.002 6.19 5.238C36.97 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
-              </svg>
-              <span>se connecter via Google</span>
-            </button>
+      <div class="z-10 w-full max-w-sm">
+        <h1 class="text-white text-4xl font-extrabold mb-3 tracking-tight">Connectez-vous</h1>
+        <p class="text-white/90 text-base mb-7 leading-snug">
+          Entrez votre email et mot de passe pour vous connecter!
+        </p>
 
-            <button
-              type="button"
-              class="inline-flex items-center justify-center gap-2 rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white hover:bg-white/10"
-            >
-              <svg xmlns="http://www.w3.org" width="24" height="24" viewBox="0 0 24 24" fill="#1877F2">
-                <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z"/>
-              </svg>
-              <span>Se connecter via Facebook</span>
-            </button>
+        <form class="space-y-4" @submit.prevent="onSubmit">
+
+          <!-- Email -->
+          <div class="space-y-2">
+            <label class="text-white text-sm font-medium block" for="email">
+              Email<span class="text-red-400">*</span>
+            </label>
+            <input
+              id="email"
+              v-model="email"
+              type="email"
+              placeholder="formateur@tibi.com"
+              autocomplete="email"
+              class="w-full h-12 px-4 rounded-lg border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-800"
+              required
+            />
           </div>
 
-          <div class="my-8 flex items-center gap-4">
-            <div class="h-px flex-1 bg-white/10"></div>
-            <span class="text-xs text-white/50">Ou</span>
-            <div class="h-px flex-1 bg-white/10"></div>
-          </div> -->
-
-          <form class="space-y-5" @submit.prevent="onSubmit">
-            <div>
-              <label for="email" class="block text-sm font-medium text-white/80">Email<span class="text-red-400">*</span></label>
+          <!-- Mot de passe -->
+          <div class="space-y-2">
+            <label class="text-white text-sm font-medium block" for="password">
+              Mot de passe<span class="text-red-400">*</span>
+            </label>
+            <div class="relative">
               <input
-                id="email"
-                v-model="email"
-                type="email"
-                autocomplete="email"
-                placeholder="info@gmail.com"
-                class="mt-2 w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-[#00CED1] focus:ring-2 focus:ring-[#00CED1]/30"
+                id="password"
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                class="w-full h-12 px-4 rounded-lg border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-400 text-gray-800 pr-12"
                 required
               />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                aria-label="Afficher/masquer le mot de passe"
+                @click="showPassword = !showPassword"
+              >
+                <svg v-if="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
             </div>
+          </div>
 
-            <div>
-              <label for="password" class="block text-sm font-medium text-white/80">Mot de passe<span class="text-red-400">*</span></label>
-              <div class="relative mt-2">
-                <input
-                  id="password"
-                  v-model="password"
-                  :type="showPassword ? 'text' : 'password'"
-                  autocomplete="current-password"
-                  placeholder="Entrez votre mot de passe"
-                  class="w-full rounded-md border border-white/10 bg-white/5 px-4 py-3 pr-12 text-sm text-white placeholder:text-white/40 outline-none focus:border-[#00CED1] focus:ring-2 focus:ring-[#00CED1]/30"
-                  required
-                />
-                <button
-                  type="button"
-                  class="absolute inset-y-0 right-0 flex items-center px-4 text-white/60 hover:text-white"
-                  @click="showPassword = !showPassword"
-                  aria-label="Toggle password visibility"
-                >
-                  <svg v-if="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="2"/>
-                    <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="currentColor" stroke-width="2"/>
-                  </svg>
-                  <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M10.58 10.58A3 3 0 0 0 12 15a3 3 0 0 0 1.42-.37" stroke="currentColor" stroke-width="2"/>
-                    <path d="M9.88 4.24A10.94 10.94 0 0 1 12 4c6.5 0 10 8 10 8a19.68 19.68 0 0 1-3.04 4.38" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M6.61 6.61C3.7 8.33 2 12 2 12s3.5 7 10 7c1.18 0 2.28-.19 3.3-.53" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
+          <!-- Checkbox -->
+          <div class="flex items-center space-x-3">
+            <input
+              id="remember"
+              v-model="remember"
+              type="checkbox"
+              class="w-5 h-5 rounded border-white bg-transparent text-green-600 focus:ring-green-500"
+            />
+            <label class="text-white text-sm" for="remember">se souvenir de moi</label>
+          </div>
 
-            <div class="flex items-center justify-between gap-4">
-              <label class="inline-flex items-center gap-2 text-sm text-white/70">
-                <input
-                  v-model="remember"
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-white/20 bg-white/10 text-[#00CED1] focus:ring-[#00CED1]/40"
-                />
-                <span>se souvenir de moi</span>
-              </label>
+          <!-- Messages -->
+          <div v-if="error" class="text-red-300 text-sm bg-red-900/20 px-3 py-2 rounded-lg" aria-live="polite">
+            {{ error }}
+          </div>
+          <div v-if="loginSuccess" class="text-green-300 text-sm bg-green-900/20 px-3 py-2 rounded-lg" aria-live="polite">
+            {{ loginSuccess }}
+          </div>
 
-              <!-- <NuxtLink to="/" class="text-sm text-[#2D5BFF] hover:underline">Mot de passe oublié?</NuxtLink> -->
-            </div>
-
-            <div v-if="error" class="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-200" aria-live="polite">
-              {{ error }}
-            </div>
-
-            <div v-if="loginSuccess" class="rounded-md bg-green-500/10 px-3 py-2 text-sm text-green-200" aria-live="polite">
-              {{ loginSuccess }}
-            </div>
-
+          <!-- Bouton -->
+          <div class="pt-2">
             <button
               type="submit"
               :disabled="isLoading"
-              class="w-full rounded-md bg-[#000099] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#00CED1] hover:shadow-lg hover:shadow-[#00CED1]/20 disabled:cursor-not-allowed disabled:opacity-60"
+              class="w-full py-4 bg-[#1A8E35] hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-lg rounded-full transition-colors duration-200"
             >
-              {{ isLoading ? "Connexion..." : "Se connecter" }}
+              {{ isLoading ? 'Connexion…' : 'Se connecter' }}
             </button>
-
-            <!-- <p class="text-sm text-white/60">
-              vous n'avez pas de compte?
-              <NuxtLink to="/signup" class="text-[#2D5BFF] hover:underline">Inscrivez-vous</NuxtLink>
-            </p> -->
-          </form>
-        </div>
-      </div>
-
-      <div class="relative hidden overflow-hidden lg:block bg-gradient-to-br from-[#000099] via-[#0a0a7a] to-[#0f1b3b]">
-        <!-- Grid pattern -->
-        <div class="absolute inset-0 opacity-10" style="background-image: linear-gradient(rgba(0,206,209,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(0,206,209,0.15) 1px, transparent 1px); background-size: 48px 48px;"></div>
-        <!-- Glow top-right -->
-        <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-20" style="background: radial-gradient(circle, #00CED1, transparent 70%);"></div>
-        <!-- Glow bottom-left -->
-        <div class="absolute -bottom-20 -left-20 w-64 h-64 rounded-full opacity-15" style="background: radial-gradient(circle, #FF7F00, transparent 70%);"></div>
-
-        <div class="relative flex h-full flex-col items-center justify-center px-12 gap-10">
-          <!-- Logo -->
-          <div class="text-center">
-            <div class="mx-auto mb-4 inline-flex items-center gap-3">
-              <div class="grid h-14 w-14 place-items-center rounded-2xl border border-[#00CED1]/30" style="background: rgba(0,206,209,0.15); backdrop-filter: blur(8px);">
-                <span class="text-[#00CED1] font-black text-lg">TB</span>
-              </div>
-              <span class="text-4xl font-extrabold tracking-tight">Ti<span class="text-[#00CED1]">Bi</span></span>
-            </div>
-            <p class="text-white/60 text-sm font-medium max-w-xs mx-auto leading-relaxed">
-              Vos racines ont une langue.<br>Faites-la revivre.
-            </p>
           </div>
 
-          <!-- Floating language cards -->
-          <div class="w-full max-w-xs space-y-3">
-            <div v-for="lang in langs" :key="lang.name"
-              class="flex items-center gap-4 rounded-2xl px-4 py-3 border border-white/10"
-              style="background: rgba(255,255,255,0.06); backdrop-filter: blur(8px);"
+        </form>
+      </div>
+    </section>
+
+    <!-- ══════════════ PANNEAU DROIT ══════════════ -->
+    <section class="w-1/2 bg-tibi-gradient flex flex-col items-center justify-between py-8 px-10 relative overflow-hidden">
+      <div class="absolute inset-0 tribal-pattern-right pointer-events-none"></div>
+
+      <div class="z-10 flex flex-col items-center text-center w-full">
+
+        <!-- Logo -->
+        <div class="mb-4">
+          <img src="assets/icons/tibi-logo-final.png" alt="TiBi" class="w-20 h-20 object-contain" />
+        </div>
+
+        <!-- Slogan -->
+        <h2 class="text-[#10421A] text-xl font-extrabold max-w-xs mb-4 leading-snug">
+          Vos racines ont une langue.<br/>Faites-la revivre.
+        </h2>
+
+        <!-- Cartes langues -->
+        <div class="w-full max-w-[380px] space-y-3">
+          <div
+            v-for="lang in langs"
+            :key="lang.code"
+            class="bg-white rounded-2xl p-4 shadow-sm flex items-center space-x-4"
+          >
+            <div
+              class="w-14 h-14 rounded-xl flex items-center justify-center font-bold text-xl flex-shrink-0"
+              :style="{ backgroundColor: lang.badgeBg, color: lang.badgeText }"
             >
-              <span class="text-2xl">{{ lang.flag }}</span>
-              <div class="flex-1">
-                <p class="text-sm font-semibold text-white">{{ lang.name }}</p>
-                <div class="mt-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                  <div class="h-full rounded-full bg-[#00CED1]" :style="{ width: lang.progress + '%' }"></div>
-                </div>
+              {{ lang.code }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex justify-between items-center mb-2">
+                <span class="font-bold text-[#10421A] text-base">{{ lang.name }}</span>
+                <span class="text-sm font-medium text-gray-500 ml-2">{{ lang.pct }}%</span>
               </div>
-              <span class="text-xs text-white/40 font-medium">{{ lang.progress }}%</span>
+              <div class="w-full bg-gray-200 rounded-full h-2.5">
+                <div
+                  class="h-2.5 rounded-full"
+                  :style="{ width: lang.pct + '%', backgroundColor: lang.barColor }"
+                ></div>
+              </div>
             </div>
           </div>
+        </div>
 
-          <!-- Tagline badge -->
-          <div class="inline-flex items-center gap-2 rounded-full border border-[#00CED1]/30 px-4 py-2 text-xs text-[#00CED1] font-semibold" style="background: rgba(0,206,209,0.08);">
-            <span class="w-2 h-2 rounded-full bg-[#00CED1] animate-pulse"></span>
-            Plateforme d'apprentissage des langues
-          </div>
+      </div>
+
+      <!-- Badge bas -->
+      <div class="z-10 mt-8">
+        <div class="bg-[#10421A] text-white text-xs px-6 py-2 rounded-full font-medium tracking-wide">
+          Plateforme d'apprentissage des langues
         </div>
       </div>
-    </div>
+    </section>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useAuthStore } from '~/stores/authStore';
-import { storeToRefs } from 'pinia';
+import { ref } from 'vue'
+import { useAuthStore } from '~/stores/authStore'
+import { storeToRefs } from 'pinia'
 
-const authStore = useAuthStore();
-const { isLoading, error } = storeToRefs(authStore);
+const authStore = useAuthStore()
+const { isLoading, error } = storeToRefs(authStore)
 
-const email = ref('');
-const password = ref('');
-const remember = ref(false);
-const showPassword = ref(false);
-const loginSuccess = ref('');
+const email        = ref('')
+const password     = ref('')
+const remember     = ref(false)
+const showPassword = ref(false)
+const loginSuccess = ref('')
 
 const langs = [
-  { name: 'Mooré', flag: '🇲🇱', progress: 78 },
-  { name: 'Dioula', flag: '🇸🇳', progress: 55 },
-  { name: 'Fulfudé', flag: '🇳🇬', progress: 42 },
-];
+  { name: 'Mooré',   code: 'ML', pct: 78, badgeBg: '#F9C324', badgeText: '#10421A', barColor: '#F9C324' },
+  { name: 'Dioula',  code: 'SN', pct: 55, badgeBg: '#F97316', badgeText: '#ffffff', barColor: '#F97316' },
+  { name: 'Fulfudé', code: 'NG', pct: 42, badgeBg: '#F9C324', badgeText: '#10421A', barColor: '#F9C324' },
+]
 
 const onSubmit = async () => {
-  const success = await authStore.login({
-    loginInfo: email.value,
-    password: password.value,
-  },
-  remember.value
-);
- 
- console.log(email.value, password.value);
-  if (success) {
-    
-    loginSuccess.value = 'Connexion reussie';
-    if (remember.value) {
-
-    }
+  const ok = await authStore.login(
+    { loginInfo: email.value, password: password.value },
+    remember.value
+  )
+  if (ok) {
+    loginSuccess.value = 'Connexion reussie'
     setTimeout(() => {
-      loginSuccess.value = '';
+      loginSuccess.value = ''
       navigateTo(authStore.dashboardRoute)
-      // console.log(authStore.dashboardRoute) 
-    }, 2000);
-    
+    }, 2000)
   }
-};
+}
 </script>
+
+<style>
+.bg-tibi-dark {
+  background-color: #10421A;
+  position: relative;
+  overflow: hidden;
+}
+
+.tribal-pattern-left {
+  background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20 L40 0 L60 20 Z M80 20 L100 0 L120 20 Z M0 60 L20 40 L40 60 M60 60 L80 40 L100 60 M20 100 L40 80 L60 100 M80 100 L100 80 L120 100' fill='none' stroke='%23ffffff15' stroke-width='2'/%3E%3Ccircle cx='30' cy='30' r='4' fill='%23ffffff15'/%3E%3Ccircle cx='90' cy='30' r='4' fill='%23ffffff15'/%3E%3C/svg%3E");
+  opacity: 0.15;
+  background-size: 200px 200px;
+}
+
+.bg-tibi-gradient {
+  background: linear-gradient(135deg, #FFC933 0%, #FFFFFF 40%, #A2D6B2 100%);
+}
+
+.tribal-pattern-right {
+  background-image: url("data:image/svg+xml,%3Csvg width='200' height='200' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 20 L40 0 L60 20 Z M80 20 L100 0 L120 20 Z M0 60 L20 40 L40 60 M60 60 L80 40 L100 60' fill='none' stroke='%2310421A10' stroke-width='2'/%3E%3Ccircle cx='30' cy='30' r='4' fill='%2310421A10'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  opacity: 0.4;
+}
+</style>

@@ -2,197 +2,136 @@
 import type { DashboardData } from '~/types/dashboard'
 
 defineProps<{
-  stats: DashboardData,
-  engagementRate: number,
-  conversionRate: number,
-  verificationRate: number,
-  contentDensity: string,
+  stats: DashboardData
+  engagementRate: number
+  conversionRate: number
+  verificationRate: number
+  contentDensity: string
   activeKpi?: string
 }>()
 
 defineEmits<{
   (e: 'select', kpi: string): void
 }>()
-
-const formatNumber = (num: number) => {
-  return new Intl.NumberFormat().format(num)
-}
 </script>
 
 <template>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+  <!-- KPI Cards Grid — 3 colonnes, gap 24px -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
 
-    <!-- Utilisateurs -->
-    <button
+    <!-- ── Utilisateurs ── -->
+    <div
+      class="bg-white rounded-xl shadow-sm p-6 relative cursor-pointer hover:shadow-md transition-shadow"
+      style="border-top: 4px solid #2D6A3E;"
       @click="$emit('select', 'users')"
-      class="stat-card bg-gradient-to-br from-[#000099] to-[#0f1b3b] group text-left w-full h-full"
-      :class="{ 'ring-4 ring-[#00CED1]/40 ring-offset-2': activeKpi === 'users' }"
     >
-      <div class="flex justify-between items-start">
+      <div class="flex justify-between items-start mb-4">
         <div>
-          <p class="text-white/70 text-sm font-medium uppercase tracking-wider">Utilisateurs</p>
-          <div class="flex items-baseline gap-2 mt-1">
-            <h3 class="text-4xl font-extrabold text-white group-hover:scale-105 transition-transform origin-left duration-300 leading-none">
-              {{ formatNumber(stats.users.total) }}
-            </h3>
-            <span class="text-white/50 text-xs font-medium">au total</span>
-          </div>
+          <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Utilisateurs</p>
+          <p class="text-2xl font-bold text-gray-800 mt-1">
+            {{ stats.users.total }}
+            <span class="text-lg font-bold">au total</span>
+          </p>
         </div>
-        <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-md group-hover:rotate-12 transition-all duration-300">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 256 256"><path fill="currentColor" d="M117.33 144A10.67 10.67 0 0 1 128 154.67v42.66A10.67 10.67 0 1 1 106.67 197.33v-42.66A10.67 10.67 0 0 1 117.33 144Zm42.67 0a10.67 10.67 0 0 1 10.67 10.67v42.66a10.67 10.67 0 1 1-21.34 0v-42.66A10.67 10.67 0 0 1 160 144ZM240 128a112 112 0 1 1-224 0a112 112 0 0 1 224 0Zm-21.33 0a90.67 90.67 0 1 0-181.34 0a90.67 90.67 0 0 0 181.34 0Z"/></svg>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 mt-6">
-        <div class="bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/5">
-          <p class="text-white/50 text-[10px] uppercase font-bold tracking-widest">Actifs</p>
-          <div class="flex items-end justify-between mt-1">
-            <span class="text-xl font-bold text-white leading-none">{{ formatNumber(stats.users.active) }}</span>
-            <span class="text-[10px] text-white/70 bg-white/15 px-1.5 py-0.5 rounded-full font-bold">{{ engagementRate }}%</span>
-          </div>
-        </div>
-        <div class="bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/5">
-          <p class="text-white/50 text-[10px] uppercase font-bold tracking-widest">Vérifiés</p>
-          <div class="flex items-end justify-between mt-1">
-            <span class="text-xl font-bold text-white leading-none">{{ formatNumber(stats.users.verified) }}</span>
-            <span class="text-[10px] text-white/70 bg-white/15 px-1.5 py-0.5 rounded-full font-bold">{{ verificationRate }}%</span>
-          </div>
+        <div class="bg-green-50 p-2 rounded-full">
+          <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
         </div>
       </div>
-
-      <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-white/60">
-        <span class="flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-[#00CED1] animate-pulse"></span>
-          Taux d'engagement
-        </span>
-        <span class="font-black text-white tracking-widest">{{ engagementRate }}%</span>
+      <div class="flex gap-10">
+        <div>
+          <p class="text-[10px] font-bold text-gray-400 uppercase">Actifs</p>
+          <p class="text-lg font-bold text-gray-800">
+            {{ stats.users.active }}
+            <span class="text-xs text-gray-400 font-medium ml-1">{{ engagementRate }}%</span>
+          </p>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-gray-400 uppercase">Vérifiés</p>
+          <p class="text-lg font-bold text-gray-800">
+            {{ stats.users.verified }}
+            <span class="text-xs text-gray-400 font-medium ml-1">{{ verificationRate }}%</span>
+          </p>
+        </div>
       </div>
-    </button>
+    </div>
 
-    <!-- Abonnements -->
-    <button
+    <!-- ── Abonnements ── -->
+    <div
+      class="bg-white rounded-xl shadow-sm p-6 cursor-pointer hover:shadow-md transition-shadow"
+      style="border-top: 4px solid #F5C467;"
       @click="$emit('select', 'subscriptions')"
-      class="stat-card bg-gradient-to-br from-[#00CED1] to-[#0097a7] group text-left w-full h-full"
-      :class="{ 'ring-4 ring-[#00CED1]/40 ring-offset-2': activeKpi === 'subscriptions' }"
     >
-      <div class="flex justify-between items-start">
+      <div class="flex justify-between items-start mb-4">
         <div>
-          <p class="text-white/70 text-sm font-medium uppercase tracking-wider">Abonnements</p>
-          <div class="flex items-baseline gap-2 mt-1">
-            <h3 class="text-4xl font-extrabold text-white group-hover:scale-105 transition-transform origin-left duration-300 leading-none">
-              {{ formatNumber(stats.users.withSubscription) }}
-            </h3>
-            <span class="text-white/50 text-xs font-medium">actifs</span>
-          </div>
+          <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Abonnements</p>
+          <p class="text-2xl font-bold text-gray-800 mt-1">
+            {{ stats.users.withSubscription }}
+            <span class="text-lg font-bold">actifs</span>
+          </p>
         </div>
-        <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-md group-hover:rotate-12 transition-all duration-300">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 256 256"><path fill="currentColor" d="M224 48H32a16 16 0 0 0-16 16v128a16 16 0 0 0 16 16h192a16 16 0 0 0 16-16V64a16 16 0 0 0-16-16Zm0 16v32H32V64h192ZM32 192v-80h192v80H32Z"/></svg>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 mt-6">
-        <div class="bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/5">
-          <p class="text-white/50 text-[10px] uppercase font-bold tracking-widest">Premium</p>
-          <div class="flex items-end justify-between mt-1">
-            <span class="text-xl font-bold text-white leading-none">{{ formatNumber(stats.users.withSubscription) }}</span>
-            <span class="text-[10px] text-white/70 bg-white/15 px-1.5 py-0.5 rounded-full font-bold">{{ conversionRate }}%</span>
-          </div>
-        </div>
-        <div class="bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/5">
-          <p class="text-white/50 text-[10px] uppercase font-bold tracking-widest">Gratuit</p>
-          <div class="flex items-end justify-between mt-1">
-            <span class="text-xl font-bold text-white leading-none">{{ formatNumber(stats.users.total - stats.users.withSubscription) }}</span>
-            <span class="text-[10px] text-white/70 bg-white/15 px-1.5 py-0.5 rounded-full font-bold">{{ 100 - conversionRate }}%</span>
-          </div>
+        <div class="bg-orange-50 p-2 rounded-full">
+          <svg class="h-6 w-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V5a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
         </div>
       </div>
-
-      <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-white/60">
-        <span class="flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-white/60"></span>
-          Taux de conversion
-        </span>
-        <span class="font-black text-white tracking-widest">{{ conversionRate }}%</span>
+      <div class="flex gap-10">
+        <div>
+          <p class="text-[10px] font-bold text-gray-400 uppercase">Premium</p>
+          <p class="text-lg font-bold text-gray-800">
+            {{ stats.users.withSubscription }}
+            <span class="text-xs text-gray-400 font-medium ml-1">{{ conversionRate }}%</span>
+          </p>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-gray-400 uppercase">Gratuit</p>
+          <p class="text-lg font-bold text-gray-800">
+            {{ stats.users.total - stats.users.withSubscription }}
+            <span class="text-xs text-gray-400 font-medium ml-1">{{ 100 - conversionRate }}%</span>
+          </p>
+        </div>
       </div>
-    </button>
+    </div>
 
-    <!-- Vérification -->
-    <button
+    <!-- ── Vérification ── -->
+    <div
+      class="bg-white rounded-xl shadow-sm p-6 cursor-pointer hover:shadow-md transition-shadow"
+      style="border-top: 4px solid #D9A173;"
       @click="$emit('select', 'verification')"
-      class="stat-card bg-gradient-to-br from-[#FF7F00] to-[#c96000] group text-left w-full h-full"
-      :class="{ 'ring-4 ring-[#FF7F00]/40 ring-offset-2': activeKpi === 'verification' }"
     >
-      <div class="flex justify-between items-start">
+      <div class="flex justify-between items-start mb-4">
         <div>
-          <p class="text-white/70 text-sm font-medium uppercase tracking-wider">Vérification</p>
-          <div class="flex items-baseline gap-2 mt-1">
-            <h3 class="text-4xl font-extrabold text-white group-hover:scale-105 transition-transform origin-left duration-300 leading-none">
-              {{ formatNumber(stats.users.verified) }}
-            </h3>
-            <span class="text-white/50 text-xs font-medium">certifiés</span>
-          </div>
+          <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Vérification</p>
+          <p class="text-2xl font-bold text-gray-800 mt-1">
+            {{ stats.users.verified }}
+            <span class="text-lg font-bold">certifiés</span>
+          </p>
         </div>
-        <div class="p-3 bg-white/20 rounded-2xl backdrop-blur-md group-hover:rotate-12 transition-all duration-300">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 256 256"><path fill="currentColor" d="M208 24H72a16 16 0 0 0-16 16v16H48a16 16 0 0 0-16 16v144a16 16 0 0 0 16 16h136a16 16 0 0 0 16-16v-16h8a16 16 0 0 0 16-16V40a16 16 0 0 0-16-16ZM184 216H48V72h136v144Zm24-40h-8V56H72V40h136v136Z"/></svg>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 mt-6">
-        <div class="bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/5">
-          <p class="text-white/50 text-[10px] uppercase font-bold tracking-widest">Vérifiés</p>
-          <div class="flex items-end justify-between mt-1">
-            <span class="text-xl font-bold text-white leading-none">{{ formatNumber(stats.users.verified) }}</span>
-            <span class="text-[10px] text-white/70 bg-white/15 px-1.5 py-0.5 rounded-full font-bold">{{ verificationRate }}%</span>
-          </div>
-        </div>
-        <div class="bg-black/10 rounded-xl p-3 backdrop-blur-sm border border-white/5">
-          <p class="text-white/50 text-[10px] uppercase font-bold tracking-widest">En attente</p>
-          <div class="flex items-end justify-between mt-1">
-            <span class="text-xl font-bold text-white leading-none">{{ formatNumber(stats.users.total - stats.users.verified) }}</span>
-            <span class="text-[10px] text-white/70 bg-white/15 px-1.5 py-0.5 rounded-full font-bold">{{ 100 - verificationRate }}%</span>
-          </div>
+        <div class="bg-amber-50 p-2 rounded-full">
+          <svg class="h-6 w-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
         </div>
       </div>
-
-      <div class="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-white/60">
-        <span class="flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-white/60 animate-pulse"></span>
-          Taux de confiance
-        </span>
-        <span class="font-black text-white tracking-widest">{{ verificationRate }}%</span>
+      <div class="flex gap-10">
+        <div>
+          <p class="text-[10px] font-bold text-gray-400 uppercase">Vérifiés</p>
+          <p class="text-lg font-bold text-gray-800">
+            {{ stats.users.verified }}
+            <span class="text-xs text-gray-400 font-medium ml-1">{{ verificationRate }}%</span>
+          </p>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-gray-400 uppercase">En attente</p>
+          <p class="text-lg font-bold text-gray-800">
+            {{ stats.users.total - stats.users.verified }}
+            <span class="text-xs text-gray-400 font-medium ml-1">{{ 100 - verificationRate }}%</span>
+          </p>
+        </div>
       </div>
-    </button>
+    </div>
 
   </div>
 </template>
-
-<style scoped>
-.stat-card {
-  padding: 1.5rem;
-  border-radius: 1.5rem;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-}
-
-.stat-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-color: rgba(255, 255, 255, 0.05);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.stat-card:hover::after {
-  opacity: 1;
-}
-</style>
