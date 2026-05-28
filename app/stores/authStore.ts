@@ -111,7 +111,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   function logout() {
     clearAuth();
-    navigateTo('/');
+    navigateTo('/connexion');
   }
 
   async function initAuth() {

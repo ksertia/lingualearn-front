@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, computed } from 'vue'
 
 // Types
@@ -106,13 +106,13 @@ const resetPagination = () => {
           @input="resetPagination"
           type="text"
           placeholder="Rechercher par utilisateur, email ou ID..."
-          class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] focus:ring-2 focus:ring-[#00ced1]/20 outline-none transition"
+          class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#F0B429] focus:ring-2 focus:ring-[#F0B429]/20 outline-none transition"
         />
       </div>
       <select
         v-model="statusFilter"
         @change="resetPagination"
-        class="px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
+        class="px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#F0B429] outline-none transition"
       >
         <option value="">Tous les statuts</option>
         <option value="completed">Complété</option>
@@ -155,7 +155,7 @@ const resetPagination = () => {
               <span class="text-sm font-medium text-slate-700">{{ tx.plan }}</span>
             </td>
             <td class="py-3 px-4 text-right">
-              <span class="text-sm font-semibold text-[#000099]">{{ formatAmount(tx.amount) }}</span>
+              <span class="text-sm font-semibold text-[#1A7A1A]">{{ formatAmount(tx.amount) }}</span>
             </td>
             <td class="py-3 px-4 text-sm text-slate-600">{{ tx.method }}</td>
             <td class="py-3 px-4 text-center">

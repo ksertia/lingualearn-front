@@ -5,535 +5,560 @@ import type { SubscriptionPlan, CreatePlanPayload } from '~/types/settings'
 
 const subscriptionStore = useSubscriptionStore()
 
-const isLoading = ref(false)
-const editingPlan = ref<SubscriptionPlan | null>(null)
-const showEditModal = ref(false)
+const isLoading      = ref(false)
+const editingPlan    = ref<SubscriptionPlan | null>(null)
+const showEditModal  = ref(false)
 const showCreateModal = ref(false)
 const showDeleteModal = ref(false)
-const planToDelete = ref<SubscriptionPlan | null>(null)
+const planToDelete   = ref<SubscriptionPlan | null>(null)
 
-// Form for creating/editing
 const newPlan = ref<CreatePlanPayload>({
-  planCode: '',
-  planName: '',
-  description: '',
-  priceMonthly: 0,
-  priceYearly: 0,
-  currency: 'XOF',
-  features: [],
-  maxSubAccounts: 0,
-  isActive: true
+  planCode: '', planName: '', description: '',
+  priceMonthly: 0, priceYearly: 0, currency: 'XOF',
+  features: [], maxSubAccounts: 0, isActive: true,
 })
 
-// Charger les plans au montage
-onMounted(async () => {
-  await subscriptionStore.fetchPlans()
-})
+onMounted(() => subscriptionStore.fetchPlans())
 
-// Plans depuis le store
 const plans = computed(() => subscriptionStore.plans)
 
-// Activer/désactiver un plan
-const togglePlan = async (plan: SubscriptionPlan) => {
-  await subscriptionStore.togglePlan(plan.id)
-}
-
-// Ouvrir le modal d'édition
-const openEditModal = (plan: SubscriptionPlan) => {
-  editingPlan.value = { ...plan }
-  showEditModal.value = true
-}
-
-// Sauvegarder les modifications
-const savePlan = async () => {
-  if (!editingPlan.value) return
-  isLoading.value = true
-
-  try {
-    await subscriptionStore.updatePlan(editingPlan.value.id, {
-      planCode: editingPlan.value.planCode,
-      planName: editingPlan.value.planName,
-      description: editingPlan.value.description,
-      priceMonthly: editingPlan.value.priceMonthly,
-      priceYearly: editingPlan.value.priceYearly,
-      currency: editingPlan.value.currency,
-      features: editingPlan.value.features,
-      maxSubAccounts: editingPlan.value.maxSubAccounts,
-      isActive: editingPlan.value.isActive
-    })
-    showEditModal.value = false
-    editingPlan.value = null
-  } catch (error) {
-    console.error('Erreur lors de la sauvegarde:', error)
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Ouvrir le modal de création
+const togglePlan    = (plan: SubscriptionPlan) => subscriptionStore.togglePlan(plan.id)
+const openEditModal = (plan: SubscriptionPlan) => { editingPlan.value = { ...plan }; showEditModal.value = true }
+const openDeleteModal = (plan: SubscriptionPlan) => { planToDelete.value = plan; showDeleteModal.value = true }
 const openCreateModal = () => {
-  newPlan.value = {
-    planCode: '',
-    planName: '',
-    description: '',
-    priceMonthly: 0,
-    priceYearly: 0,
-    currency: 'XOF',
-    features: [],
-    maxSubAccounts: 0,
-    isActive: true
-  }
+  newPlan.value = { planCode: '', planName: '', description: '', priceMonthly: 0, priceYearly: 0, currency: 'XOF', features: [], maxSubAccounts: 0, isActive: true }
   showCreateModal.value = true
 }
 
-// Créer un nouveau plan
+const savePlan = async () => {
+  if (!editingPlan.value) return
+  isLoading.value = true
+  try {
+    await subscriptionStore.updatePlan(editingPlan.value.id, {
+      planCode: editingPlan.value.planCode, planName: editingPlan.value.planName,
+      description: editingPlan.value.description, priceMonthly: editingPlan.value.priceMonthly,
+      priceYearly: editingPlan.value.priceYearly, currency: editingPlan.value.currency,
+      features: editingPlan.value.features, maxSubAccounts: editingPlan.value.maxSubAccounts,
+      isActive: editingPlan.value.isActive,
+    })
+    showEditModal.value = false; editingPlan.value = null
+  } finally { isLoading.value = false }
+}
+
 const createPlan = async () => {
   isLoading.value = true
-
-  try {
-    await subscriptionStore.createPlan(newPlan.value)
-    showCreateModal.value = false
-  } catch (error) {
-    console.error('Erreur lors de la création:', error)
-  } finally {
-    isLoading.value = false
-  }
+  try { await subscriptionStore.createPlan(newPlan.value); showCreateModal.value = false }
+  finally { isLoading.value = false }
 }
 
-// Ouvrir le modal de suppression
-const openDeleteModal = (plan: SubscriptionPlan) => {
-  planToDelete.value = plan
-  showDeleteModal.value = true
-}
-
-// Supprimer un plan
 const deletePlan = async () => {
   if (!planToDelete.value) return
   isLoading.value = true
-
-  try {
-    await subscriptionStore.deletePlan(planToDelete.value.id)
-    showDeleteModal.value = false
-    planToDelete.value = null
-  } catch (error) {
-    console.error('Erreur lors de la suppression:', error)
-  } finally {
-    isLoading.value = false
-  }
+  try { await subscriptionStore.deletePlan(planToDelete.value.id); showDeleteModal.value = false; planToDelete.value = null }
+  finally { isLoading.value = false }
 }
 
 const featureLabels: Record<string, string> = {
-  trial: "Période d'essai",
-  maxSubAccounts: 'Sous-comptes max',
-  maxUsers: 'Utilisateurs max',
-  storage: 'Stockage',
-  support: 'Support',
-  analytics: 'Analytiques',
-  api: 'Accès API',
+  trial: "Période d'essai", maxSubAccounts: 'Sous-comptes max',
+  maxUsers: 'Utilisateurs max', storage: 'Stockage',
+  support: 'Support', analytics: 'Analytiques', api: 'Accès API',
 }
 
 const formatFeatures = (features: any): string[] => {
   if (!features) return []
-
-  // Le backend renvoie parfois un string JSON
   let parsed = features
   if (typeof features === 'string') {
     try { parsed = JSON.parse(features) } catch { return [features] }
   }
-
-  if (Array.isArray(parsed)) {
-    return parsed.map((f: any) => {
-      if (typeof f === 'string') return f
-      if (f && typeof f === 'object') return f.name || f.label || f.description || JSON.stringify(f)
-      return String(f)
-    })
+  if (Array.isArray(parsed)) return parsed.map((f: any) => typeof f === 'string' ? f : f?.name || f?.label || String(f))
+  if (typeof parsed === 'object') {
+    return Object.entries(parsed).filter(([, v]) => v !== false && v !== null && v !== undefined)
+      .map(([k, v]) => v === true ? featureLabels[k] || k : `${featureLabels[k] || k} : ${v}`)
   }
-
-  if (typeof parsed === 'object' && parsed !== null) {
-    return Object.entries(parsed)
-      .filter(([, v]) => v !== false && v !== null && v !== undefined)
-      .map(([k, v]) => {
-        const label = featureLabels[k] || k
-        if (v === true) return label
-        return `${label} : ${v}`
-      })
-  }
-
   return [String(parsed)]
 }
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl shadow-sm p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center gap-3">
-        <div class="p-2 bg-purple-100 rounded-lg">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-purple-600" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="24" y="60" width="208" height="136" rx="16" />
-            <path d="M24 100h208" />
-            <path d="M80 60V44" />
-            <path d="M176 60V44" />
-            <path d="M80 156v40" />
-            <path d="M120 156v40" />
-            <path d="M160 156v40" />
-          </svg>
-        </div>
-        <div>
-          <h2 class="text-lg font-semibold text-slate-900">Abonnements</h2>
-          <p class="text-sm text-slate-500">Gérez les plans d'abonnement</p>
-        </div>
+  <div class="s-card">
+
+    <!-- Header -->
+    <div class="s-card-header">
+      <div class="s-card-icon s-card-icon--purple">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
       </div>
-      <button
-        @click="openCreateModal"
-        class="px-4 py-2 bg-[#000099] text-white rounded-xl hover:bg-[#000066] transition flex items-center gap-2"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M128 24v104M24 128h104" />
+      <div class="flex-1">
+        <h2 class="s-card-title">Abonnements</h2>
+        <p class="s-card-desc">Gérez les plans d'abonnement de la plateforme</p>
+      </div>
+      <button class="s-btn-add" @click="openCreateModal">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
         Nouveau plan
       </button>
     </div>
 
-<!-- Liste des plans -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-      <div
-        v-for="plan in plans"
-        :key="plan.id"
-        class="relative p-6 rounded-2xl border-2 transition-all duration-300 hover:shadow-lg"
-        :class="[
-          plan.isActive
-            ? plan.planName === 'Premium'
-              ? 'border-purple-500 bg-gradient-to-br from-white to-purple-50'
-              : plan.planName === 'Basique'
-                ? 'border-[#00ced1] bg-gradient-to-br from-white to-cyan-50'
-                : 'border-gray-200 bg-white hover:border-[#00ced1]'
-            : 'border-gray-100 bg-gray-50 opacity-75'
-        ]"
-      >
-        <!-- Badge populaire pour Premium -->
-        <div v-if="plan.planName === 'Premium' && plan.isActive" class="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span class="px-4 py-1 rounded-full text-xs font-bold bg-purple-600 text-white shadow-md">
-            Populaire
-          </span>
-        </div>
-
-        <!-- Badge statut -->
-        <div class="absolute -top-3 -right-3">
-          <span
-            class="px-3 py-1 rounded-full text-xs font-semibold shadow-sm"
-            :class="plan.isActive ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'"
-          >
-            {{ plan.isActive ? 'Actif' : 'Inactif' }}
-          </span>
-        </div>
-
-        <!-- Nom du plan -->
-        <h3 class="text-xl font-bold text-slate-900 mb-2">{{ plan.planName }}</h3>
-
-        <!-- Prix -->
-        <div class="mb-4">
-          <span
-            class="text-4xl font-bold"
-            :class="plan.planName === 'Premium' ? 'text-purple-600' : plan.planName === 'Basique' ? 'text-[#00ced1]' : 'text-slate-900'"
-          >
-            {{ plan.priceMonthly === 0 ? 'Gratuit' : `${plan.priceMonthly} fcfa` }}
-          </span>
-          <span v-if="plan.priceMonthly > 0" class="text-sm text-slate-500 ml-1">/mois</span>
-        </div>
-
-        <!-- Prix annuel -->
-        <div v-if="plan.priceYearly > 0" class="mb-4 text-sm text-slate-500">
-          <span class="font-medium">{{ plan.priceYearly }} fcfa</span> / an
-        </div>
-
-<!-- Caractéristiques -->
-        <ul class="space-y-2 mb-6">
-          <li v-for="(feature, idx) in formatFeatures(plan.features)" :key="idx" class="flex items-center gap-2 text-sm text-slate-600">
-            <svg xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              :class="plan.planName === 'Premium' ? 'text-purple-500' : plan.planName === 'Basique' ? 'text-[#00ced1]' : 'text-slate-400'"
-              viewBox="0 0 256 256">
-              <path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm45.66 85.66l-56 56a8 8 0 0 1-11.32 0l-24-24a8 8 0 0 1 11.32-11.32L112 148.69l50.34-50.35a8 8 0 0 1 11.32 11.32Z"/>
-            </svg>
-            {{ feature }}
-          </li>
-        </ul>
-
-        <!-- Abonnés -->
-        <div class="pt-4 border-t border-gray-100">
-          <p class="text-sm text-slate-500">
-            <span class="font-semibold">{{ plan._count?.subscriptions ?? plan.subscribers ?? 0 }}</span> abonné(s)
-          </p>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex flex-wrap gap-2 mt-4">
-          <button
-            @click="openEditModal(plan)"
-            class="flex-1 min-w-0 px-2 py-2 text-xs font-semibold rounded-xl transition-all duration-200 whitespace-nowrap"
-            :class="plan.planName === 'Premium'
-              ? 'bg-purple-600 text-white hover:bg-purple-700 shadow-md hover:shadow-lg'
-              : plan.planName === 'Basique'
-                ? 'bg-[#00ced1] text-white hover:bg-[#00b5b8] shadow-md hover:shadow-lg'
-                : 'bg-slate-800 text-white hover:bg-slate-700'"
-          >
-            Modifier
-          </button>
-          <button
-            @click="togglePlan(plan)"
-            :disabled="isLoading"
-            class="flex-1 min-w-0 px-2 py-2 text-xs font-medium rounded-xl transition whitespace-nowrap"
-            :class="plan.isActive
-              ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
-              : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-200'"
-          >
-            {{ plan.isActive ? 'Désactiver' : 'Activer' }}
-          </button>
-          <button
-            @click="openDeleteModal(plan)"
-            :disabled="isLoading"
-            class="flex-1 min-w-0 px-2 py-2 text-xs font-medium rounded-xl transition bg-gray-100 text-gray-600 hover:bg-gray-200 whitespace-nowrap"
-          >
-            Supprimer
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal d'édition -->
-    <div v-if="showEditModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div class="p-6">
-          <h3 class="text-xl font-bold text-slate-900 mb-6">Modifier le plan {{ editingPlan?.planName }}</h3>
-
-          <div v-if="editingPlan" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">Code du plan</label>
-              <input
-                v-model="editingPlan.planCode"
-                type="text"
-                class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">Nom du plan</label>
-              <input
-                v-model="editingPlan.planName"
-                type="text"
-                class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">Description</label>
-              <textarea
-                v-model="editingPlan.description"
-                rows="3"
-                class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-              />
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Prix mensuel (Fcfa)</label>
-                <input
-                  v-model.number="editingPlan.priceMonthly"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Prix annuel (Fcfa)</label>
-                <input
-                  v-model.number="editingPlan.priceYearly"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-                />
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Devise</label>
-                <input
-                  v-model="editingPlan.currency"
-                  type="text"
-                  class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Max sous-comptes</label>
-                <input
-                  v-model.number="editingPlan.maxSubAccounts"
-                  type="number"
-                  min="0"
-                  class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-                />
-              </div>
-            </div>
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input
-                  v-model="editingPlan.isActive"
-                  type="checkbox"
-                  class="sr-only peer"
-                />
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00ced1]"></div>
-              </label>
-              <span class="text-sm font-medium text-slate-700">Plan actif</span>
-            </div>
+    <!-- Plans grid -->
+    <div class="s-card-body">
+      <div class="plans-grid">
+        <div
+          v-for="plan in plans"
+          :key="plan.id"
+          class="plan-card"
+          :class="[
+            plan.isActive ? 'plan-card--active' : 'plan-card--inactive',
+            plan.planName === 'Premium' && plan.isActive ? 'plan-card--premium' : '',
+          ]"
+        >
+          <!-- Top row: name + status -->
+          <div class="plan-top">
+            <span class="plan-name">{{ plan.planName }}</span>
+            <span class="plan-status" :class="plan.isActive ? 'plan-status--on' : 'plan-status--off'">
+              <span class="plan-status-dot"></span>
+              {{ plan.isActive ? 'Actif' : 'Inactif' }}
+            </span>
           </div>
 
-          <div class="flex justify-end gap-3 mt-6">
-            <button
-              @click="showEditModal = false"
-              class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-gray-100 rounded-lg transition"
-            >
-              Annuler
-            </button>
-            <button
-              @click="savePlan"
-              :disabled="isLoading"
-              class="px-4 py-2 text-sm font-medium bg-[#000099] text-white rounded-lg hover:bg-[#000066] transition disabled:opacity-50"
-            >
-              {{ isLoading ? 'Enregistrement...' : 'Enregistrer' }}
-            </button>
+          <!-- Price -->
+          <div class="plan-price">
+            <span class="plan-price-val" :class="plan.planName === 'Premium' ? 'plan-price-val--purple' : ''">
+              {{ plan.priceMonthly === 0 ? 'Gratuit' : `${plan.priceMonthly.toLocaleString()} FCFA` }}
+            </span>
+            <span v-if="plan.priceMonthly > 0" class="plan-price-unit">/mois</span>
           </div>
-        </div>
-      </div>
-    </div>
+          <p v-if="plan.priceYearly > 0" class="plan-price-yearly">{{ plan.priceYearly.toLocaleString() }} FCFA / an</p>
 
-    <!-- Modal de création -->
-    <div v-if="showCreateModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div class="p-6">
-          <h3 class="text-xl font-bold text-slate-900 mb-6">Créer un nouveau plan</h3>
+          <!-- Features -->
+          <ul class="plan-features">
+            <li v-for="(feat, i) in formatFeatures(plan.features)" :key="i" class="plan-feat">
+              <svg class="w-3.5 h-3.5 flex-shrink-0" :class="plan.planName === 'Premium' ? 'text-purple-500' : 'text-emerald-500'" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              {{ feat }}
+            </li>
+          </ul>
 
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">Code du plan *</label>
-              <input
-                v-model="newPlan.planCode"
-                type="text"
-                class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-              />
+          <!-- Footer: subscribers + actions -->
+          <div class="plan-footer">
+            <span class="plan-subs">{{ plan._count?.subscriptions ?? plan.subscribers ?? 0 }} abonné(s)</span>
+            <div class="plan-actions">
+              <button class="plan-btn plan-btn--edit" @click="openEditModal(plan)">Modifier</button>
+              <button class="plan-btn" :class="plan.isActive ? 'plan-btn--deact' : 'plan-btn--act'" @click="togglePlan(plan)" :disabled="isLoading">
+                {{ plan.isActive ? 'Désactiver' : 'Activer' }}
+              </button>
+              <button class="plan-btn plan-btn--del" @click="openDeleteModal(plan)" :disabled="isLoading">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">Nom du plan *</label>
-              <input
-                v-model="newPlan.planName"
-                type="text"
-                class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-slate-700 mb-2">Description</label>
-              <textarea
-                v-model="newPlan.description"
-                rows="3"
-                class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-              />
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Prix mensuel (fcfa)</label>
-                <input
-                  v-model.number="newPlan.priceMonthly"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Prix annuel (fcfa)</label>
-                <input
-                  v-model.number="newPlan.priceYearly"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-                />
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Devise</label>
-                <input
-                  v-model="newPlan.currency"
-                  type="text"
-                  class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-slate-700 mb-2">Max sous-comptes</label>
-                <input
-                  v-model.number="newPlan.maxSubAccounts"
-                  type="number"
-                  min="0"
-                  class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
-                />
-              </div>
-            </div>
-            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input
-                  v-model="newPlan.isActive"
-                  type="checkbox"
-                  class="sr-only peer"
-                />
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00ced1]"></div>
-              </label>
-              <span class="text-sm font-medium text-slate-700">Plan actif</span>
-            </div>
-          </div>
-
-          <div class="flex justify-end gap-3 mt-6">
-            <button
-              @click="showCreateModal = false"
-              class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-gray-100 rounded-lg transition"
-            >
-              Annuler
-            </button>
-            <button
-              @click="createPlan"
-              :disabled="isLoading"
-              class="px-4 py-2 text-sm font-medium bg-[#000099] text-white rounded-lg hover:bg-[#000066] transition disabled:opacity-50"
-            >
-              {{ isLoading ? 'Création...' : 'Créer' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal de suppression -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div class="bg-white rounded-2xl shadow-xl w-full max-w-md">
-        <div class="p-6">
-          <h3 class="text-xl font-bold text-slate-900 mb-4">Supprimer le plan</h3>
-          <p class="text-slate-600 mb-6">
-            Êtes-vous sûr de vouloir supprimer le plan <strong>{{ planToDelete?.planName }}</strong> ? Cette action est irréversible.
-          </p>
-          <div class="flex justify-end gap-3">
-            <button
-              @click="showDeleteModal = false"
-              class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-gray-100 rounded-lg transition"
-            >
-              Annuler
-            </button>
-            <button
-              @click="deletePlan"
-              :disabled="isLoading"
-              class="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-lg hover:bg-red-700 transition disabled:opacity-50"
-            >
-              {{ isLoading ? 'Suppression...' : 'Supprimer' }}
-            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- ── Modal édition ────────────────── -->
+  <Teleport to="body">
+    <div v-if="showEditModal" class="modal-overlay" @click.self="showEditModal = false">
+      <div class="modal-panel">
+        <div class="modal-header">
+          <h3 class="modal-title">Modifier — {{ editingPlan?.planName }}</h3>
+          <button class="modal-close" @click="showEditModal = false">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div v-if="editingPlan" class="modal-body">
+          <div class="m-grid-2">
+            <div class="m-field">
+              <label class="m-label">Code du plan</label>
+              <input v-model="editingPlan.planCode" type="text" class="m-input" />
+            </div>
+            <div class="m-field">
+              <label class="m-label">Nom du plan</label>
+              <input v-model="editingPlan.planName" type="text" class="m-input" />
+            </div>
+          </div>
+          <div class="m-field">
+            <label class="m-label">Description</label>
+            <textarea v-model="editingPlan.description" rows="2" class="m-input m-textarea" />
+          </div>
+          <div class="m-grid-2">
+            <div class="m-field">
+              <label class="m-label">Prix mensuel (FCFA)</label>
+              <input v-model.number="editingPlan.priceMonthly" type="number" min="0" class="m-input" />
+            </div>
+            <div class="m-field">
+              <label class="m-label">Prix annuel (FCFA)</label>
+              <input v-model.number="editingPlan.priceYearly" type="number" min="0" class="m-input" />
+            </div>
+          </div>
+          <div class="m-grid-2">
+            <div class="m-field">
+              <label class="m-label">Devise</label>
+              <input v-model="editingPlan.currency" type="text" class="m-input" />
+            </div>
+            <div class="m-field">
+              <label class="m-label">Max sous-comptes</label>
+              <input v-model.number="editingPlan.maxSubAccounts" type="number" min="0" class="m-input" />
+            </div>
+          </div>
+          <div class="m-toggle-row" :class="{ 'm-toggle-row--on': editingPlan.isActive }">
+            <span class="m-toggle-label">Plan actif</span>
+            <div class="s-toggle" :class="{ 's-toggle--on': editingPlan.isActive }" @click="editingPlan.isActive = !editingPlan.isActive">
+              <div class="s-toggle-thumb"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="m-btn-cancel" @click="showEditModal = false">Annuler</button>
+          <button class="m-btn-save" :disabled="isLoading" @click="savePlan">
+            {{ isLoading ? 'Enregistrement…' : 'Enregistrer' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal création -->
+    <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
+      <div class="modal-panel">
+        <div class="modal-header">
+          <h3 class="modal-title">Nouveau plan</h3>
+          <button class="modal-close" @click="showCreateModal = false">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="m-grid-2">
+            <div class="m-field">
+              <label class="m-label">Code <span class="m-required">*</span></label>
+              <input v-model="newPlan.planCode" type="text" class="m-input" />
+            </div>
+            <div class="m-field">
+              <label class="m-label">Nom <span class="m-required">*</span></label>
+              <input v-model="newPlan.planName" type="text" class="m-input" />
+            </div>
+          </div>
+          <div class="m-field">
+            <label class="m-label">Description</label>
+            <textarea v-model="newPlan.description" rows="2" class="m-input m-textarea" />
+          </div>
+          <div class="m-grid-2">
+            <div class="m-field">
+              <label class="m-label">Prix mensuel (FCFA)</label>
+              <input v-model.number="newPlan.priceMonthly" type="number" min="0" class="m-input" />
+            </div>
+            <div class="m-field">
+              <label class="m-label">Prix annuel (FCFA)</label>
+              <input v-model.number="newPlan.priceYearly" type="number" min="0" class="m-input" />
+            </div>
+          </div>
+          <div class="m-grid-2">
+            <div class="m-field">
+              <label class="m-label">Devise</label>
+              <input v-model="newPlan.currency" type="text" class="m-input" />
+            </div>
+            <div class="m-field">
+              <label class="m-label">Max sous-comptes</label>
+              <input v-model.number="newPlan.maxSubAccounts" type="number" min="0" class="m-input" />
+            </div>
+          </div>
+          <div class="m-toggle-row" :class="{ 'm-toggle-row--on': newPlan.isActive }">
+            <span class="m-toggle-label">Plan actif</span>
+            <div class="s-toggle" :class="{ 's-toggle--on': newPlan.isActive }" @click="newPlan.isActive = !newPlan.isActive">
+              <div class="s-toggle-thumb"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="m-btn-cancel" @click="showCreateModal = false">Annuler</button>
+          <button class="m-btn-save" :disabled="isLoading" @click="createPlan">
+            {{ isLoading ? 'Création…' : 'Créer le plan' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal suppression -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
+      <div class="modal-panel modal-panel--sm">
+        <div class="modal-header">
+          <h3 class="modal-title">Supprimer le plan</h3>
+        </div>
+        <div class="modal-body">
+          <p class="m-delete-msg">
+            Êtes-vous sûr de vouloir supprimer le plan <strong>{{ planToDelete?.planName }}</strong> ?
+            Cette action est irréversible.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="m-btn-cancel" @click="showDeleteModal = false">Annuler</button>
+          <button class="m-btn-danger" :disabled="isLoading" @click="deletePlan">
+            {{ isLoading ? 'Suppression…' : 'Supprimer' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
+<style scoped>
+/* ── Card ───────────────────────────── */
+.s-card {
+  background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    0 1px 2px rgba(0,0,0,0.05),
+    0 3px 10px rgba(0,0,0,0.05),
+    0 0 0 1px rgba(17,24,39,0.05);
+}
+
+.s-card-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.s-card-icon {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.s-card-icon--purple { background: rgba(139,92,246,0.10); color: #7C3AED; }
+
+.s-card-title { font-size: 13.5px; font-weight: 600; color: #111827; }
+.s-card-desc  { font-size: 12px; color: #9CA3AF; margin-top: 1px; }
+.s-card-body  { padding: 24px; }
+
+.s-btn-add {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 14px;
+  background: #16A34A; color: white;
+  border: none; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500;
+  cursor: pointer; margin-left: auto;
+  box-shadow: 0 1px 3px rgba(22,163,74,0.3);
+  transition: all 0.15s;
+}
+.s-btn-add:hover { background: #15803D; }
+
+/* ── Plans grid ─────────────────────── */
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.plan-card {
+  border-radius: 12px;
+  border: 1px solid #E5E7EB;
+  padding: 18px;
+  display: flex; flex-direction: column; gap: 14px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.plan-card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+
+.plan-card--inactive { opacity: 0.55; background: #FAFAFA; }
+.plan-card--active   { background: white; }
+.plan-card--premium  { border-color: rgba(124,58,237,0.3); background: linear-gradient(145deg, #fff 0%, #faf5ff 100%); }
+
+/* Plan top */
+.plan-top { display: flex; align-items: center; justify-content: space-between; }
+
+.plan-name { font-size: 15px; font-weight: 700; color: #111827; }
+
+.plan-status {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 500;
+  padding: 3px 9px; border-radius: 100px;
+}
+
+.plan-status--on  { background: #DCFCE7; color: #15803D; }
+.plan-status--off { background: #F3F4F6; color: #6B7280; }
+
+.plan-status-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%; background: currentColor;
+}
+
+/* Price */
+.plan-price { display: flex; align-items: baseline; gap: 4px; }
+.plan-price-val { font-size: 26px; font-weight: 800; color: #111827; letter-spacing: -0.04em; }
+.plan-price-val--purple { color: #7C3AED; }
+.plan-price-unit { font-size: 12px; color: #9CA3AF; }
+.plan-price-yearly { font-size: 12px; color: #9CA3AF; margin-top: -10px; }
+
+/* Features */
+.plan-features { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+
+.plan-feat {
+  display: flex; align-items: flex-start; gap: 7px;
+  font-size: 12px; color: #374151;
+}
+
+/* Footer */
+.plan-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #F3F4F6;
+}
+
+.plan-subs { font-size: 11.5px; color: #9CA3AF; }
+
+.plan-actions { display: flex; gap: 5px; }
+
+.plan-btn {
+  height: 28px; padding: 0 10px;
+  border-radius: 6px; border: none;
+  font-size: 11.5px; font-weight: 500;
+  cursor: pointer; transition: all 0.12s;
+}
+
+.plan-btn--edit  { background: #F3F4F6; color: #374151; }
+.plan-btn--edit:hover { background: #E5E7EB; }
+
+.plan-btn--act   { background: #DCFCE7; color: #15803D; border: 1px solid rgba(22,163,74,0.2); }
+.plan-btn--act:hover { background: #BBF7D0; }
+
+.plan-btn--deact { background: #FEE2E2; color: #DC2626; border: 1px solid rgba(220,38,38,0.2); }
+.plan-btn--deact:hover { background: #FECACA; }
+
+.plan-btn--del {
+  width: 28px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #F3F4F6; color: #9CA3AF;
+}
+.plan-btn--del:hover { background: #FEE2E2; color: #DC2626; }
+.plan-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Toggle ─────────────────────────── */
+.s-toggle {
+  width: 34px; height: 20px;
+  border-radius: 100px; background: #E5E7EB;
+  position: relative; flex-shrink: 0;
+  transition: background 0.18s; cursor: pointer;
+}
+.s-toggle--on { background: #16A34A; }
+.s-toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.s-toggle--on .s-toggle-thumb { transform: translateX(14px); }
+
+/* ── Modal ──────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+
+.modal-panel {
+  background: white;
+  border-radius: 16px;
+  width: 100%; max-width: 520px;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(17,24,39,0.06);
+}
+
+.modal-panel--sm { max-width: 420px; }
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px 16px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.modal-title { font-size: 15px; font-weight: 600; color: #111827; }
+
+.modal-close {
+  width: 28px; height: 28px;
+  border-radius: 7px; border: none; background: none;
+  color: #9CA3AF; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.12s;
+}
+.modal-close:hover { background: #F3F4F6; color: #374151; }
+
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+
+.modal-footer {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  padding: 14px 24px 18px;
+  border-top: 1px solid #F3F4F6;
+}
+
+/* Modal form */
+.m-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.m-field   { display: flex; flex-direction: column; gap: 5px; }
+.m-label   { font-size: 12.5px; font-weight: 500; color: #374151; }
+.m-required { color: #EF4444; }
+
+.m-input {
+  height: 38px; padding: 0 12px;
+  font-size: 13px; color: #111827;
+  background: #F9FAFB; border: 1px solid #E5E7EB;
+  border-radius: 8px; outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.m-input:focus { background: white; border-color: #16A34A; box-shadow: 0 0 0 3px rgba(22,163,74,0.10); }
+.m-textarea { height: auto; padding: 10px 12px; resize: vertical; }
+
+.m-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-radius: 9px;
+  border: 1px solid #F3F4F6; background: #FAFAFA;
+  transition: all 0.12s;
+}
+.m-toggle-row--on { background: #F0FDF4; border-color: rgba(22,163,74,0.18); }
+.m-toggle-label { font-size: 13px; font-weight: 500; color: #374151; }
+
+.m-delete-msg { font-size: 13.5px; color: #374151; line-height: 1.6; }
+.m-delete-msg strong { color: #111827; }
+
+.m-btn-cancel {
+  height: 34px; padding: 0 14px;
+  font-size: 13px; font-weight: 500; color: #6B7280;
+  background: none; border: none; border-radius: 7px;
+  cursor: pointer; transition: background 0.12s;
+}
+.m-btn-cancel:hover { background: #F3F4F6; }
+
+.m-btn-save {
+  height: 34px; padding: 0 18px;
+  font-size: 13px; font-weight: 500; color: white;
+  background: #16A34A; border: none; border-radius: 7px;
+  cursor: pointer; box-shadow: 0 1px 3px rgba(22,163,74,0.3);
+  transition: all 0.15s;
+}
+.m-btn-save:hover { background: #15803D; }
+.m-btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.m-btn-danger {
+  height: 34px; padding: 0 18px;
+  font-size: 13px; font-weight: 500; color: white;
+  background: #DC2626; border: none; border-radius: 7px;
+  cursor: pointer; transition: all 0.15s;
+}
+.m-btn-danger:hover { background: #B91C1C; }
+.m-btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+</style>

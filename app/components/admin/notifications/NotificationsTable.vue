@@ -59,7 +59,7 @@ const formatDate = (dateStr: string) => {
 }
 
 const typeConfig: Record<string, { label: string; bg: string; color: string }> = {
-  info:    { label: 'Info',          bg: 'rgba(0,0,153,0.08)', color: '#000099' },
+  info:    { label: 'Info',          bg: 'rgba(26,122,26,0.08)', color: '#1A7A1A' },
   success: { label: 'Succès',        bg: '#dcfce7',            color: '#16a34a' },
   warning: { label: 'Avertissement', bg: '#fef3c7',            color: '#d97706' },
   error:   { label: 'Erreur',        bg: '#fee2e2',            color: '#dc2626' },
@@ -249,7 +249,7 @@ onMounted(() => {
   background: white;
   border-radius: 1rem;
   border: 1px solid #f1f5f9;
-  box-shadow: 0 1px 4px rgba(0, 0, 153, 0.04);
+  box-shadow: 0 1px 4px rgba(26, 122, 26, 0.04);
   overflow: hidden;
 }
 
@@ -267,8 +267,8 @@ onMounted(() => {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.75rem;
-  background: rgba(0, 0, 153, 0.08);
-  color: #000099;
+  background: rgba(26, 122, 26, 0.08);
+  color: #1A7A1A;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -287,14 +287,14 @@ onMounted(() => {
   border-radius: 0.75rem;
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #000099;
-  background: rgba(0, 0, 153, 0.06);
-  border: 1px solid rgba(0, 0, 153, 0.15);
+  color: #1A7A1A;
+  background: rgba(26, 122, 26, 0.06);
+  border: 1px solid rgba(26, 122, 26, 0.15);
   cursor: pointer;
   transition: all 0.15s;
 }
 
-.btn-mark-all:hover { background: rgba(0, 0, 153, 0.12); }
+.btn-mark-all:hover { background: rgba(26, 122, 26, 0.12); }
 
 .unread-badge {
   display: inline-flex;
@@ -305,8 +305,8 @@ onMounted(() => {
   border-radius: 9999px;
   font-size: 0.6875rem;
   font-weight: 700;
-  background: #000099;
-  color: white;
+  background: #F0B429;
+  color: #1A3A00;
   padding: 0 0.3rem;
 }
 
@@ -353,7 +353,7 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.user-select:focus { border-color: #00ced1; box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.12); }
+.user-select:focus { border-color: #1A7A1A; box-shadow: 0 0 0 3px rgba(26, 122, 26, 0.12); }
 
 .btn-refresh {
   display: inline-flex;
@@ -371,7 +371,7 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.btn-refresh:hover:not(:disabled) { background: #f8fafc; border-color: #00ced1; color: #000099; }
+.btn-refresh:hover:not(:disabled) { background: #f8fafc; border-color: #1A7A1A; color: #1A7A1A; }
 .btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ─── States ─────────────────────────────── */
@@ -408,7 +408,7 @@ onMounted(() => {
   position: absolute;
   inset: 0;
   border: 4px solid transparent;
-  border-top-color: #000099;
+  border-top-color: #1A7A1A;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -428,8 +428,8 @@ onMounted(() => {
 .stat-unread {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #000099;
-  background: rgba(0, 0, 153, 0.08);
+  color: #1A7A1A;
+  background: rgba(26, 122, 26, 0.08);
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
 }
@@ -459,8 +459,8 @@ onMounted(() => {
 }
 
 .table-row:hover { background: #fafbff; }
-.table-row-unread { background: rgba(0, 206, 209, 0.03); }
-.table-row-unread:hover { background: rgba(0, 206, 209, 0.06); }
+.table-row-unread { background: rgba(26, 122, 26, 0.03); }
+.table-row-unread:hover { background: rgba(26, 122, 26, 0.06); }
 
 .col-title { font-size: 0.875rem; font-weight: 600; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .col-msg { font-size: 0.8125rem; color: #64748b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -508,8 +508,8 @@ onMounted(() => {
   transition: all 0.15s;
 }
 
-.action-read  { background: rgba(0, 0, 153, 0.06); color: #000099; }
-.action-read:hover  { background: rgba(0, 0, 153, 0.14); }
+.action-read  { background: rgba(26, 122, 26, 0.06); color: #1A7A1A; }
+.action-read:hover  { background: rgba(26, 122, 26, 0.14); }
 .action-delete { background: #fee2e2; color: #dc2626; }
 .action-delete:hover { background: #fecaca; }
 
@@ -538,7 +538,7 @@ onMounted(() => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
-.toast-success { background: #000099; color: white; }
+.toast-success { background: #1A7A1A; color: white; }
 .toast-error   { background: #dc2626; color: white; }
 
 .toast-fade-enter-active, .toast-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref } from 'vue'
 
 // Langue sélectionnée
@@ -58,14 +58,14 @@ const saveLanguage = async () => {
           <div 
             class="p-4 rounded-2xl border-2 transition-all duration-300 overflow-hidden"
             :class="selectedLanguage === lang.code 
-              ? 'border-[#00ced1] bg-gradient-to-br from-[#00ced1]/10 to-cyan-50 shadow-lg shadow-cyan-100' 
+              ? 'border-[#F0B429] bg-gradient-to-br from-[#F0B429]/10 to-cyan-50 shadow-lg shadow-cyan-100' 
               : 'border-gray-100 hover:border-gray-200 hover:shadow-md bg-white'"
           >
             <!-- Indicateur sélection -->
             <div 
               class="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300"
               :class="selectedLanguage === lang.code 
-                ? 'bg-[#00ced1] scale-100' 
+                ? 'bg-[#F0B429] scale-100' 
                 : 'bg-gray-100 scale-0'"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" viewBox="0 0 256 256">
@@ -89,7 +89,7 @@ const saveLanguage = async () => {
             <!-- Barre de sélection inférieure -->
             <div 
               class="absolute bottom-0 left-0 right-0 h-1 transition-all duration-300"
-              :class="selectedLanguage === lang.code ? 'bg-[#00ced1]' : 'bg-transparent'"
+              :class="selectedLanguage === lang.code ? 'bg-[#F0B429]' : 'bg-transparent'"
             />
           </div>
         </label>
@@ -108,7 +108,7 @@ const saveLanguage = async () => {
         <button
           type="submit"
           :disabled="isSaving"
-          class="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#000099] to-[#0000cc] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+          class="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#1A7A1A] to-[#0000cc] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
         >
           <svg v-if="isSaving" class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

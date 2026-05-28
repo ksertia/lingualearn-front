@@ -187,14 +187,14 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   border-radius: 0.625rem;
-  background: #000099;
+  background: #1A7A1A;
   color: white;
   border: none;
   cursor: pointer;
   transition: background 0.15s;
 }
 
-.btn-new:hover { background: #0000bb; }
+.btn-new:hover { background: #155e18; }
 
 /* Search */
 .conv-search {
@@ -276,8 +276,8 @@ onMounted(() => {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  background: rgba(0, 0, 153, 0.1);
-  color: #000099;
+  background: rgba(26, 122, 26, 0.1);
+  color: #1A7A1A;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -310,7 +310,7 @@ onMounted(() => {
   width: 1.5rem;
   height: 1.5rem;
   border: 3px solid #e2e8f0;
-  border-top-color: #000099;
+  border-top-color: #1A7A1A;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -337,8 +337,8 @@ onMounted(() => {
 .conv-item:hover { background: #f1f5f9; }
 
 .conv-item-active {
-  background: rgba(0, 0, 153, 0.06);
-  border-right: 3px solid #000099;
+  background: rgba(26, 122, 26, 0.06);
+  border-right: 3px solid #1A7A1A;
 }
 
 .conv-item-body { flex: 1; min-width: 0; }
@@ -369,8 +369,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000099;
-  color: white;
+  background: #F0B429;
+  color: #1A3A00;
   border-radius: 9999px;
   font-size: 0.6875rem;
   font-weight: 800;

@@ -47,10 +47,10 @@
             <span class="text-tibi-gold">Innover.</span>
           </h1>
           <p class="text-lg md:text-xl mb-3 font-semibold" style="color:rgba(255,255,255,0.90)">
-            Mooré · Dioula · Fulfuldé
+            Mooré · Dioula · Fulfuldé · et bien d'autres
           </p>
           <p class="text-lg md:text-xl mb-8 leading-relaxed max-w-xl" style="color:rgba(255,255,255,0.80)">
-            TiBi est l'application mobile qui rend l'apprentissage des langues nationales du Burkina Faso accessible, ludique et ancré dans la culture africaine.
+            TiBi est l'application mobile qui rend l'apprentissage des langues africaines accessible, ludique et ancré dans la richesse culturelle de tout un continent.
           </p>
           <div class="flex flex-col sm:flex-row gap-4">
             <a href="#mobile" class="inline-flex items-center justify-center px-7 py-4 rounded-xl font-bold text-base text-white transition-all duration-200 shadow-lg hover:-translate-y-0.5" style="background:#E06510">
@@ -68,7 +68,7 @@
               <svg class="w-4 h-4 text-tibi-gold" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
               </svg>
-              3 langues nationales
+              Langues de l'Afrique entière
             </div>
             <div class="flex items-center gap-2">
               <svg class="w-4 h-4 text-tibi-gold" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
@@ -130,7 +130,7 @@
   <!-- TRUST BAND -->
   <section class="py-10 bg-gray-50 border-y border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <p class="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Langues officielles du Burkina Faso depuis le 30 décembre 2023</p>
+      <p class="text-center text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Commençons avec les langues du Burkina Faso — et visons tout le continent africain</p>
       <div class="flex flex-wrap justify-center items-center gap-10 md:gap-20">
         <div v-for="lang in langBadges" :key="lang.name" class="flex flex-col items-center gap-1">
           <span class="text-2xl font-extrabold tracking-tight" :class="lang.colorClass">{{ lang.name }}</span>
@@ -145,8 +145,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16 reveal">
         <span class="inline-block bg-amber-50 text-tibi-gold text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-widest mb-4">Langues</span>
-        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">3 langues nationales du Burkina Faso</h2>
-        <p class="text-lg text-gray-500 max-w-2xl mx-auto">Des contenus culturellement riches pour apprendre, pratiquer et valoriser le patrimoine linguistique africain.</p>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Plusieurs langues, tout un continent</h2>
+        <p class="text-lg text-gray-500 max-w-2xl mx-auto">TiBi commence avec les langues du Burkina Faso et a pour ambition de couvrir toutes les langues de l'Afrique — un patrimoine linguistique immense à préserver et transmettre.</p>
       </div>
       <div class="grid md:grid-cols-3 gap-8">
         <div
@@ -511,7 +511,7 @@
             <img src="/icons/tibi-logo-final.png" alt="TiBi" class="h-9 w-auto object-contain" />
           </div>
           <p class="text-sm leading-relaxed text-gray-500 mb-1">Apprendre. Préserver. Innover.</p>
-          <p class="text-sm leading-relaxed text-gray-500 mb-4">L'application d'apprentissage des langues nationales du Burkina Faso.</p>
+          <p class="text-sm leading-relaxed text-gray-500 mb-4">L'application d'apprentissage des langues africaines — du Burkina Faso à tout le continent.</p>
           <div class="flex gap-2">
             <a href="#" aria-label="App Store" class="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors">
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
@@ -719,10 +719,10 @@ const roles = [
 ]
 
 const stats = [
-  { value: '3',    label: 'Langues nationales',               colorClass: 'text-tibi-green'  },
-  { value: '500F', label: 'Abonnement basique / mois',        colorClass: 'text-tibi-gold'   },
-  { value: '1M+',  label: 'Utilisateurs ciblés en 3 ans',    colorClass: 'text-tibi-orange' },
-  { value: '2',    label: 'Moyens de paiement Mobile Money',  colorClass: 'text-tibi-green'  },
+  { value: '2 000+', label: 'Langues parlées en Afrique',       colorClass: 'text-tibi-green'  },
+  { value: '500F',   label: 'Abonnement basique / mois',        colorClass: 'text-tibi-gold'   },
+  { value: '1M+',    label: 'Utilisateurs ciblés en 3 ans',     colorClass: 'text-tibi-orange' },
+  { value: '2',      label: 'Moyens de paiement Mobile Money',  colorClass: 'text-tibi-green'  },
 ]
 
 const testimonials = [

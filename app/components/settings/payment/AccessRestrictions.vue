@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, computed } from 'vue'
 
 // Types
@@ -192,7 +192,7 @@ const saveRestrictions = async () => {
       <button
         @click="saveRestrictions"
         :disabled="isLoading"
-        class="flex items-center gap-2 px-6 py-2.5 bg-[#000099] text-white font-semibold rounded-xl hover:bg-[#000066] transition disabled:opacity-50 disabled:cursor-not-allowed"
+        class="flex items-center gap-2 px-6 py-2.5 bg-[#1A7A1A] text-white font-semibold rounded-xl hover:bg-[#000066] transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <svg v-if="isLoading" class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

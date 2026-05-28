@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref } from 'vue'
 
 // Logo actuel (simulé)
@@ -139,7 +139,7 @@ const confirmRemoveLogo = async () => {
     </div>
 
     <div v-if="isLoading" class="flex items-center justify-center py-8">
-      <div class="w-8 h-8 border-4 border-slate-200 border-t-[#000099] rounded-full animate-spin"></div>
+      <div class="w-8 h-8 border-4 border-slate-200 border-t-[#1A7A1A] rounded-full animate-spin"></div>
     </div>
 
     <div v-else class="space-y-6">
@@ -161,7 +161,7 @@ const confirmRemoveLogo = async () => {
       </div>
 
       <!-- Zone de prévisualisation -->
-      <div v-if="previewLogo" class="flex items-center gap-6 p-6 bg-[#00ced1]/5 rounded-xl border-2 border-[#00ced1]/30">
+      <div v-if="previewLogo" class="flex items-center gap-6 p-6 bg-[#F0B429]/5 rounded-xl border-2 border-[#F0B429]/30">
         <div class="w-32 h-32 flex items-center justify-center bg-white rounded-xl shadow-sm p-4">
           <img :src="previewLogo" alt="Nouveau logo" class="max-w-full max-h-full object-contain" />
         </div>
@@ -172,7 +172,7 @@ const confirmRemoveLogo = async () => {
             <button
               @click="saveLogo"
               :disabled="isSaving"
-              class="px-4 py-2 text-sm font-medium bg-[#000099] text-white rounded-lg hover:bg-[#000066] transition disabled:opacity-50"
+              class="px-4 py-2 text-sm font-medium bg-[#1A7A1A] text-white rounded-lg hover:bg-[#000066] transition disabled:opacity-50"
             >
               {{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}
             </button>
@@ -194,8 +194,8 @@ const confirmRemoveLogo = async () => {
           @drop="handleDrop"
           class="border-2 border-dashed rounded-xl p-8 text-center transition"
           :class="dragOver 
-            ? 'border-[#00ced1] bg-[#00ced1]/5' 
-            : 'border-gray-200 hover:border-[#00ced1] hover:bg-gray-50'"
+            ? 'border-[#F0B429] bg-[#F0B429]/5' 
+            : 'border-gray-200 hover:border-[#F0B429] hover:bg-gray-50'"
         >
           <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto text-slate-400 mb-4" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -203,7 +203,7 @@ const confirmRemoveLogo = async () => {
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
           <p class="text-slate-600 mb-2">
-            <label for="logo-upload" class="cursor-pointer text-[#000099] hover:underline font-medium">
+            <label for="logo-upload" class="cursor-pointer text-[#1A7A1A] hover:underline font-medium">
               Cliquez pour télécharger
             </label>
             ou glissez-déposez

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, computed } from 'vue'
 
 // Fuseau horaire sélectionné
@@ -154,7 +154,7 @@ const getFullLabel = (zone: { label: string; offset: string }) => {
         <button
           type="submit"
           :disabled="isSaving"
-          class="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#000099] to-[#0000cc] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+          class="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#1A7A1A] to-[#0000cc] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
         >
           <svg v-if="isSaving" class="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>

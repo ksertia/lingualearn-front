@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref } from 'vue'
 
 // Types
@@ -141,10 +141,10 @@ const getIcon = (iconName: string) => {
         v-for="method in methods" 
         :key="method.id"
         class="flex items-center justify-between p-5 rounded-xl border-2 transition-all"
-        :class="method.isEnabled ? 'border-[#00ced1]/30 bg-[#00ced1]/5' : 'border-gray-100 bg-gray-50'"
+        :class="method.isEnabled ? 'border-[#F0B429]/30 bg-[#F0B429]/5' : 'border-gray-100 bg-gray-50'"
       >
         <div class="flex items-center gap-4">
-          <div class="w-12 h-12 rounded-xl flex items-center justify-center" :class="method.isEnabled ? 'bg-[#000099] text-white' : 'bg-gray-200 text-gray-400'">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center" :class="method.isEnabled ? 'bg-[#1A7A1A] text-white' : 'bg-gray-200 text-gray-400'">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path :d="getIcon(method.icon)" />
             </svg>
@@ -183,7 +183,7 @@ const getIcon = (iconName: string) => {
               type="checkbox" 
               class="sr-only peer" 
             />
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#00ced1]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00ced1]"></div>
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#F0B429]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F0B429]"></div>
           </label>
 
           <!-- Configurer -->
@@ -213,7 +213,7 @@ const getIcon = (iconName: string) => {
               <input
                 v-model="selectedMethod.description"
                 type="text"
-                class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
+                class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#F0B429] outline-none transition"
               />
             </div>
             
@@ -225,7 +225,7 @@ const getIcon = (iconName: string) => {
                 step="0.1"
                 min="0"
                 max="10"
-                class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#00ced1] outline-none transition"
+                class="w-full px-4 py-2.5 bg-gray-100 border border-transparent rounded-xl focus:bg-white focus:border-[#F0B429] outline-none transition"
               />
             </div>
 
@@ -240,7 +240,7 @@ const getIcon = (iconName: string) => {
                   type="checkbox" 
                   class="sr-only peer" 
                 />
-                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#00ced1]"></div>
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#F0B429]"></div>
               </label>
             </div>
           </div>
@@ -255,7 +255,7 @@ const getIcon = (iconName: string) => {
             <button
               @click="saveConfig"
               :disabled="isLoading"
-              class="px-4 py-2 text-sm font-medium bg-[#000099] text-white rounded-lg hover:bg-[#000066] transition disabled:opacity-50"
+              class="px-4 py-2 text-sm font-medium bg-[#1A7A1A] text-white rounded-lg hover:bg-[#000066] transition disabled:opacity-50"
             >
               {{ isLoading ? 'Enregistrement...' : 'Enregistrer' }}
             </button>

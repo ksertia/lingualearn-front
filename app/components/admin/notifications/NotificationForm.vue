@@ -37,7 +37,7 @@ const selectedUserLabel = computed(() => {
 })
 
 const typeOptions = [
-  { value: 'info',    label: 'Info',          color: '#000099', bg: 'rgba(0,0,153,0.08)',  border: 'rgba(0,0,153,0.2)' },
+  { value: 'info',    label: 'Info',          color: '#1A7A1A', bg: 'rgba(26,122,26,0.08)',  border: 'rgba(26,122,26,0.2)' },
   { value: 'success', label: 'Succès',         color: '#16a34a', bg: '#dcfce7',             border: '#bbf7d0' },
   { value: 'warning', label: 'Avertissement',  color: '#d97706', bg: '#fef3c7',             border: '#fde68a' },
   { value: 'error',   label: 'Erreur',         color: '#dc2626', bg: '#fee2e2',             border: '#fca5a5' },
@@ -179,7 +179,7 @@ onMounted(() => {
   background: white;
   border-radius: 1rem;
   border: 1px solid #f1f5f9;
-  box-shadow: 0 1px 4px rgba(0, 0, 153, 0.04);
+  box-shadow: 0 1px 4px rgba(26, 122, 26, 0.04);
   overflow: hidden;
 }
 
@@ -196,8 +196,8 @@ onMounted(() => {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 0.75rem;
-  background: rgba(0, 0, 153, 0.08);
-  color: #000099;
+  background: rgba(26, 122, 26, 0.08);
+  color: #1A7A1A;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -246,8 +246,8 @@ onMounted(() => {
 
 .nf-input:focus,
 .nf-textarea:focus {
-  border-color: #00ced1;
-  box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.12);
+  border-color: #1A7A1A;
+  box-shadow: 0 0 0 3px rgba(26, 122, 26, 0.12);
   background: white;
 }
 
@@ -263,7 +263,7 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.nf-select:focus { border-color: #00ced1; box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.12); }
+.nf-select:focus { border-color: #1A7A1A; box-shadow: 0 0 0 3px rgba(26, 122, 26, 0.12); }
 
 /* User picker */
 .user-picker { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -336,12 +336,12 @@ onMounted(() => {
   font-size: 0.875rem;
   font-weight: 700;
   color: white;
-  background: #000099;
+  background: #1A7A1A;
   border: none;
   cursor: pointer;
   transition: background 0.15s, opacity 0.15s;
 }
 
-.btn-send:hover:not(:disabled) { background: #0000bb; }
+.btn-send:hover:not(:disabled) { background: #155e18; }
 .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

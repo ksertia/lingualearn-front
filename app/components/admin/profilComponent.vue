@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6 max-w-2xl mx-auto mt-6">
 
-    <h1 class="text-2xl font-bold text-[rgb(0,0,153)]">Profil Administrateur</h1>
+    <h1 class="text-2xl font-bold text-[#1A7A1A]">Profil Administrateur</h1>
 
     <button type="submit" @click="returnTo()">Retour</button>
 
@@ -12,7 +12,7 @@
           <img
             :src="authStore.user?.profile?.avatarUrl || defaultAvatar"
             alt="Photo de profil"
-            class="w-24 h-24 rounded-full object-cover border-2 border-[rgb(0,206,209)]"
+            class="w-24 h-24 rounded-full object-cover border-2 border-[#F0B429]"
           />
         </div>
         <!-- <div>
@@ -24,15 +24,15 @@
         <div>
           <label class="block text-gray-600 font-medium mb-1">Prénom</label>
           <input type="text" :value="profile?.firstName??''" readonly 
-          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[rgb(0,206,209)]"/>
+          class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1A7A1A]"/>
         </div>
         <div>
           <label class="block text-gray-600 font-medium mb-1">Nom</label>
-          <input type="text" :value="profile?.lastName??''" readonly  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[rgb(0,206,209)]"/>
+          <input type="text" :value="profile?.lastName??''" readonly  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1A7A1A]"/>
         </div>
         <div>
           <label class="block text-gray-600 font-medium mb-1">Email</label>
-          <input type="email" :value="authStore.user?.email" readonly  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[rgb(0,206,209)]"/>
+          <input type="email" :value="authStore.user?.email" readonly  class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1A7A1A]"/>
         </div>
       </div>
 

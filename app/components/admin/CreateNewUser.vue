@@ -1,7 +1,7 @@
 <template>
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-      <h2 class="text-xl font-bold mb-4 text-[rgb(0,0,153)]">
+      <h2 class="text-xl font-bold mb-4 text-[#1A7A1A]">
         Créer un utilisateur
       </h2>
 
@@ -102,7 +102,7 @@
 
         <button
           @click="submit"
-          class="px-4 py-2 bg-[rgb(0,206,209)] text-[rgb(0,0,153)] rounded hover:brightness-90"
+          class="px-4 py-2 bg-[#1A7A1A] text-white rounded hover:brightness-90"
         >
           Créer
         </button>

@@ -212,8 +212,8 @@ onMounted(() => scrollToBottom('instant'))
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  background: rgba(0, 0, 153, 0.1);
-  color: #000099;
+  background: rgba(26, 122, 26, 0.1);
+  color: #1A7A1A;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -262,7 +262,7 @@ onMounted(() => scrollToBottom('instant'))
   width: 2rem;
   height: 2rem;
   border: 3px solid #e2e8f0;
-  border-top-color: #000099;
+  border-top-color: #1A7A1A;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
@@ -304,8 +304,8 @@ onMounted(() => scrollToBottom('instant'))
   width: 1.75rem;
   height: 1.75rem;
   border-radius: 50%;
-  background: rgba(0, 0, 153, 0.1);
-  color: #000099;
+  background: rgba(26, 122, 26, 0.1);
+  color: #1A7A1A;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -324,7 +324,7 @@ onMounted(() => scrollToBottom('instant'))
 }
 
 .bubble-mine {
-  background: #000099;
+  background: #1A7A1A;
   color: white;
   border-bottom-right-radius: 0.25rem;
 }
@@ -378,8 +378,8 @@ onMounted(() => scrollToBottom('instant'))
 }
 
 .composer-input:focus {
-  border-color: #00ced1;
-  box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.12);
+  border-color: #1A7A1A;
+  box-shadow: 0 0 0 3px rgba(26, 122, 26, 0.12);
   background: white;
 }
 
@@ -387,7 +387,7 @@ onMounted(() => scrollToBottom('instant'))
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  background: #000099;
+  background: #1A7A1A;
   color: white;
   border: none;
   display: flex;
@@ -398,6 +398,6 @@ onMounted(() => scrollToBottom('instant'))
   transition: background 0.15s, opacity 0.15s, transform 0.1s;
 }
 
-.composer-send:hover:not(:disabled) { background: #0000bb; transform: scale(1.05); }
+.composer-send:hover:not(:disabled) { background: #155e18; transform: scale(1.05); }
 .composer-send:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>

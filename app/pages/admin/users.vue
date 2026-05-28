@@ -1,30 +1,27 @@
 <template>
-  <div class="space-y-6">
+  <div class="page-root">
     <!-- Modal création -->
-    <CreateNewUser v-if="openModal" @close="openModal = false" @create="addUser"/>
+    <CreateNewUser v-if="openModal" @close="openModal = false" @create="addUser" />
 
-    <!-- Chargement -->
-    <div v-if="userStore.isLoading" class="flex flex-col items-center justify-center py-20">
-      <div class="relative w-16 h-16">
-        <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
-        <div class="spinner-ring"></div>
-      </div>
-      <p class="mt-4 text-slate-500 font-medium text-sm">Chargement des utilisateurs...</p>
+    <!-- Loading -->
+    <div v-if="userStore.isLoading" class="state-loading">
+      <div class="spinner"></div>
+      <p class="state-text">Chargement des utilisateurs…</p>
     </div>
 
-    <!-- Erreur -->
-    <div v-else-if="userStore.error" class="error-state">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 flex-shrink-0" viewBox="0 0 256 256">
-        <path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm-8 56a8 8 0 0 1 16 0v56a8 8 0 0 1-16 0Zm8 104a12 12 0 1 1 12-12a12 12 0 0 1-12 12Z"/>
+    <!-- Error -->
+    <div v-else-if="userStore.error" class="state-error">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
       <div>
-        <p class="font-bold">Une erreur est survenue</p>
-        <p class="text-sm opacity-80">{{ userStore.error }}</p>
-        <button @click="userStore.fetchUsers()" class="retry-btn mt-2">Réessayer</button>
+        <p class="font-semibold text-sm">Une erreur est survenue</p>
+        <p class="text-xs mt-0.5 opacity-80">{{ userStore.error }}</p>
+        <button class="retry-btn" @click="userStore.fetchUsers()">Réessayer</button>
       </div>
     </div>
 
-    <!-- Tableau -->
+    <!-- Table -->
     <UserTable
       v-else
       :users="userStore.users"
@@ -38,31 +35,31 @@
       @edit="editUser"
     />
 
-    <!-- Modal détails -->
+    <!-- Details modal -->
     <CreateUserDetails
       v-if="selectedUser"
       :user="selectedUser"
       @close="selectedUser = null"
     />
 
-    <!-- Modal Édition -->
+    <!-- Edit modal -->
     <Teleport to="body">
       <div v-if="editingUser" class="modal-overlay" @click.self="editingUser = null">
         <div class="modal-box">
           <!-- Header -->
           <div class="modal-header">
-            <div class="modal-icon-wrap">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+            <div class="modal-icon">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
             </div>
             <div>
               <h2 class="modal-title">Modifier l'utilisateur</h2>
-              <p class="modal-subtitle">{{ editingUser.profile.firstName }} {{ editingUser.profile.lastName }}</p>
+              <p class="modal-sub">{{ editingUser.profile.firstName }} {{ editingUser.profile.lastName }}</p>
             </div>
             <button class="modal-close" @click="editingUser = null">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
@@ -72,27 +69,27 @@
             <div class="field-grid">
               <div class="field">
                 <label class="field-label">Prénom</label>
-                <input v-model="editingUser.profile.firstName" type="text" class="field-input" placeholder="Prénom"/>
+                <input v-model="editingUser.profile.firstName" type="text" class="field-input" placeholder="Prénom" />
               </div>
               <div class="field">
                 <label class="field-label">Nom</label>
-                <input v-model="editingUser.profile.lastName" type="text" class="field-input" placeholder="Nom"/>
+                <input v-model="editingUser.profile.lastName" type="text" class="field-input" placeholder="Nom" />
               </div>
               <div class="field field-full">
                 <label class="field-label">Adresse email</label>
-                <input v-model="editingUser.email" type="email" class="field-input" placeholder="email@exemple.com"/>
+                <input v-model="editingUser.email" type="email" class="field-input" placeholder="email@exemple.com" />
               </div>
               <div class="field">
                 <label class="field-label">Nom d'utilisateur</label>
-                <input v-model="editingUser.username" type="text" class="field-input" placeholder="@username"/>
+                <input v-model="editingUser.username" type="text" class="field-input" placeholder="@username" />
               </div>
               <div class="field">
                 <label class="field-label">Nouveau mot de passe</label>
-                <input v-model="editingUser.password" type="password" class="field-input" placeholder="Laisser vide pour ne pas modifier"/>
+                <input v-model="editingUser.password" type="password" class="field-input" placeholder="Laisser vide pour ne pas modifier" />
               </div>
               <div class="field">
                 <label class="field-label">Rôle</label>
-                <div class="field-select-wrap">
+                <div class="select-wrap">
                   <select v-model="editingUser.accountType" class="field-select">
                     <option value="learner">Apprenant</option>
                     <option value="sub_account_learner">Sous-compte apprenant</option>
@@ -100,18 +97,17 @@
                     <option value="plateform_manager">Gestionnaire</option>
                     <option value="admin">Administrateur</option>
                   </select>
-                  <div class="select-chevron">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
-                    </svg>
-                  </div>
+                  <svg class="select-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
               </div>
               <div class="field">
-                <label class="field-label">Statut</label>
+                <label class="field-label">Statut du compte</label>
                 <button
+                  class="status-toggle"
+                  :class="editingUser.isActive ? 'status-toggle--active' : 'status-toggle--inactive'"
                   @click="toggleStatusInPopup"
-                  :class="['status-toggle', editingUser.isActive ? 'status-toggle-active' : 'status-toggle-inactive']"
                 >
                   <span class="status-dot"></span>
                   {{ editingUser.isActive ? 'Actif' : 'Inactif' }}
@@ -122,34 +118,34 @@
 
           <!-- Footer -->
           <div class="modal-footer">
-            <button @click="editingUser = null" class="btn-cancel">Annuler</button>
-            <button @click="saveEdit" class="btn-save">Enregistrer</button>
+            <button class="btn-cancel" @click="editingUser = null">Annuler</button>
+            <button class="btn-save" @click="saveEdit">Enregistrer</button>
           </div>
         </div>
       </div>
     </Teleport>
 
-    <!-- Modal Suppression -->
+    <!-- Delete modal -->
     <Teleport to="body">
       <div v-if="userToDelete" class="modal-overlay" @click.self="userToDelete = null">
-        <div class="modal-box modal-box-sm">
-          <div class="flex items-center gap-4 mb-5">
-            <div class="w-12 h-12 rounded-2xl bg-red-100 flex items-center justify-center flex-shrink-0">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        <div class="modal-box modal-box--sm">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#FEF2F2;">
+              <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
             <div>
-              <h3 class="text-base font-bold text-slate-900">Supprimer l'utilisateur</h3>
-              <p class="text-sm text-slate-500 mt-0.5">Cette action est irréversible</p>
+              <h3 class="text-sm font-semibold" style="color:#111827;">Supprimer l'utilisateur</h3>
+              <p class="text-xs mt-0.5" style="color:#9CA3AF;">Cette action est irréversible</p>
             </div>
           </div>
-          <p class="text-sm text-slate-600 mb-6">
+          <p class="text-sm mb-6" style="color:#6B7280;">
             Vous êtes sur le point de supprimer
-            <span class="font-semibold text-slate-900">{{ userToDelete.profile.firstName }} {{ userToDelete.profile.lastName }}</span>.
+            <span class="font-semibold" style="color:#111827;">{{ userToDelete.profile.firstName }} {{ userToDelete.profile.lastName }}</span>.
             Toutes ses données seront définitivement supprimées.
           </p>
-          <div class="flex justify-end gap-3">
+          <div class="flex justify-end gap-2">
             <button class="btn-cancel" @click="userToDelete = null">Annuler</button>
             <button class="btn-delete" @click="confirmDeleteUser">Supprimer</button>
           </div>
@@ -158,21 +154,21 @@
     </Teleport>
 
     <!-- Toast -->
-    <transition name="toast-fade">
+    <Transition name="toast-fade">
       <div
         v-if="toast.show"
         class="toast"
-        :class="toast.type === 'success' ? 'toast-success' : 'toast-error'"
+        :class="toast.type === 'success' ? 'toast--success' : 'toast--error'"
       >
-        <svg v-if="toast.type === 'success'" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        <svg v-if="toast.type === 'success'" class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
         </svg>
-        <svg v-else xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        <svg v-else class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
         {{ toast.message }}
       </div>
-    </transition>
+    </Transition>
   </div>
 </template>
 
@@ -194,11 +190,7 @@ const openModal = ref(false)
 const selectedUser = ref<User | null>(null)
 const editingUser = ref<User | null>(null)
 const userToDelete = ref<User | null>(null)
-const toast = ref({
-  show: false,
-  message: '',
-  type: 'success' as 'success' | 'error'
-})
+const toast = ref({ show: false, message: '', type: 'success' as 'success' | 'error' })
 let toastTimer: ReturnType<typeof setTimeout> | null = null
 
 const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -207,9 +199,7 @@ const showToast = (message: string, type: 'success' | 'error' = 'success') => {
   toastTimer = setTimeout(() => { toast.value.show = false }, 3000)
 }
 
-onMounted(async () => {
-  await userStore.fetchUsers()
-})
+onMounted(async () => { await userStore.fetchUsers() })
 
 const addUser = async (newUser: any) => {
   try {
@@ -221,15 +211,14 @@ const addUser = async (newUser: any) => {
       password: newUser.password ?? '',
       username: newUser.username ?? null,
       accountType: newUser.role ?? 'learner',
-      parentId: null
+      parentId: null,
     }
     await userStore.createUser(userData)
     showToast(`L'utilisateur ${userData.firstName} ${userData.lastName} a été créé avec succès.`)
     openModal.value = false
     await userStore.fetchUsers()
-  } catch (err) {
-    console.error('Error creating user:', err)
-    showToast('Erreur lors de la création de l\'utilisateur.', 'error')
+  } catch {
+    showToast("Erreur lors de la création de l'utilisateur.", 'error')
   }
 }
 
@@ -244,39 +233,25 @@ const confirmDeleteUser = async () => {
     const user = userToDelete.value
     await userStore.deleteUser(user.id)
     userStore.users = userStore.users.filter(u => u.id !== user.id)
-    showToast(`L'utilisateur ${user.profile.firstName} ${user.profile.lastName} a été supprimé avec succès.`)
-  } catch (err) {
-    console.error('Delete user error:', err)
-    showToast('Erreur lors de la suppression de l\'utilisateur.', 'error')
+    showToast(`L'utilisateur ${user.profile.firstName} ${user.profile.lastName} a été supprimé.`)
+  } catch {
+    showToast("Erreur lors de la suppression.", 'error')
   } finally {
     userToDelete.value = null
   }
 }
 
-const showUserDetails = (user: User) => {
-  selectedUser.value = user
-}
+const showUserDetails = (user: User) => { selectedUser.value = user }
 
 const verifyUser = async (user: User) => {
   try {
     const { email, accountType, profile, username, phone, isActive } = user
-    const payload = {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      email,
-      username,
-      phone,
-      accountType,
-      isActive,
-      isVerified: true,
-      profile: { ...profile }
-    }
+    const payload = { firstName: profile.firstName, lastName: profile.lastName, email, username, phone, accountType, isActive, isVerified: true, profile: { ...profile } }
     await userStore.putUser(user.id, payload)
     user.isVerified = true
-    showToast(`L'utilisateur ${profile.firstName} ${profile.lastName} a été vérifié.`)
-  } catch (err) {
-    console.error(err)
-    showToast('Erreur lors de la vérification de l\'utilisateur.', 'error')
+    showToast(`${profile.firstName} ${profile.lastName} a été vérifié.`)
+  } catch {
+    showToast('Erreur lors de la vérification.', 'error')
   }
 }
 
@@ -284,332 +259,343 @@ const toggleUserStatus = async (user: User) => {
   try {
     const newStatus = !user.isActive
     const { email, accountType, profile, username, phone } = user
-    const payload = {
-      firstName: profile.firstName,
-      lastName: profile.lastName,
-      email,
-      username,
-      phone,
-      accountType,
-      isActive: newStatus,
-      profile: { ...profile, firstName: profile.firstName, lastName: profile.lastName }
-    }
+    const payload = { firstName: profile.firstName, lastName: profile.lastName, email, username, phone, accountType, isActive: newStatus, profile: { ...profile } }
     await userStore.putUser(user.id, payload)
     user.isActive = newStatus
-    showToast(`Le statut de ${profile.firstName} ${profile.lastName} a été ${newStatus ? 'activé' : 'désactivé'}.`)
-  } catch (err) {
-    console.error(err)
-    showToast('Erreur lors de la mise à jour du statut.', 'error')
+    showToast(`Statut de ${profile.firstName} ${profile.lastName} mis à jour.`)
+  } catch {
+    showToast('Erreur lors de la mise à jour.', 'error')
   }
 }
 
-const editUser = (user: User) => {
-  editingUser.value = JSON.parse(JSON.stringify(user))
-}
+const editUser = (user: User) => { editingUser.value = JSON.parse(JSON.stringify(user)) }
 
 const toggleStatusInPopup = () => {
-  if (!editingUser.value) return
-  editingUser.value.isActive = !editingUser.value.isActive
+  if (editingUser.value) editingUser.value.isActive = !editingUser.value.isActive
 }
 
 const saveEdit = async () => {
   if (!editingUser.value) return
   const { id, accountType, isActive, email, profile, username, phone } = editingUser.value
-  const payload: any = {
-    firstName: profile.firstName,
-    lastName: profile.lastName,
-    email,
-    username,
-    phone,
-    accountType,
-    isActive,
-    profile: { ...profile, firstName: profile.firstName, lastName: profile.lastName }
-  }
-  if (editingUser.value.password) {
-    payload.password = editingUser.value.password
-  }
+  const payload: any = { firstName: profile.firstName, lastName: profile.lastName, email, username, phone, accountType, isActive, profile: { ...profile } }
+  if (editingUser.value.password) payload.password = editingUser.value.password
   try {
     await userStore.putUser(id, payload)
-    showToast(`L'utilisateur ${profile.firstName} ${profile.lastName} a été modifié avec succès.`)
+    showToast(`${profile.firstName} ${profile.lastName} a été modifié.`)
     editingUser.value = null
-  } catch (err) {
-    console.error('Put user error:', err)
-    showToast('Erreur lors de la modification de l\'utilisateur.', 'error')
+  } catch {
+    showToast('Erreur lors de la modification.', 'error')
   }
 }
 </script>
 
 <style scoped>
-/* ─── Spinner ──────────────────────────────── */
-.spinner-ring {
-  position: absolute;
-  inset: 0;
-  border: 4px solid transparent;
-  border-top-color: #000099;
+.page-root { padding: 32px; }
+
+/* Loading / Error states */
+.state-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 12px;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid #E5E7EB;
+  border-top-color: #16A34A;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ─── Error ────────────────────────────────── */
-.error-state {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  padding: 1.5rem;
-  border-radius: 1rem;
+.state-text { font-size: 13px; color: #9CA3AF; }
+
+.state-error {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  color: #dc2626;
+  gap: 12px;
+  padding: 16px 20px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 10px;
+  color: #DC2626;
+  margin-bottom: 20px;
 }
+
 .retry-btn {
   display: inline-block;
-  padding: 0.375rem 0.875rem;
-  border-radius: 0.5rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
   background: white;
-  border: 1.5px solid #fca5a5;
-  color: #dc2626;
+  border: 1px solid #FECACA;
+  color: #DC2626;
   cursor: pointer;
   transition: background 0.15s;
 }
-.retry-btn:hover { background: #fee2e2; }
 
-/* ─── Modal Overlay ────────────────────────── */
+.retry-btn:hover { background: #FEE2E2; }
+
+/* ── Modal ───────────────────────────────── */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(2px);
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 50;
-  padding: 1rem;
+  padding: 16px;
 }
 
-/* ─── Modal Box ────────────────────────────── */
 .modal-box {
   background: white;
-  border-radius: 1.25rem;
+  border-radius: 14px;
   width: 100%;
-  max-width: 540px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  max-width: 520px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 8px 24px rgba(0,0,0,0.08);
   overflow: hidden;
 }
-.modal-box-sm {
-  max-width: 420px;
-  padding: 1.5rem;
-}
 
-/* ─── Modal Header ─────────────────────────── */
+.modal-box--sm { max-width: 400px; padding: 24px; }
+
 .modal-header {
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
-  background: #fafbff;
+  gap: 12px;
+  padding: 18px 20px;
+  border-bottom: 1px solid #F3F4F6;
 }
-.modal-icon-wrap {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.75rem;
-  background: rgba(0, 0, 153, 0.08);
-  color: #000099;
+
+.modal-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: rgba(22,163,74,0.08);
+  color: #16A34A;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
+
 .modal-title {
-  font-size: 0.9375rem;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #111827;
 }
-.modal-subtitle {
-  font-size: 0.8125rem;
-  color: #64748b;
-  margin-top: 0.125rem;
+
+.modal-sub {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 2px;
 }
+
 .modal-close {
   margin-left: auto;
-  width: 2rem;
-  height: 2rem;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 0.5rem;
-  color: #94a3b8;
+  border-radius: 7px;
+  border: none;
+  background: none;
+  color: #9CA3AF;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: all 0.13s;
 }
-.modal-close:hover { background: #f1f5f9; color: #475569; }
 
-/* ─── Modal Body ───────────────────────────── */
-.modal-body { padding: 1.5rem; }
+.modal-close:hover { background: #F3F4F6; color: #374151; }
+
+.modal-body { padding: 20px; }
+
 .field-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  gap: 14px;
 }
+
 .field-full { grid-column: 1 / -1; }
+
 .field-label {
   display: block;
-  font-size: 0.75rem;
+  font-size: 11.5px;
   font-weight: 600;
-  color: #64748b;
-  margin-bottom: 0.375rem;
+  color: #6B7280;
+  margin-bottom: 5px;
   letter-spacing: 0.01em;
 }
+
 .field-input {
   width: 100%;
-  padding: 0.625rem 0.875rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  font-size: 0.875rem;
-  color: #0f172a;
+  padding: 8px 10px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #111827;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  transition: all 0.15s;
+  box-sizing: border-box;
 }
+
 .field-input:focus {
-  border-color: #00ced1;
-  box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.12);
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
   background: white;
 }
-.field-select-wrap { position: relative; }
+
+.select-wrap { position: relative; }
+
 .field-select {
   width: 100%;
-  padding: 0.625rem 2.25rem 0.625rem 0.875rem;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  font-size: 0.875rem;
-  color: #0f172a;
+  padding: 8px 28px 8px 10px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #111827;
   outline: none;
   appearance: none;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-}
-.field-select:focus {
-  border-color: #00ced1;
-  box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.12);
-  background: white;
-}
-.select-chevron {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: #94a3b8;
+  transition: all 0.15s;
 }
 
-/* ─── Status Toggle ────────────────────────── */
+.field-select:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
+  background: white;
+}
+
+.select-chevron {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: #9CA3AF;
+  pointer-events: none;
+}
+
 .status-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.875rem;
-  border-radius: 0.75rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  border: 1.5px solid transparent;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid transparent;
   cursor: pointer;
   transition: all 0.15s;
 }
+
 .status-dot {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
-.status-toggle-active {
-  background: rgba(0, 206, 209, 0.1);
-  color: #000099;
-  border-color: rgba(0, 206, 209, 0.3);
-}
-.status-toggle-active .status-dot { background: #00ced1; }
-.status-toggle-inactive {
-  background: #f1f5f9;
-  color: #64748b;
-  border-color: #e2e8f0;
-}
-.status-toggle-inactive .status-dot { background: #94a3b8; }
 
-/* ─── Modal Footer ─────────────────────────── */
+.status-toggle--active {
+  background: rgba(22,163,74,0.08);
+  color: #15803D;
+  border-color: rgba(22,163,74,0.2);
+}
+
+.status-toggle--active .status-dot { background: #16A34A; }
+
+.status-toggle--inactive {
+  background: #F3F4F6;
+  color: #6B7280;
+  border-color: #E5E7EB;
+}
+
+.status-toggle--inactive .status-dot { background: #9CA3AF; }
+
 .modal-footer {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #f1f5f9;
-  background: #fafbff;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid #F3F4F6;
 }
 
-/* ─── Buttons ──────────────────────────────── */
+/* Buttons */
 .btn-cancel {
-  padding: 0.5rem 1.25rem;
-  border-radius: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #64748b;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6B7280;
   background: white;
-  border: 1.5px solid #e2e8f0;
+  border: 1px solid #E5E7EB;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.13s;
 }
-.btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; color: #475569; }
-.btn-save {
-  padding: 0.5rem 1.25rem;
-  border-radius: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: white;
-  background: #000099;
-  border: 1.5px solid transparent;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.btn-save:hover { background: #0000bb; }
-.btn-delete {
-  padding: 0.5rem 1.25rem;
-  border-radius: 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: white;
-  background: #dc2626;
-  border: 1.5px solid transparent;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.btn-delete:hover { background: #b91c1c; }
 
-/* ─── Toast ────────────────────────────────── */
+.btn-cancel:hover { background: #F9FAFB; border-color: #D1D5DB; }
+
+.btn-save {
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  background: #16A34A;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(22,163,74,.3);
+  transition: background 0.13s;
+}
+
+.btn-save:hover { background: #15803D; }
+
+.btn-delete {
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  background: #DC2626;
+  border: none;
+  cursor: pointer;
+  transition: background 0.13s;
+}
+
+.btn-delete:hover { background: #B91C1C; }
+
+/* Toast */
 .toast {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
+  bottom: 24px;
+  right: 24px;
   z-index: 60;
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  border-radius: 0.875rem;
-  padding: 0.75rem 1.125rem;
-  font-size: 0.875rem;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: 500;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
   max-width: 360px;
 }
-.toast-success { background: #000099; color: white; }
-.toast-error { background: #dc2626; color: white; }
 
-/* ─── Transitions ──────────────────────────── */
-.toast-fade-enter-active,
-.toast-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
-.toast-fade-enter-from,
-.toast-fade-leave-to { opacity: 0; transform: translateY(8px); }
+.toast--success { background: #16A34A; color: white; }
+.toast--error   { background: #DC2626; color: white; }
+
+.toast-fade-enter-active, .toast-fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.toast-fade-enter-from, .toast-fade-leave-to { opacity: 0; transform: translateY(6px); }
 </style>
