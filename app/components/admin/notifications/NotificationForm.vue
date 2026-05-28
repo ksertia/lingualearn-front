@@ -25,7 +25,7 @@ const filteredUsers = computed(() => {
       !q ||
       u.profile.firstName.toLowerCase().includes(q) ||
       u.profile.lastName.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q)
+      (u.email || '').toLowerCase().includes(q)
     )
     .slice(0, 80)
 })
@@ -45,22 +45,32 @@ const typeOptions = [
 
 const canSubmit = computed(() => form.value.userId && form.value.title.trim() && form.value.message.trim())
 
+const toast = ref({ message: '', type: 'success' as 'success' | 'error' })
+const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  toast.value = { message, type }
+  setTimeout(() => (toast.value.message = ''), 3000)
+}
+
 const handleSubmit = async () => {
   if (!canSubmit.value) return
+  const titleSnapshot = form.value.title.trim()
   const result = await notifStore.createNotification({
     userId: form.value.userId,
-    title: form.value.title.trim(),
+    title: titleSnapshot,
     message: form.value.message.trim(),
     notificationType: form.value.notificationType,
     actionUrl: form.value.actionUrl.trim() || undefined,
   })
   if (result.success) {
-    emit('sent', form.value.title)
+    emit('sent', titleSnapshot)
     form.value.title = ''
     form.value.message = ''
     form.value.actionUrl = ''
     form.value.userId = ''
     userSearch.value = ''
+    showToast(`La notification "${titleSnapshot}" a été envoyée avec succès.`)
+  } else {
+    showToast(notifStore.error || "Échec de l'envoi de la notification.", 'error')
   }
 }
 
@@ -82,6 +92,17 @@ onMounted(() => {
         <h2 class="nf-title">Envoyer une notification</h2>
         <p class="nf-subtitle">Créez et envoyez une notification à un utilisateur</p>
       </div>
+    </div>
+
+    <!-- Toast -->
+    <div v-if="toast.message" class="nf-toast" :class="toast.type === 'success' ? 'nf-toast--ok' : 'nf-toast--err'">
+      <svg v-if="toast.type === 'success'" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>
+      <svg v-else width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+      {{ toast.message }}
     </div>
 
     <!-- Body -->
@@ -344,4 +365,18 @@ onMounted(() => {
 
 .btn-send:hover:not(:disabled) { background: #155e18; }
 .btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Toast */
+.nf-toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 0;
+  border-bottom: 1px solid transparent;
+}
+.nf-toast--ok  { background: #F0FDF4; color: #166534; border-color: #BBF7D0; }
+.nf-toast--err { background: #FEF2F2; color: #991B1B; border-color: #FECACA; }
 </style>

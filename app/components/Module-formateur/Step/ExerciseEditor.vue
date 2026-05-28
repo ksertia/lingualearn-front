@@ -89,7 +89,7 @@
           <span class="text-xs font-bold text-slate-500">Item {{ index + 1 }}</span>
           <button
             v-if="local.fillBlankItems.length > 1"
-            @click="removeFillBlankItem(index)"
+            @click="itemToDelete = { type: 'fillBlank', index }"
             type="button"
             class="text-xs font-bold text-rose-500 hover:text-rose-600"
           >
@@ -130,7 +130,7 @@
           <span class="text-xs font-bold text-slate-500">Paire {{ index + 1 }}</span>
           <button
             v-if="local.matchPairs.length > 1"
-            @click="removeMatchPair(index)"
+            @click="itemToDelete = { type: 'matchPair', index }"
             type="button"
             class="text-xs font-bold text-rose-500 hover:text-rose-600"
           >
@@ -283,6 +283,34 @@
         <label for="is-active" class="text-sm font-semibold text-slate-600">Actif</label>
       </div>
     </div>
+
+    <!-- Delete item confirmation modal -->
+    <div v-if="itemToDelete" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.45);backdrop-filter:blur(4px)">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden">
+        <div class="flex items-start gap-3 p-5 pb-0">
+          <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center flex-shrink-0">
+            <svg class="h-5 w-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-sm font-bold text-slate-800">
+              {{ itemToDelete.type === 'fillBlank' ? "Supprimer l'item" : "Supprimer la paire" }}
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Cette action est irréversible</p>
+          </div>
+          <button @click="itemToDelete = null" class="text-slate-300 hover:text-slate-500 transition-colors text-lg leading-none mt-0.5">✕</button>
+        </div>
+        <p class="text-sm text-slate-600 px-5 pt-3 pb-1">
+          {{ itemToDelete.type === 'fillBlank' ? "Supprimer cet item de la liste ?" : "Supprimer cette paire de la liste ?" }}
+        </p>
+        <div class="flex justify-end gap-2 p-5 pt-4 border-t border-slate-100 mt-3">
+          <button @click="itemToDelete = null" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Annuler</button>
+          <button @click="confirmRemoveItem" class="px-4 py-2 text-xs font-bold text-white bg-rose-500 rounded-lg hover:bg-rose-600 transition-colors">Supprimer</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -404,6 +432,14 @@ const normalize = (value: any): ExerciseForm => {
 
 const local = ref<ExerciseForm>(normalize(props.modelValue));
 const syncingFromParent = ref(false);
+const itemToDelete = ref<{ type: 'fillBlank' | 'matchPair'; index: number } | null>(null);
+
+const confirmRemoveItem = () => {
+  if (!itemToDelete.value) return;
+  if (itemToDelete.value.type === 'fillBlank') removeFillBlankItem(itemToDelete.value.index);
+  else removeMatchPair(itemToDelete.value.index);
+  itemToDelete.value = null;
+};
 
 const api = useApiService();
 const config = useRuntimeConfig();

@@ -165,6 +165,16 @@
                   </svg>
                   {{ user.isActive ? 'Désactiver' : 'Activer' }}
                 </button>
+                <div class="action-sep"></div>
+                <button
+                  class="action-item action-item--red"
+                  @click="[userToDelete = user, openMenuId = null]"
+                >
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Supprimer
+                </button>
               </div>
             </Transition>
           </div>
@@ -222,6 +232,35 @@
       </div>
     </div>
 
+    <!-- Delete confirmation modal -->
+    <Transition name="modal-fade">
+      <div v-if="userToDelete" class="del-overlay" @click.self="userToDelete = null">
+        <div class="del-box">
+          <div class="del-header">
+            <div class="del-icon">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </div>
+            <div class="del-header-text">
+              <h3 class="del-title">Supprimer l'utilisateur</h3>
+              <p class="del-sub">Cette action est irréversible</p>
+            </div>
+            <button class="del-close" @click="userToDelete = null">✕</button>
+          </div>
+          <div class="del-body">
+            <p class="del-msg">
+              Êtes-vous sûr de vouloir supprimer <strong>{{ userToDelete.profile.firstName }} {{ userToDelete.profile.lastName }}</strong> ? Cette action ne peut pas être annulée.
+            </p>
+          </div>
+          <div class="del-footer">
+            <button class="del-btn-cancel" @click="userToDelete = null">Annuler</button>
+            <button class="del-btn-confirm" @click="[$emit('delete', userToDelete), userToDelete = null]">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
   </div>
 </template>
 
@@ -244,6 +283,7 @@ const selectedStatus = ref(props.initialStatus || '')
 const currentPage = ref(1)
 const itemsPerPage = 8
 const openMenuId = ref<string | null>(null)
+const userToDelete = ref<User | null>(null)
 
 const toggleMenu = (id: string) => {
   openMenuId.value = openMenuId.value === id ? null : id
@@ -779,5 +819,79 @@ watch([search, selectedRole, selectedStatus], () => { currentPage.value = 1 })
   opacity: 0;
   transform: translateY(-4px) scale(0.97);
 }
+
+/* ── Delete confirmation modal ───────────── */
+.del-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 100;
+}
+.del-box {
+  background: white;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  overflow: hidden;
+}
+.del-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px 20px 0;
+}
+.del-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: #FEF2F2;
+  color: #DC2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.del-header-text { flex: 1; }
+.del-title { font-size: 15px; font-weight: 600; color: #111827; margin: 0; }
+.del-sub { font-size: 12px; color: #9CA3AF; margin: 2px 0 0; }
+.del-close {
+  background: none; border: none; font-size: 16px;
+  color: #9CA3AF; cursor: pointer; padding: 0 2px;
+  transition: color 0.12s; flex-shrink: 0;
+}
+.del-close:hover { color: #374151; }
+.del-body { padding: 14px 20px; }
+.del-msg { font-size: 13px; color: #6B7280; line-height: 1.6; margin: 0; }
+.del-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid #F3F4F6;
+}
+.del-btn-cancel {
+  background: white; color: #6B7280;
+  border: 1px solid #E5E7EB; border-radius: 8px;
+  padding: 7px 16px; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background 0.12s; font-family: inherit;
+}
+.del-btn-cancel:hover { background: #F9FAFB; }
+.del-btn-confirm {
+  background: #DC2626; color: white;
+  border: none; border-radius: 8px;
+  padding: 7px 16px; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: background 0.12s; font-family: inherit;
+}
+.del-btn-confirm:hover { background: #B91C1C; }
+
+.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.2s ease; }
+.modal-fade-enter-active .del-box, .modal-fade-leave-active .del-box { transition: transform 0.2s ease, opacity 0.2s ease; }
+.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
+.modal-fade-enter-from .del-box, .modal-fade-leave-to .del-box { transform: scale(0.96) translateY(8px); opacity: 0; }
 </style>
 

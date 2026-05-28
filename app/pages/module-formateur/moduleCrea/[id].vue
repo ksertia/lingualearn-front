@@ -1,6 +1,17 @@
 <template>
   <div class="page-root">
 
+    <!-- Toast -->
+    <div v-if="toast.message" class="toast" :class="toast.type === 'success' ? 'toast--ok' : 'toast--err'">
+      <svg v-if="toast.type === 'success'" width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+      </svg>
+      <svg v-else width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+      {{ toast.message }}
+    </div>
+
     <!-- ================= PAGE HERO ================= -->
     <div class="page-hero">
       <div class="hero-left">
@@ -337,6 +348,12 @@ const isLoading = ref(false)
 const isFetchingModules = ref(false)
 const moduleToDeleteId = ref<string | null>(null)
 
+const toast = ref({ message: '', type: 'success' as 'success' | 'error' })
+const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  toast.value = { message, type }
+  setTimeout(() => (toast.value.message = ''), 3000)
+}
+
 // Récupérer le nom du niveau via son ID
 const getLevelName = (levelId: string) => {
   const level = levels.value.find((l: any) => l.id === levelId)
@@ -404,9 +421,11 @@ const onSubmit = async () => {
     })
     await fetchModulesByLanguage(route.params.id as string)
     closeModal()
+    showToast('Le module a été créé avec succès.')
   } catch (e) {
     console.error('Erreur création module:', e)
     error.value = 'Erreur lors de la création du module'
+    showToast('Erreur lors de la création du module.', 'error')
   } finally {
     isLoading.value = false
   }
@@ -424,6 +443,7 @@ const confirmDeleteModule = async () => {
   await fetchModulesByLanguage(route.params.id as string)
   currentPage.value = 1
   moduleToDeleteId.value = null
+  showToast('Le module a été supprimé avec succès.')
 }
 
 /* ================= PAGINATION ================= */
@@ -521,6 +541,19 @@ const paginatedModules = computed(() => {
 .btn-primary:hover {
   background: #15803D;
 }
+
+/* ===== TOAST ===== */
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.toast--ok  { background: #DCFCE7; color: #166534; border: 1px solid #BBF7D0; }
+.toast--err { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
 
 /* ===== CARD ===== */
 .card {

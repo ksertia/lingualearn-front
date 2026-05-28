@@ -6,7 +6,7 @@
       class="bg-slate-50 rounded-2xl p-6 border border-slate-200 relative group animate-fade-in"
     >
       <button
-        @click="removeQuestion(qIndex)"
+        @click="questionToDelete = qIndex"
         class="absolute -top-3 -right-3 w-8 h-8 bg-white border border-slate-200 text-rose-500 rounded-full flex items-center justify-center hover:bg-rose-50 transition-all opacity-0 group-hover:opacity-100 shadow-sm"
       >
         <svg
@@ -70,6 +70,31 @@
           </svg>
           Ajouter une option
         </button>
+      </div>
+    </div>
+
+    <!-- Delete question confirmation modal -->
+    <div v-if="questionToDelete !== null" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,0.45);backdrop-filter:blur(4px)">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden">
+        <div class="flex items-start gap-3 p-5 pb-0">
+          <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center flex-shrink-0">
+            <svg class="h-5 w-5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-sm font-bold text-slate-800">Supprimer la question</h3>
+            <p class="text-xs text-slate-400 mt-0.5">Cette action est irréversible</p>
+          </div>
+          <button @click="questionToDelete = null" class="text-slate-300 hover:text-slate-500 transition-colors text-lg leading-none mt-0.5">✕</button>
+        </div>
+        <p class="text-sm text-slate-600 px-5 pt-3 pb-1">
+          Supprimer la question {{ (questionToDelete ?? 0) + 1 }} et toutes ses options ?
+        </p>
+        <div class="flex justify-end gap-2 p-5 pt-4 border-t border-slate-100 mt-3">
+          <button @click="questionToDelete = null" class="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">Annuler</button>
+          <button @click="confirmRemoveQuestion" class="px-4 py-2 text-xs font-bold text-white bg-rose-500 rounded-lg hover:bg-rose-600 transition-colors">Supprimer</button>
+        </div>
       </div>
     </div>
 
@@ -226,6 +251,14 @@ const normalize = (value: any): QuizForm => {
 const mode = ref<EditorMode>(detectMode(props.modelValue));
 const local = ref<QuizForm>(normalize(props.modelValue));
 const syncingFromParent = ref(false);
+const questionToDelete = ref<number | null>(null);
+
+const confirmRemoveQuestion = () => {
+  if (questionToDelete.value !== null) {
+    removeQuestion(questionToDelete.value);
+    questionToDelete.value = null;
+  }
+};
 
 const ensureDefaults = () => {
   if (local.value.questions.length === 0) {
@@ -291,18 +324,18 @@ const removeQuestion = (index: number) => {
 };
 
 const addOption = (qIndex: number) => {
-  local.value.questions[qIndex].options.push("");
+  local.value.questions[qIndex]!.options.push("");
 };
 
 const removeOption = (qIndex: number, oIndex: number) => {
-  local.value.questions[qIndex].options.splice(oIndex, 1);
-  if (local.value.questions[qIndex].correctAnswer >= local.value.questions[qIndex].options.length) {
-    local.value.questions[qIndex].correctAnswer = 0;
+  local.value.questions[qIndex]!.options.splice(oIndex, 1);
+  if (local.value.questions[qIndex]!.correctAnswer >= local.value.questions[qIndex]!.options.length) {
+    local.value.questions[qIndex]!.correctAnswer = 0;
   }
 };
 
 const setCorrectAnswer = (qIndex: number, oIndex: number) => {
-  local.value.questions[qIndex].correctAnswer = oIndex;
+  local.value.questions[qIndex]!.correctAnswer = oIndex;
 };
 </script>
 
