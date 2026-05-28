@@ -1,125 +1,94 @@
-﻿<template>
-  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="p-6 border-b border-gray-50 flex justify-between items-center bg-gradient-to-r from-white to-gray-50/50">
+<template>
+  <div class="sl-card">
+
+    <!-- Header -->
+    <div class="sl-head">
       <div>
-        <h3 class="text-xl font-bold text-slate-800">{{ headerTitle }}</h3>
-        <p class="text-slate-500 text-sm mt-1">{{ headerSubtitle }}</p>
+        <h3 class="sl-title">{{ headerTitle }}</h3>
+        <p class="sl-sub">{{ headerSubtitle }}</p>
       </div>
-      <div v-if="displaySteps.length > 0" class="flex items-center gap-2">
-        <span class="px-3 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full border border-indigo-100 uppercase tracking-wider">
-          {{ displaySteps.length }} Étape{{ displaySteps.length > 1 ? 's' : '' }}
-        </span>
-      </div>
+      <span v-if="displaySteps.length > 0" class="sl-badge">
+        {{ displaySteps.length }} Étape{{ displaySteps.length > 1 ? 's' : '' }}
+      </span>
     </div>
 
-    <!-- Loading State -->
-    <div v-if="isLoading" class="p-12 flex flex-col items-center justify-center space-y-4">
-      <div class="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin"></div>
-      <p class="text-slate-500 font-medium animate-pulse">Chargement des étapes...</p>
+    <!-- Loading -->
+    <div v-if="isLoading" class="sl-state">
+      <div class="sl-spinner"></div>
+      <p class="sl-state-text">Chargement des étapes…</p>
     </div>
 
-    <!-- Empty State -->
-    <div v-else-if="displaySteps.length === 0" class="p-16 flex flex-col items-center justify-center text-center">
-      <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-        </svg>
-      </div>
-      <h4 class="text-lg font-semibold text-slate-700">{{ emptyTitle }}</h4>
-      <p class="text-slate-500 max-w-xs mt-2">{{ emptyDescription }}</p>
+    <!-- Empty -->
+    <div v-else-if="displaySteps.length === 0" class="sl-empty">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="sl-empty-ico">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+      </svg>
+      <p class="sl-empty-title">{{ emptyTitle }}</p>
+      <p class="sl-empty-desc">{{ emptyDescription }}</p>
     </div>
 
     <!-- Table -->
-    <div v-else class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
+    <div v-else class="sl-table-wrap">
+      <table class="sl-tbl">
         <thead>
-          <tr class="bg-slate-50/50">
-            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Ordre</th>
-            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Titre & Description</th>
-            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Type</th>
-            <th v-if="!isReadonly" class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Statut</th>
-            <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Durée</th>
-            <th v-if="!isReadonly" class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+          <tr>
+            <th>Ordre</th>
+            <th>Titre &amp; Description</th>
+            <th>Type</th>
+            <th v-if="!isReadonly">Statut</th>
+            <th>Durée</th>
+            <th v-if="!isReadonly" class="sl-th-right">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-gray-50">
+        <tbody>
           <tr
             v-for="step in displaySteps"
             :key="step.id"
+            class="sl-row"
             :class="[
-              'group transition-all duration-200',
-              step.isActive ? 'hover:bg-indigo-50/30' : 'bg-slate-50/50 opacity-70 grayscale-[0.5]',
-              isExternal ? 'cursor-pointer' : ''
+              !step.isActive && 'sl-row--inactive',
+              isExternal && 'sl-row--clickable'
             ]"
             @click="handleRowClick(step)"
           >
-            <td class="px-6 py-4">
-              <span :class="[
-                'flex items-center justify-center w-8 h-8 rounded-lg font-bold text-sm transition-all',
-                step.isActive ? 'bg-slate-100 text-slate-600 group-hover:bg-indigo-600 group-hover:text-white' : 'bg-slate-200 text-slate-400'
-              ]">
+            <td>
+              <span class="sl-order" :class="step.isActive ? 'sl-order--active' : 'sl-order--off'">
                 {{ step.index }}
               </span>
             </td>
-            <td class="px-6 py-4">
-              <div class="flex flex-col">
-                <span class="font-bold text-slate-700 group-hover:text-indigo-700 transition-colors">{{ step.title }}</span>
-                <span class="text-xs text-slate-500 line-clamp-1 mt-0.5">{{ step.description || 'Pas de description' }}</span>
-              </div>
+            <td>
+              <span class="sl-item-title">{{ step.title }}</span>
+              <span class="sl-item-desc">{{ step.description || 'Pas de description' }}</span>
             </td>
-            <td class="px-6 py-4">
-              <span :class="[
-                'px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border',
-                step.stepType === 'lesson' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 
-                step.stepType === 'quiz' ? 'bg-amber-50 text-amber-700 border-amber-100' : 
-                'bg-blue-50 text-blue-700 border-blue-100'
-              ]">
+            <td>
+              <span class="sl-pill" :class="`sl-pill--${step.stepType}`">
                 {{ getStepTypeLabel(step.stepType) }}
               </span>
             </td>
-            <td v-if="!isReadonly" class="px-6 py-4">
-              <button 
-                @click.stop="toggleStatus(step)"
-                class="relative inline-flex items-center cursor-pointer group/toggle"
-              >
-                <div 
-                  class="w-10 h-5 rounded-full transition-all duration-300"
-                  :class="step.isActive ? 'bg-indigo-600' : 'bg-slate-300'"
-                ></div>
-                <div 
-                  class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm"
-                  :class="step.isActive ? 'translate-x-5' : 'translate-x-0'"
-                ></div>
-                <span class="ml-3 text-[10px] font-bold uppercase tracking-tighter" :class="step.isActive ? 'text-indigo-600' : 'text-slate-400'">
-                  {{ step.isActive ? 'Actif' : 'Inactif' }}
-                </span>
-              </button>
+            <td v-if="!isReadonly">
+              <label class="sl-toggle" @click.stop>
+                <input type="checkbox" class="sl-toggle-input" :checked="step.isActive" @change="toggleStatus(step)" />
+                <span class="sl-toggle-track"></span>
+                <span class="sl-toggle-text">{{ step.isActive ? 'Actif' : 'Inactif' }}</span>
+              </label>
             </td>
-            <td class="px-6 py-4 text-sm text-slate-600 font-medium">
-              <div class="flex items-center gap-1.5">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <td>
+              <div class="sl-duration">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="sl-clock-ico">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {{ step.estimatedMinutes }}m
               </div>
             </td>
-            <td v-if="!isReadonly" class="px-6 py-4 text-right">
-              <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <button 
-                  @click.stop="editStep(step)"
-                  class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all"
-                  title="Modifier le contenu"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <td v-if="!isReadonly">
+              <div class="sl-row-actions">
+                <button class="sl-act sl-act--edit" @click.stop="editStep(step)" title="Modifier le contenu">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="sl-act-ico">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                 </button>
-                <button 
-                  @click.stop="confirmDelete(step)"
-                  class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
-                  title="Supprimer"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button class="sl-act sl-act--del" @click.stop="confirmDelete(step)" title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="sl-act-ico">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
                 </button>
@@ -130,18 +99,30 @@
       </table>
     </div>
 
-    <div v-if="stepToDelete" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div class="bg-white rounded-xl p-6 w-full max-w-md">
-        <h4 class="text-lg font-bold text-slate-800 mb-2">Confirmer la suppression</h4>
-        <p class="text-sm text-slate-600 mb-5">
-          Êtes-vous sûr de vouloir supprimer l'étape "{{ stepToDelete.title }}" ?
+    <!-- Delete modal -->
+    <div v-if="stepToDelete" class="sl-overlay">
+      <div class="sl-modal">
+        <div class="sl-del-header">
+          <div class="sl-del-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="sl-del-icon-svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </div>
+          <div>
+            <p class="sl-del-title">Confirmer la suppression</p>
+            <p class="sl-del-sub">Cette action est irréversible.</p>
+          </div>
+        </div>
+        <p class="sl-del-msg">
+          Êtes-vous sûr de vouloir supprimer l'étape <span class="sl-del-name">{{ stepToDelete.title }}</span> ?
         </p>
-        <div class="flex justify-end gap-3">
-          <button class="px-4 py-2 rounded-lg bg-slate-100 text-slate-700" @click="stepToDelete = null">Annuler</button>
-          <button class="px-4 py-2 rounded-lg bg-rose-600 text-white" @click="deleteStepConfirmed">Supprimer</button>
+        <div class="sl-del-actions">
+          <button class="sl-btn-cancel" @click="stepToDelete = null">Annuler</button>
+          <button class="sl-btn-danger" @click="deleteStepConfirmed">Supprimer</button>
         </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -209,12 +190,12 @@ const editStep = (step: Step) => {
 const toggleStatus = async (step: Step) => {
   if (isReadonly.value) return;
   const newStatus = !step.isActive;
-  // On met Ã  jour localement pour une rÃ©activitÃ© immÃ©diate (optimistique)
+  // On met à jour localement pour une réactivité immédiate (optimistique)
   step.isActive = newStatus;
-  
+
   const success = await stepStore.updateStep(step.id, { isActive: newStatus });
   if (!success) {
-    // Revenir en arriÃ¨re si l'API Ã©choue
+    // Revenir en arrière si l'API échoue
     step.isActive = !newStatus;
   }
 };
@@ -233,3 +214,248 @@ const deleteStepConfirmed = async () => {
   stepToDelete.value = null;
 };
 </script>
+
+<style scoped>
+.sl-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+/* Header */
+.sl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #F3F4F6;
+}
+.sl-title { font-size: 14px; font-weight: 600; color: #111827; margin: 0; }
+.sl-sub { font-size: 12px; color: #9CA3AF; margin: 2px 0 0; }
+.sl-badge {
+  padding: 3px 10px;
+  background: rgba(22,163,74,0.1);
+  color: #16A34A;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 20px;
+  border: 1px solid rgba(22,163,74,0.2);
+  white-space: nowrap;
+}
+
+/* Loading */
+.sl-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
+  gap: 12px;
+}
+.sl-spinner {
+  width: 28px; height: 28px;
+  border: 2.5px solid #E5E7EB;
+  border-top-color: #16A34A;
+  border-radius: 50%;
+  animation: sl-spin 0.7s linear infinite;
+}
+@keyframes sl-spin { to { transform: rotate(360deg); } }
+.sl-state-text { font-size: 13px; color: #9CA3AF; }
+
+/* Empty */
+.sl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 56px 32px;
+  gap: 8px;
+  text-align: center;
+}
+.sl-empty-ico { width: 40px; height: 40px; color: #D1D5DB; }
+.sl-empty-title { font-size: 14px; font-weight: 600; color: #374151; margin: 0; }
+.sl-empty-desc { font-size: 13px; color: #9CA3AF; margin: 0; max-width: 300px; }
+
+/* Table */
+.sl-table-wrap { overflow-x: auto; }
+.sl-tbl { width: 100%; border-collapse: collapse; }
+.sl-tbl th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #F9FAFB;
+  border-bottom: 1px solid #F3F4F6;
+  white-space: nowrap;
+}
+.sl-th-right { text-align: right; }
+.sl-tbl td {
+  padding: 13px 16px;
+  border-bottom: 1px solid #F9FAFB;
+  vertical-align: middle;
+}
+.sl-tbl tbody tr:last-child td { border-bottom: none; }
+
+.sl-row { transition: background 0.12s; }
+.sl-row:hover td { background: #FAFAFA; }
+.sl-row--inactive { opacity: 0.65; }
+.sl-row--clickable { cursor: pointer; }
+
+/* Order badge */
+.sl-order {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.sl-order--active { background: #F3F4F6; color: #374151; }
+.sl-order--off { background: #F9FAFB; color: #9CA3AF; }
+.sl-row:hover .sl-order--active { background: rgba(22,163,74,0.12); color: #15803D; }
+
+/* Item */
+.sl-item-title { display: block; font-size: 13px; font-weight: 600; color: #111827; }
+.sl-item-desc { display: block; font-size: 12px; color: #9CA3AF; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
+
+/* Type pill */
+.sl-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.sl-pill--lesson { background: rgba(22,163,74,0.08); color: #15803D; border-color: rgba(22,163,74,0.2); }
+.sl-pill--quiz { background: #FEF9C3; color: #92400E; border-color: #FDE68A; }
+.sl-pill--exercise { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+
+/* Toggle */
+.sl-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.sl-toggle-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.sl-toggle-track {
+  position: relative;
+  width: 36px; height: 20px;
+  background: #E5E7EB;
+  border-radius: 10px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.sl-toggle-track::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  background: white;
+  border-radius: 50%;
+  top: 3px; left: 3px;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.sl-toggle-input:checked + .sl-toggle-track { background: #16A34A; }
+.sl-toggle-input:checked + .sl-toggle-track::after { transform: translateX(16px); }
+.sl-toggle-text { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #9CA3AF; }
+.sl-toggle-input:checked ~ .sl-toggle-text { color: #16A34A; }
+
+/* Duration */
+.sl-duration { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 500; color: #6B7280; }
+.sl-clock-ico { width: 14px; height: 14px; color: #9CA3AF; flex-shrink: 0; }
+
+/* Row actions */
+.sl-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.sl-row:hover .sl-row-actions { opacity: 1; }
+
+.sl-act {
+  width: 30px; height: 30px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  color: #9CA3AF;
+}
+.sl-act-ico { width: 15px; height: 15px; }
+.sl-act--edit:hover { background: rgba(22,163,74,0.08); color: #16A34A; }
+.sl-act--del:hover { background: rgba(220,38,38,0.08); color: #DC2626; }
+
+/* Delete modal */
+.sl-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.sl-modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sl-del-header { display: flex; align-items: center; gap: 12px; }
+.sl-del-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(220,38,38,0.08);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: #DC2626;
+}
+.sl-del-icon-svg { width: 18px; height: 18px; }
+.sl-del-title { font-size: 14px; font-weight: 600; color: #111827; margin: 0; }
+.sl-del-sub { font-size: 12px; color: #9CA3AF; margin: 2px 0 0; }
+.sl-del-msg { font-size: 13px; color: #6B7280; margin: 0; line-height: 1.5; }
+.sl-del-name { font-weight: 600; color: #111827; }
+.sl-del-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.sl-btn-cancel {
+  padding: 8px 16px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+.sl-btn-cancel:hover { background: #F9FAFB; }
+.sl-btn-danger {
+  padding: 8px 16px;
+  border: none;
+  background: #DC2626;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+.sl-btn-danger:hover { background: #B91C1C; }
+</style>

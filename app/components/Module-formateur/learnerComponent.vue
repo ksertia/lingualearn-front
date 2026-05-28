@@ -18,8 +18,6 @@ const search = ref('')
 const country = ref('')
 const language = ref('')
 const level = ref('')
-const minAge = ref<number | undefined>(undefined)
-const maxAge = ref<number | undefined>(undefined)
 const page = ref(1)
 const limit = ref(12)
 
@@ -39,8 +37,6 @@ const fetchLearners = async () => {
     country: country.value,
     language: language.value,
     level: level.value,
-    minAge: minAge.value,
-    maxAge: maxAge.value,
     page: page.value,
     limit: limit.value,
     accountType: 'learner'
@@ -52,7 +48,7 @@ onMounted(async () => {
   if (langStore.languages.length) languageId.value = langStore.languages[0]?.id ?? ''
 })
 
-watch([search, country, language, level, minAge, maxAge, limit], () => {
+watch([search, country, language, level, limit], () => {
   page.value = 1
   fetchLearners()
 })
@@ -83,7 +79,7 @@ const charts = computed(() => {
       labels: ['Réalisé', 'Restant'],
       datasets: [{
         data: [s.overallProgressPercentage, 100 - s.overallProgressPercentage],
-        backgroundColor: ['#6366f1', '#f1f5f9'],
+        backgroundColor: ['#16A34A', '#f1f5f9'],
         borderWidth: 0,
         hoverOffset: 4
       }]
@@ -92,7 +88,7 @@ const charts = computed(() => {
       labels: ['Niveaux', 'Modules', 'Parcours', 'Étapes'],
       datasets: [
         { label: 'Total', data: [s.totalLevels, s.totalModules, s.totalPaths, s.totalSteps], backgroundColor: '#e2e8f0', borderRadius: 8 },
-        { label: 'Complétés', data: [s.completedLevels, s.completedModules, s.completedPaths, s.completedSteps], backgroundColor: '#6366f1', borderRadius: 8 }
+        { label: 'Complétés', data: [s.completedLevels, s.completedModules, s.completedPaths, s.completedSteps], backgroundColor: '#16A34A', borderRadius: 8 }
       ]
     }
   }
@@ -128,6 +124,20 @@ const chartOptions = {
             v-model="search"
             type="text"
             placeholder="Rechercher par nom ou email…"
+            class="cf-input"
+          />
+        </div>
+
+        <!-- Country -->
+        <div class="cf-search" style="min-width: 140px; flex: unset;">
+          <svg class="cf-search-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <input
+            v-model="country"
+            type="text"
+            placeholder="Pays…"
             class="cf-input"
           />
         </div>

@@ -11,7 +11,7 @@
         </button>
         <div class="hero-text">
           <h1 class="page-title">Modules</h1>
-          <p class="page-subtitle">{{ languageId ? `Langue : ${languageId}` : 'Gérez les modules de cette langue' }}</p>
+          <p class="page-subtitle">{{ languageName || 'Gérez les modules de cette langue' }}</p>
         </div>
       </div>
       <button class="btn-primary" @click="openModal">
@@ -93,17 +93,27 @@
 
       <!-- PAGINATION -->
       <div v-if="modules.length > perPage" class="pagination">
-        <button
-          class="page-btn"
-          :disabled="currentPage === 1"
-          @click="currentPage--"
-        >Précédent</button>
-        <span class="page-info">Page {{ currentPage }} / {{ totalPages }}</span>
-        <button
-          class="page-btn"
-          :disabled="currentPage === totalPages"
-          @click="currentPage++"
-        >Suivant</button>
+        <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+          Précédent
+        </button>
+        <div class="page-numbers">
+          <button
+            v-for="p in totalPages"
+            :key="p"
+            class="page-num-btn"
+            :class="{ 'page-num-btn--active': p === currentPage }"
+            @click="currentPage = p"
+          >{{ p }}</button>
+        </div>
+        <button class="page-btn" :disabled="currentPage === totalPages" @click="currentPage++">
+          Suivant
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
       </div>
 
     </div>
@@ -219,6 +229,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useModuleStore } from '~/stores/moduleStore'
 import { useLevelStore } from '~/stores/levelStore'
 import { useParcoursStore } from '~/stores/parcoursStore'
+import { useLanguageStore } from '~/stores/languageStore'
 import { useApiService } from '~/services/api'
 
 definePageMeta({
@@ -233,63 +244,41 @@ const router = useRouter()
 const moduleStore = useModuleStore()
 const levelStore = useLevelStore()
 const parcoursStore = useParcoursStore()
+const languageStore = useLanguageStore()
 const apiService = useApiService()
+
+const languageName = computed(() =>
+  languageStore.languages.find(l => l.id === languageId)?.name || ''
+)
 
 
 // Stocke le nombre de parcours par module
 const parcoursCount = ref<Record<string, number>>({})
 
 // Fonction pour récupérer les modules par langue via les niveaux
-const fetchModulesByLanguage = async (languageId: string, expectedLevelId?: string) => {
+const fetchModulesByLanguage = async (languageId: string) => {
   try {
-    // Vider immédiatement les modules et indiquer le chargement
     isFetchingModules.value = true
     moduleStore.module = []
     parcoursCount.value = {}
 
-    console.log('Début récupération modules pour langue:', languageId)
-
-    // Récupérer les niveaux de cette langue
     await levelStore.fetchLevelsByLanguage(languageId)
-    console.log('Niveaux récupérés:', levelStore.levels)
 
     const allModules = []
 
-    // Pour chaque niveau, récupérer les modules
     for (const level of levelStore.levels) {
-      console.log('Vérification niveau:', level, 'languageId:', level.languageId, 'recherché:', languageId)
       if (level.languageId === languageId) {
-        console.log('Récupération modules pour niveau:', level.id)
         const response = await apiService.getModulesByLevel(languageId, level.id)
-        console.log('Réponse API pour niveau', level.id, ':', response)
-
-        // L'API retourne {modules: Array} au lieu d'un tableau direct
         const responseData = response?.data as any || {}
         const modules = responseData.modules || []
-        console.log('Modules extraits:', modules)
         if (Array.isArray(modules)) {
           allModules.push(...modules)
         }
       }
     }
 
-    console.log('Tous les modules agrégés:', allModules)
-
-    // Afficher les levelId de tous les modules pour débogage
-    console.log('LevelId des modules:', allModules.map(m => ({ id: m.id, title: m.title, levelId: m.levelId })))
-
-    // Vérifier si le module créé est dans la liste
-    if (expectedLevelId) {
-      console.log('Module créé avec levelId:', expectedLevelId, 'présent dans les modules?',
-        allModules.some(m => m.levelId === expectedLevelId))
-    }
-
-    // Mettre à jour le store avec les modules filtrés
     moduleStore.module = allModules
-    console.log('Modules chargés:', allModules)
-    console.log('Store module:', moduleStore.module)
 
-    // Calculer les nombres de parcours
     await parcoursStore.fetchAll()
     computeCounts()
   } catch (error) {
@@ -312,7 +301,7 @@ const levels = computed(() => {
 const selectedLevelId = ref('')
 
 onMounted(async () => {
-  // Récupérer les modules de la langue via les niveaux
+  await languageStore.fetchLanguages()
   await fetchModulesByLanguage(languageId)
 })
 
@@ -337,10 +326,7 @@ const computeCounts = () => {
 
 /* ================= DATA ================= */
 // Modules appartenant au niveau courant (ou langue courante)
-const modules = computed(() => {
-  console.log('Computed modules called, store.module:', moduleStore.module)
-  return moduleStore.module
-})
+const modules = computed(() => moduleStore.module)
 
 /* ================= UI STATE ================= */
 const showModal = ref(false)
@@ -408,24 +394,15 @@ const onSubmit = async () => {
 
   try {
     isLoading.value = true
-    const createdLevelId = selectedLevelId.value
-    console.log('Création module avec levelId:', createdLevelId, 'languageId:', route.params.id)
-
     await moduleStore.createModule({
-      levelId: createdLevelId,
+      levelId: selectedLevelId.value,
       title: name.value,
       description: description.value,
       iconUrl: '',
       index: null,
       isActive: true,
     })
-
-    console.log('Module créé, rechargement des modules pour languageId actuel:', route.params.id)
-
-    // Attendre un peu pour que l'API ait le temps de mettre à jour
-    await new Promise(resolve => setTimeout(resolve, 500))
-
-    await fetchModulesByLanguage(route.params.id as string, createdLevelId)
+    await fetchModulesByLanguage(route.params.id as string)
     closeModal()
   } catch (e) {
     console.error('Erreur création module:', e)
@@ -510,18 +487,18 @@ const paginatedModules = computed(() => {
   height: 34px;
   width: 34px;
   border-radius: 8px;
-  background: rgba(22, 163, 74, 0.10);
-  color: #15803D;
-  border: none;
+  background: #fff;
+  color: #374151;
+  border: 1px solid #E5E7EB;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition: background 0.12s;
   flex-shrink: 0;
 }
 .back-btn:hover {
-  background: rgba(22, 163, 74, 0.18);
+  background: #F3F4F6;
 }
 
 /* ===== PRIMARY BUTTON ===== */
@@ -631,7 +608,7 @@ const paginatedModules = computed(() => {
   display: inline-block;
 }
 .parcours-count {
-  color: #2563EB;
+  color: #16A34A;
   font-weight: 600;
   font-size: 13px;
 }
@@ -643,8 +620,8 @@ const paginatedModules = computed(() => {
   gap: 6px;
 }
 .btn-ghost-blue {
-  background: #EFF6FF;
-  color: #2563EB;
+  background: rgba(22, 163, 74, 0.08);
+  color: #15803D;
   border: none;
   border-radius: 7px;
   padding: 6px 12px;
@@ -655,7 +632,7 @@ const paginatedModules = computed(() => {
   font-family: inherit;
 }
 .btn-ghost-blue:hover {
-  background: #DBEAFE;
+  background: rgba(22, 163, 74, 0.15);
 }
 .btn-ghost-red {
   background: #FEF2F2;
@@ -734,12 +711,15 @@ const paginatedModules = computed(() => {
   color: #374151;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
-  padding: 7px 14px;
+  padding: 7px 12px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: background 0.12s;
   font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 .page-btn:hover:not(:disabled) {
   background: #F9FAFB;
@@ -748,9 +728,30 @@ const paginatedModules = computed(() => {
   opacity: 0.4;
   cursor: not-allowed;
 }
-.page-info {
+.page-numbers {
+  display: flex;
+  gap: 4px;
+}
+.page-num-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #E5E7EB;
+  border-radius: 7px;
+  background: white;
   font-size: 13px;
-  color: #6B7280;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  font-family: inherit;
+}
+.page-num-btn:hover {
+  background: #F9FAFB;
+}
+.page-num-btn--active {
+  background: #16A34A;
+  border-color: #16A34A;
+  color: white;
 }
 
 /* ===== MODAL OVERLAY ===== */

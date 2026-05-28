@@ -1,35 +1,28 @@
 <template>
-  <section class="max-w-5xl mx-auto p-8 pb-32">
+  <div class="ed-root">
+
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-      <div class="flex items-center gap-4">
-        <button
-          class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 group -ml-1 sm:-ml-2"
-          @click="router.back()"
-          title="Retour"
-        >
-          <svg class="w-6 h-6 group-hover:-translate-x-0.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+    <div class="ed-header">
+      <div class="ed-header-left">
+        <button class="ed-btn-back" @click="router.back()" title="Retour">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ed-back-ico">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
         <div>
-          <h1 class="text-2xl font-black text-slate-800 tracking-tight">Configuration de l'étape</h1>
-          <p class="text-slate-500 font-medium">Édition du contenu et des paramètres</p>
+          <h1 class="ed-title">Configuration de l'étape</h1>
+          <p class="ed-sub">Édition du contenu et des paramètres</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <button 
-          @click="saveStep"
-          :disabled="isSaving"
-          class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transform hover:-translate-y-0.5 transition-all disabled:bg-slate-300 disabled:shadow-none flex items-center gap-2"
-        >
-          <svg v-if="!isSaving" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div class="ed-header-right">
+        <button @click="saveStep" :disabled="isSaving" class="ed-btn-save">
+          <svg v-if="!isSaving" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="ed-btn-ico">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
           </svg>
-          <svg v-else class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <svg v-else class="ed-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="ed-spinner-track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
           {{ isSaving ? 'Sauvegarde...' : 'Sauvegarder' }}
         </button>
@@ -40,94 +33,71 @@
           v-if="stepData.stepType === 'quiz' && existingQuizId"
           @click="removeStepQuiz"
           :disabled="isSaving"
-          class="px-5 py-3 bg-rose-600 text-white rounded-xl font-bold shadow-lg shadow-rose-100 hover:bg-rose-700 transform hover:-translate-y-0.5 transition-all disabled:bg-slate-300 disabled:shadow-none"
+          class="ed-btn-del-quiz"
         >
           Supprimer le quiz
         </button>
       </div>
     </div>
 
-    <div v-if="isLoading" class="py-20 flex flex-col items-center justify-center">
-      <div class="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-      <p class="text-slate-500 font-bold animate-pulse">Chargement de l'étape...</p>
+    <!-- Loading -->
+    <div v-if="isLoading" class="ed-loading">
+      <div class="ed-load-spinner"></div>
+      <p class="ed-load-text">Chargement de l'étape…</p>
     </div>
 
-    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-      <!-- Sidebar Settings -->
-      <div class="lg:col-span-1 space-y-6">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-          <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider mb-6 pb-4 border-b border-slate-50">Paramètres généraux</h3>
-          
-          <div class="space-y-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Titre</label>
-              <input 
-                v-model="stepData.title" 
-                class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:bg-white focus:border-indigo-500 outline-none transition-all text-sm font-bold text-slate-700"
-              />
-            </div>
+    <!-- Two-col layout -->
+    <div v-else class="ed-layout">
 
-            <div>
-              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Description</label>
-              <textarea 
-                v-model="stepData.description" 
-                rows="3"
-                class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:bg-white focus:border-indigo-500 outline-none transition-all text-sm font-medium text-slate-600 resize-none"
-              ></textarea>
-            </div>
+      <!-- Sidebar -->
+      <div class="ed-sidebar">
+        <div class="ed-card">
+          <p class="ed-section-title">Paramètres généraux</p>
 
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Minute(s)</label>
-                <input 
-                  v-model.number="stepData.estimatedMinutes" 
-                  type="number"
-                  class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:bg-white focus:border-indigo-500 outline-none transition-all text-sm font-bold text-slate-700"
-                />
-              </div>
-              <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ordre</label>
-                <input 
-                  v-model.number="stepData.index" 
-                  type="number"
-                  class="w-full px-4 py-3 rounded-xl border border-slate-100 bg-slate-50 focus:bg-white focus:border-indigo-500 outline-none transition-all text-sm font-bold text-slate-700"
-                />
-              </div>
-            </div>
+          <div class="ed-field">
+            <label class="ed-label">Titre</label>
+            <input v-model="stepData.title" class="ed-input" />
+          </div>
 
-            <div class="pt-4">
-              <label class="flex items-center gap-3 cursor-pointer group">
-                <div class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" v-model="stepData.isActive" class="sr-only peer">
-                  <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                </div>
-                <span class="text-sm font-bold text-slate-700 group-hover:text-indigo-600 transition-colors">Étape active</span>
-              </label>
+          <div class="ed-field">
+            <label class="ed-label">Description</label>
+            <textarea v-model="stepData.description" rows="3" class="ed-textarea"></textarea>
+          </div>
+
+          <div class="ed-two-col">
+            <div class="ed-field">
+              <label class="ed-label">Minute(s)</label>
+              <input v-model.number="stepData.estimatedMinutes" type="number" class="ed-input" />
             </div>
+            <div class="ed-field">
+              <label class="ed-label">Ordre</label>
+              <input v-model.number="stepData.index" type="number" class="ed-input" />
+            </div>
+          </div>
+
+          <div class="ed-field">
+            <label class="ed-toggle">
+              <input type="checkbox" v-model="stepData.isActive" class="ed-toggle-input" />
+              <span class="ed-toggle-track"></span>
+              <span class="ed-toggle-text">Étape active</span>
+            </label>
           </div>
         </div>
       </div>
 
-      <!-- Main Editor Content -->
-      <div class="lg:col-span-2">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <div class="p-6 border-b border-slate-50 bg-gradient-to-r from-white to-slate-50/30 flex justify-between items-center">
-            <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider">
+      <!-- Main editor -->
+      <div class="ed-main">
+        <div class="ed-card ed-card--flush">
+          <div class="ed-editor-head">
+            <p class="ed-editor-label">
               Contenu du {{ stepData.stepType === 'lesson' ? 'Cours' : stepData.stepType === 'quiz' ? 'Quiz' : 'Exercice' }}
-            </h3>
-            <span :class="[
-              'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border',
-              stepData.stepType === 'lesson'
-                ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                : stepData.stepType === 'quiz'
-                  ? 'bg-amber-50 text-amber-700 border-amber-100'
-                  : 'bg-blue-50 text-blue-700 border-blue-100'
-            ]">
-              {{ stepData.stepType === 'lesson' ? 'Mode Editeur' : stepData.stepType === 'quiz' ? 'Mode Configuration' : 'Mode Exercice' }}
+            </p>
+            <span class="ed-type-badge" :class="`ed-type-badge--${stepData.stepType}`">
+              {{ stepData.stepType === 'lesson' ? 'Mode Éditeur' : stepData.stepType === 'quiz' ? 'Mode Configuration' : 'Mode Exercice' }}
             </span>
           </div>
 
-          <div class="p-8">
+          <div class="ed-editor-body">
             <template v-if="stepData.stepType === 'lesson'">
               <CourseEditor v-model="courseData" />
             </template>
@@ -146,22 +116,35 @@
                 @update:selected-course-id="selectCourseById"
                 @toggle-course="toggleCourseForm"
               />
-              <div v-if="showCourseForm" class="mt-6">
+              <div v-if="showCourseForm" class="ed-course-extra">
                 <CourseEditor v-model="courseData" />
               </div>
             </template>
           </div>
         </div>
       </div>
+
     </div>
-  </section>
-  <div v-if="confirmDeleteQuiz" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md">
-      <h3 class="text-lg font-semibold text-slate-900 mb-2">Supprimer le quiz</h3>
-      <p class="text-sm text-slate-600 mb-6">Voulez-vous vraiment supprimer ce quiz d'étape ?</p>
-      <div class="flex justify-end gap-3">
-        <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="confirmDeleteQuiz = false">Annuler</button>
-        <button class="px-4 py-2 rounded-lg bg-rose-600 text-white" @click="confirmRemoveStepQuiz">Supprimer</button>
+  </div>
+
+  <!-- Delete quiz modal -->
+  <div v-if="confirmDeleteQuiz" class="ed-overlay">
+    <div class="ed-modal">
+      <div class="ed-del-header">
+        <div class="ed-del-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="ed-del-icon-svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </div>
+        <div>
+          <p class="ed-del-title">Supprimer le quiz</p>
+          <p class="ed-del-sub">Cette action est irréversible.</p>
+        </div>
+      </div>
+      <p class="ed-del-msg">Voulez-vous vraiment supprimer ce quiz d'étape ?</p>
+      <div class="ed-del-actions">
+        <button class="ed-btn-cancel" @click="confirmDeleteQuiz = false">Annuler</button>
+        <button class="ed-btn-danger" @click="confirmRemoveStepQuiz">Supprimer</button>
       </div>
     </div>
   </div>
@@ -982,13 +965,13 @@ const saveStep = async () => {
       if (existingQuizId.value) {
         const updated = await quizStore.updateQuiz(existingQuizId.value, quizPayload as Partial<StepQuiz>);
         if (!updated) {
-          showMessage(quizStore.error || 'Impossible de modifier le quiz de l’étape.', 'error');
+          showMessage(quizStore.error || "Impossible de modifier le quiz de l'étape.", 'error');
           return;
         }
       } else {
         const createdQuiz = await quizStore.createQuiz(quizPayload);
         if (!createdQuiz) {
-          showMessage(quizStore.error || 'Impossible de créer le quiz de l’étape.', 'error');
+          showMessage(quizStore.error || "Impossible de créer le quiz de l'étape.", 'error');
           return;
         }
         existingQuizId.value = createdQuiz.id;
@@ -1047,36 +1030,299 @@ const confirmRemoveStepQuiz = async () => {
     if (success) {
       existingQuizId.value = null;
       await loadQuizForStep();
-      showMessage('Le quiz de l’étape a été supprimé avec succès.');
+      showMessage("Le quiz de l'étape a été supprimé avec succès.");
     } else {
-      showMessage(quizStore.error || 'Impossible de supprimer le quiz de l’étape.', 'error');
+      showMessage(quizStore.error || "Impossible de supprimer le quiz de l'étape.", 'error');
     }
   } catch (err) {
     console.error('Erreur suppression quiz:', err);
-    showMessage('Erreur lors de la suppression du quiz de l’étape.', 'error');
+    showMessage("Erreur lors de la suppression du quiz de l'étape.", 'error');
   } finally {
     isSaving.value = false;
   }
 };
-
-
 </script>
 
 <style scoped>
-.success-message,
-.error-message {
-  border-radius: 0.75rem;
-  padding: 0.6rem 0.9rem;
-  font-weight: 600;
+.ed-root {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 0;
 }
+
+/* Header */
+.ed-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ed-header-left { display: flex; align-items: center; gap: 14px; }
+.ed-header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.ed-btn-back {
+  width: 34px; height: 34px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #374151; flex-shrink: 0;
+  transition: background 0.12s, border-color 0.12s;
+}
+.ed-btn-back:hover { background: #F3F4F6; border-color: #D1D5DB; }
+.ed-back-ico { width: 16px; height: 16px; }
+
+.ed-title { font-size: 18px; font-weight: 700; color: #111827; margin: 0; letter-spacing: -0.02em; }
+.ed-sub { font-size: 12px; color: #9CA3AF; margin: 2px 0 0; }
+
+.ed-btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  background: #16A34A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(22,163,74,.3);
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.ed-btn-save:hover:not(:disabled) { background: #15803D; }
+.ed-btn-save:disabled { background: #D1D5DB; box-shadow: none; cursor: not-allowed; }
+.ed-btn-ico { width: 16px; height: 16px; }
+
+.ed-spinner { width: 16px; height: 16px; animation: ed-spin 0.8s linear infinite; }
+.ed-spinner-track { opacity: 0.25; }
+@keyframes ed-spin { to { transform: rotate(360deg); } }
 
 .success-message {
-  background: #dcfce7;
+  padding: 7px 12px;
+  background: #DCFCE7;
   color: #166534;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.error-message {
+  padding: 7px 12px;
+  background: #FEE2E2;
+  color: #991B1B;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.error-message {
-  background: #fee2e2;
-  color: #991b1b;
+.ed-btn-del-quiz {
+  padding: 8px 14px;
+  background: rgba(220,38,38,0.08);
+  color: #DC2626;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
 }
+.ed-btn-del-quiz:hover:not(:disabled) { background: rgba(220,38,38,0.14); }
+.ed-btn-del-quiz:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Loading */
+.ed-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 12px;
+}
+.ed-load-spinner {
+  width: 32px; height: 32px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #16A34A;
+  border-radius: 50%;
+  animation: ed-spin 0.7s linear infinite;
+}
+.ed-load-text { font-size: 13px; color: #9CA3AF; }
+
+/* Layout */
+.ed-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 768px) {
+  .ed-layout { grid-template-columns: 1fr; }
+}
+
+/* Cards */
+.ed-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ed-card--flush { padding: 0; gap: 0; overflow: hidden; }
+
+.ed-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+/* Fields */
+.ed-field { display: flex; flex-direction: column; gap: 6px; }
+.ed-label { font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.ed-input, .ed-textarea {
+  padding: 9px 12px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+  background: #FAFAFA;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ed-input:focus, .ed-textarea:focus { border-color: #16A34A; background: #fff; }
+.ed-textarea { resize: none; }
+
+.ed-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 480px) {
+  .ed-two-col { grid-template-columns: 1fr; }
+}
+
+/* Toggle */
+.ed-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.ed-toggle-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.ed-toggle-track {
+  position: relative;
+  width: 40px; height: 22px;
+  background: #E5E7EB;
+  border-radius: 11px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.ed-toggle-track::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  background: white;
+  border-radius: 50%;
+  top: 3px; left: 3px;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.ed-toggle-input:checked + .ed-toggle-track { background: #16A34A; }
+.ed-toggle-input:checked + .ed-toggle-track::after { transform: translateX(18px); }
+.ed-toggle-text { font-size: 13px; font-weight: 500; color: #374151; }
+
+/* Editor card */
+.ed-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #F3F4F6;
+  background: #FAFAFA;
+}
+.ed-editor-label { font-size: 12px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+.ed-editor-body { padding: 24px; }
+.ed-course-extra { margin-top: 20px; }
+
+/* Type badge */
+.ed-type-badge {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border: 1px solid;
+}
+.ed-type-badge--lesson { background: rgba(22,163,74,0.08); color: #15803D; border-color: rgba(22,163,74,0.2); }
+.ed-type-badge--quiz { background: #FEF9C3; color: #92400E; border-color: #FDE68A; }
+.ed-type-badge--exercise { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+
+/* Delete quiz modal */
+.ed-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.ed-modal {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ed-del-header { display: flex; align-items: center; gap: 12px; }
+.ed-del-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: rgba(220,38,38,0.08);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; color: #DC2626;
+}
+.ed-del-icon-svg { width: 18px; height: 18px; }
+.ed-del-title { font-size: 14px; font-weight: 600; color: #111827; margin: 0; }
+.ed-del-sub { font-size: 12px; color: #9CA3AF; margin: 2px 0 0; }
+.ed-del-msg { font-size: 13px; color: #6B7280; margin: 0; line-height: 1.5; }
+.ed-del-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.ed-btn-cancel {
+  padding: 8px 16px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+.ed-btn-cancel:hover { background: #F9FAFB; }
+.ed-btn-danger {
+  padding: 8px 16px;
+  border: none;
+  background: #DC2626;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+.ed-btn-danger:hover { background: #B91C1C; }
 </style>
