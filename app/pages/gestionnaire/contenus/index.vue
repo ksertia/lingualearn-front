@@ -1,313 +1,200 @@
 <script setup lang="ts">
-import { useContenuStore } from "~/stores/contenuStore";
-import { useLanguageStore } from "~/stores/languageStore";
-import { useFormateurStore } from "~/stores/formateurStore";
-import ContentFilters from "~/components/gestionnaire/gestionContenus/ContentFilters.vue";
-import ContentTable from "~/components/gestionnaire/gestionContenus/ContentTable.vue";
-import ContentDetailsDrawer from "~/components/gestionnaire/gestionContenus/ContentDetailsDrawer.vue";
-import type { Contenu } from "~/types/contenu";
+import { useContenuStore } from '~/stores/contenuStore'
+import { useLanguageStore } from '~/stores/languageStore'
+import { useFormateurStore } from '~/stores/formateurStore'
+import ContentFilters from '~/components/gestionnaire/gestionContenus/ContentFilters.vue'
+import ContentTable from '~/components/gestionnaire/gestionContenus/ContentTable.vue'
+import ContentDetailsDrawer from '~/components/gestionnaire/gestionContenus/ContentDetailsDrawer.vue'
+import type { Contenu } from '~/types/contenu'
 
-definePageMeta({
-  layout: "gestionnaire",
-});
+definePageMeta({ layout: 'gestionnaire' })
 
-const store = useContenuStore();
-const languageStore = useLanguageStore();
-const formateurStore = useFormateurStore();
+const store = useContenuStore()
+const languageStore = useLanguageStore()
+const formateurStore = useFormateurStore()
 
-// État pour le drawer
-const showDrawer = ref(false);
-const selectedContenuId = ref<string | null>(null);
-const showStats = ref(false);
-const contenuToDeleteId = ref<string | null>(null);
+const showDrawer = ref(false)
+const selectedContenuId = ref<string | null>(null)
+const contenuToDeleteId = ref<string | null>(null)
+const toast = ref<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' })
 
-// Toast notifications
-const toast = ref<{
-  show: boolean;
-  message: string;
-  type: "success" | "error";
-}>({
-  show: false,
-  message: "",
-  type: "success",
-});
+const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  toast.value = { show: true, message, type }
+  setTimeout(() => { toast.value.show = false }, 3000)
+}
 
-const showToast = (message: string, type: "success" | "error" = "success") => {
-  toast.value = { show: true, message, type };
-  setTimeout(() => {
-    toast.value.show = false;
-  }, 3000);
-};
-
-// Chargement initial
 onMounted(async () => {
-  await Promise.all([
-    store.fetchContenus(),
-    languageStore.fetchLanguages(),
-    formateurStore.fetchFormateurUsers(),
-  ]);
-});
+  await Promise.all([store.fetchContenus(), languageStore.fetchLanguages(), formateurStore.fetchFormateurUsers()])
+})
 
-// Handlers
-const handleView = (id: string) => {
-  selectedContenuId.value = id;
-  showDrawer.value = true;
-};
+const handleView = (id: string) => { selectedContenuId.value = id; showDrawer.value = true }
+const closeDrawer = () => { showDrawer.value = false; selectedContenuId.value = null }
 
 const handleDisable = async (contenu: Contenu) => {
-  const reason = prompt("Motif de désactivation (optionnel):");
-
-  const result = await store.disableContenu(contenu.id, reason || undefined);
-
-  if (result.success) {
-    showToast("Contenu désactivé avec succès", "success");
-  } else {
-    showToast(result.message, "error");
-  }
-};
+  const reason = prompt('Motif de désactivation (optionnel):')
+  const r = await store.disableContenu(contenu.id, reason || undefined)
+  showToast(r.success ? 'Contenu désactivé avec succès' : r.message, r.success ? 'success' : 'error')
+}
 
 const handleEnable = async (id: string) => {
-  const result = await store.enableContenu(id);
+  const r = await store.enableContenu(id)
+  showToast(r.success ? 'Contenu réactivé avec succès' : r.message, r.success ? 'success' : 'error')
+}
 
-  if (result.success) {
-    showToast("Contenu réactivé avec succès", "success");
-  } else {
-    showToast(result.message, "error");
-  }
-};
+const handleDelete = (id: string) => { contenuToDeleteId.value = id }
 
-const handleDelete = async (id: string) => {
-  contenuToDeleteId.value = id;
-};
+const confirmDelete = async () => {
+  if (!contenuToDeleteId.value) return
+  const r = await store.deleteContenu(contenuToDeleteId.value)
+  showToast(r.success ? 'Contenu supprimé définitivement.' : r.message, r.success ? 'success' : 'error')
+  if (r.success) showDrawer.value = false
+  contenuToDeleteId.value = null
+}
 
-const confirmDeleteContent = async () => {
-  if (!contenuToDeleteId.value) return;
-  const result = await store.deleteContenu(contenuToDeleteId.value);
-  if (result.success) {
-    showToast("Le contenu a été supprimé définitivement.", "success");
-    showDrawer.value = false;
-  } else {
-    showToast(result.message, "error");
-  }
-  contenuToDeleteId.value = null;
-};
-
-const closeDrawer = () => {
-  showDrawer.value = false;
-  selectedContenuId.value = null;
-  showStats.value = false;
-};
+const stats = [
+  { label: 'Total',          getValue: () => store.statsSummary.total,         color: 'blue',   icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' },
+  { label: 'Actifs',         getValue: () => store.statsSummary.active,        color: 'green',  icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+  { label: 'Désactivés',     getValue: () => store.statsSummary.disabled,      color: 'red',    icon: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636' },
+  { label: 'Total inscrits', getValue: () => store.statsSummary.totalEnrolled, color: 'purple', icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 005.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+]
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50">
-    <div class="max-w-7xl mx-auto p-6 lg:p-8">
-      <!-- Header -->
-      <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center gap-4">
-          <div class="w-1 h-10 rounded-full bg-gradient-to-b from-[#000099] to-[#00CED1] flex-shrink-0"></div>
-          <div>
-            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Gestion des Contenus</h1>
-            <p class="text-slate-500 mt-1">Surveillez et gérez tous les contenus publiés sur la plateforme.</p>
-          </div>
-        </div>
-      </header>
+  <div class="page-root">
 
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <!-- Total -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-[#000099]/10">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 text-[#000099]"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 font-medium">Total</p>
-              <p class="text-xl font-bold text-slate-900">
-                {{ store.statsSummary.total }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Actifs -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-emerald-500/10">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 text-emerald-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 font-medium">Actifs</p>
-              <p class="text-xl font-bold text-emerald-600">
-                {{ store.statsSummary.active }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Désactivés -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-red-500/10">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 text-red-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-                />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 font-medium">Désactivés</p>
-              <p class="text-xl font-bold text-red-600">
-                {{ store.statsSummary.disabled }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Total Inscrits -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-blue-500/10">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 text-blue-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 005.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 font-medium">Total Inscrits</p>
-              <p class="text-xl font-bold text-blue-600">
-                {{ store.statsSummary.totalEnrolled }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Filtres -->
-      <div class="mb-6">
-        <ContentFilters />
-      </div>
-
-      <!-- Tableau -->
-      <ContentTable
-        @view="handleView"
-        @disable="handleDisable"
-        @enable="handleEnable"
-        @delete="handleDelete"
-      />
-
-      <!-- Drawer -->
-      <ContentDetailsDrawer
-        :contenu-id="selectedContenuId"
-        @close="closeDrawer"
-      />
-
-      <!-- Toast -->
-      <div
-        class="fixed bottom-6 right-6 z-50 transition-all duration-300 transform"
-        :class="
-          toast.show ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-        "
-      >
-        <div
-          class="flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg"
-          :class="
-            toast.type === 'success'
-              ? 'bg-emerald-600 text-white'
-              : 'bg-red-600 text-white'
-          "
-        >
-          <svg
-            v-if="toast.type === 'success'"
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
-          <svg
-            v-else
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-          <span class="font-medium">{{ toast.message }}</span>
-        </div>
-      </div>
-
-      <div v-if="contenuToDeleteId" class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-md">
-          <h3 class="text-lg font-semibold text-slate-900 mb-2">Supprimer le contenu</h3>
-          <p class="text-sm text-slate-600 mb-6">Cette action est irréversible. Voulez-vous continuer ?</p>
-          <div class="flex justify-end gap-3">
-            <button class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600" @click="contenuToDeleteId = null">Annuler</button>
-            <button class="px-4 py-2 rounded-lg bg-red-600 text-white" @click="confirmDeleteContent">Supprimer</button>
-          </div>
-        </div>
+    <div class="page-hero">
+      <div>
+        <h1 class="page-heading">Contenus</h1>
+        <p class="page-sub">Surveillez et gérez tous les contenus publiés sur la plateforme</p>
       </div>
     </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div v-for="s in stats" :key="s.label" class="sc" :class="`sc--${s.color}`">
+        <div class="sc-top">
+          <div class="sc-icon" :class="`sc-icon--${s.color}`">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path :d="s.icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" />
+            </svg>
+          </div>
+          <span class="sc-lbl">{{ s.label }}</span>
+        </div>
+        <div class="sc-val">{{ s.getValue() }}</div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-wrap">
+      <ContentFilters />
+    </div>
+
+    <!-- Table -->
+    <ContentTable @view="handleView" @disable="handleDisable" @enable="handleEnable" @delete="handleDelete" />
+
+    <!-- Drawer -->
+    <ContentDetailsDrawer :contenu-id="selectedContenuId" @close="closeDrawer" />
+
+    <!-- Confirm delete modal -->
+    <Teleport to="body">
+      <div v-if="contenuToDeleteId" class="modal-overlay" @click.self="contenuToDeleteId = null">
+        <div class="modal-box">
+          <h3 class="modal-title">Supprimer ce contenu ?</h3>
+          <p class="modal-msg">Cette action est irréversible. Le contenu sera définitivement supprimé.</p>
+          <div class="modal-actions">
+            <button class="btn-cancel" @click="contenuToDeleteId = null">Annuler</button>
+            <button class="btn-danger" @click="confirmDelete">Supprimer</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Toast -->
+    <Transition name="toast">
+      <div v-if="toast.show" class="page-toast" :class="toast.type === 'success' ? 'page-toast--ok' : 'page-toast--err'">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path v-if="toast.type === 'success'" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          <path v-else stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        {{ toast.message }}
+      </div>
+    </Transition>
+
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.page-root { padding: 32px; display: flex; flex-direction: column; gap: 20px; }
+.page-heading { font-size: 22px; font-weight: 700; color: #111827; letter-spacing: -0.03em; }
+.page-sub { font-size: 13px; color: #9CA3AF; margin-top: 3px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+.sc {
+  padding: 18px 20px 16px;
+  background: #FFFFFF; border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.sc::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.sc--blue::after   { background: linear-gradient(90deg, #1D4ED8, #60A5FA); }
+.sc--green::after  { background: linear-gradient(90deg, #15803D, #4ade80); }
+.sc--red::after    { background: linear-gradient(90deg, #991B1B, #F87171); }
+.sc--purple::after { background: linear-gradient(90deg, #5B21B6, #A78BFA); }
+.sc:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.07); transform: translateY(-1px); }
+
+.sc-top { display: flex; align-items: center; justify-content: space-between; }
+
+.sc-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sc-icon--blue   { background: rgba(59,130,246,0.10);  color: #2563EB; }
+.sc-icon--green  { background: rgba(22,163,74,0.10);   color: #16A34A; }
+.sc-icon--red    { background: rgba(220,38,38,0.10);   color: #DC2626; }
+.sc-icon--purple { background: rgba(124,58,237,0.10);  color: #7C3AED; }
+
+.sc-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #9CA3AF; }
+.sc-val { font-size: 36px; font-weight: 800; color: #111827; line-height: 1; letter-spacing: -0.04em; }
+
+.filters-wrap {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(0,0,0,0.35); backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-box {
+  background: white; border-radius: 14px; padding: 28px; max-width: 400px; width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(17,24,39,0.06);
+}
+.modal-title { font-size: 15px; font-weight: 600; color: #111827; margin-bottom: 8px; }
+.modal-msg   { font-size: 13px; color: #6B7280; line-height: 1.6; margin-bottom: 20px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.btn-cancel { height: 34px; padding: 0 14px; font-size: 13px; font-weight: 500; color: #6B7280; background: none; border: none; border-radius: 7px; cursor: pointer; transition: background 0.12s; }
+.btn-cancel:hover { background: #F3F4F6; }
+.btn-danger { height: 34px; padding: 0 18px; font-size: 13px; font-weight: 500; color: white; background: #DC2626; border: none; border-radius: 7px; cursor: pointer; transition: background 0.15s; }
+.btn-danger:hover { background: #B91C1C; }
+
+/* Toast */
+.page-toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 60;
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.page-toast--ok  { background: #16A34A; color: white; }
+.page-toast--err { background: #DC2626; color: white; }
+.toast-enter-active, .toast-leave-active { transition: opacity 0.2s, transform 0.2s; }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(6px); }
+</style>

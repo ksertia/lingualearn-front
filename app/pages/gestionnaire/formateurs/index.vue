@@ -2,199 +2,207 @@
 import { useFormateurStore } from '~/stores/formateurStore'
 import FormateursList from '~/components/gestionnaire/formateurs/FormateursList.vue'
 
-definePageMeta({
-  layout: 'gestionnaire'
-})
+definePageMeta({ layout: 'gestionnaire' })
 
 const store = useFormateurStore()
 const router = useRouter()
 
-const searchInput = ref('')
+const searchInput  = ref('')
 const statusFilter = ref<'all' | 'active' | 'suspended'>('all')
-const feedback = ref({ show: false, message: '', type: 'success' as 'success' | 'error' })
-let feedbackTimer: ReturnType<typeof setTimeout> | null = null
+const toast = ref<{ show: boolean; text: string; type: 'success' | 'error' }>({ show: false, text: '', type: 'success' })
+let toastTimer: ReturnType<typeof setTimeout> | null = null
 
-const showFeedback = (message: string, type: 'success' | 'error' = 'success') => {
-  if (feedbackTimer) clearTimeout(feedbackTimer)
-  feedback.value = { show: true, message, type }
-  feedbackTimer = setTimeout(() => {
-    feedback.value.show = false
-  }, 2500)
+const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+  if (toastTimer) clearTimeout(toastTimer)
+  toast.value = { show: true, text, type }
+  toastTimer = setTimeout(() => { toast.value.show = false }, 2800)
 }
 
-const handleSearch = (value: string) => {
-  store.setSearch(value)
-}
-
-const handleStatusFilter = (value: 'all' | 'active' | 'suspended') => {
-  store.setStatusFilter(value)
-}
-
-const handleViewFormateur = (id: string) => {
-  router.push(`/gestionnaire/formateurs/${id}`)
-}
+const handleSearch        = (v: string)                      => store.setSearch(v)
+const handleStatusFilter  = (v: 'all' | 'active' | 'suspended') => store.setStatusFilter(v)
+const handleView          = (id: string)                     => router.push(`/gestionnaire/formateurs/${id}`)
 
 const handleSuspend = async (id: string) => {
-  const success = await store.suspendFormateur(id)
-  if (success) {
-    showFeedback('Le formateur a été suspendu avec succès.')
-  } else {
-    showFeedback('La suspension du formateur a échoué.', 'error')
-  }
+  const ok = await store.suspendFormateur(id)
+  showToast(ok ? 'Formateur suspendu.' : 'Échec de la suspension.', ok ? 'success' : 'error')
 }
 
 const handleReactivate = async (id: string) => {
-  const success = await store.reactivateFormateur(id)
-  if (success) {
-    showFeedback('Le formateur a été réactivé avec succès.')
-  } else {
-    showFeedback('La réactivation du formateur a échoué.', 'error')
-  }
+  const ok = await store.reactivateFormateur(id)
+  showToast(ok ? 'Formateur réactivé.' : 'Échec de la réactivation.', ok ? 'success' : 'error')
 }
+
+const stats = [
+  { label: 'Total',        getValue: () => store.statsSummary.total,       color: 'blue',   icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 005.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z' },
+  { label: 'Actifs',       getValue: () => store.statsSummary.active,      color: 'green',  icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
+  { label: 'Suspendus',    getValue: () => store.statsSummary.suspended,   color: 'red',    icon: 'M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636' },
+  { label: 'Signalements', getValue: () => store.statsSummary.withReports, color: 'orange', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z' },
+]
 </script>
 
 <template>
-  <div class="min-h-screen p-4 lg:p-8">
-    <div class="max-w-7xl mx-auto">
-      <!-- Header -->
-      <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center gap-4">
-          <div class="w-1 h-10 rounded-full bg-gradient-to-b from-[#000099] to-[#00CED1] flex-shrink-0"></div>
-          <div>
-            <h1 class="text-3xl font-bold text-slate-900 tracking-tight">Gestion des Formateurs</h1>
-            <p class="text-slate-500 mt-1">Surveillez l'activité et gérez les formateurs de la plateforme.</p>
-          </div>
-        </div>
-      </header>
+  <div class="page-root">
 
-      <!-- Stats Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-[#000099]/10">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#000099]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 005.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 font-medium">Total</p>
-              <p class="text-xl font-bold text-slate-900">{{ store.statsSummary.total }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-green-500/10">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 font-medium">Actifs</p>
-              <p class="text-xl font-bold text-green-600">{{ store.statsSummary.active }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-red-500/10">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 font-medium">Suspendus</p>
-              <p class="text-xl font-bold text-red-600">{{ store.statsSummary.suspended }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-xl bg-orange-500/10">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div>
-              <p class="text-xs text-slate-500 font-medium">Signalements</p>
-              <p class="text-xl font-bold text-orange-600">{{ store.statsSummary.withReports }}</p>
-            </div>
-          </div>
-        </div>
+    <!-- Header -->
+    <div class="page-hero">
+      <div>
+        <h1 class="page-heading">Formateurs</h1>
+        <p class="page-sub">Gérez et surveillez l'activité des formateurs de la plateforme</p>
       </div>
-
-      <!-- Filters -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 mb-6">
-        <div class="flex flex-col md:flex-row gap-4">
-          <!-- Search -->
-          <div class="relative flex-1">
-            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </span>
-            <input
-              v-model="searchInput"
-              @input="handleSearch(searchInput)"
-              type="text"
-              placeholder="Rechercher un formateur..."
-              class="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm"
-            />
-          </div>
-
-          <!-- Status Filter -->
-          <div class="relative min-w-[200px]">
-            <select
-              v-model="statusFilter"
-              @change="handleStatusFilter(statusFilter)"
-              class="appearance-none w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium"
-            >
-              <option value="all">Tous les statuts</option>
-              <option value="active">Actifs</option>
-              <option value="suspended">Suspendus</option>
-            </select>
-            <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Formateurs List -->
-      <FormateursList 
-        @view="handleViewFormateur"
-        @suspend="handleSuspend"
-        @reactivate="handleReactivate"
-      />
     </div>
 
-    <transition name="toast-fade">
-      <div
-        v-if="feedback.show"
-        class="fixed bottom-6 right-6 z-50 rounded-xl px-4 py-3 shadow-lg text-white"
-        :class="feedback.type === 'success' ? 'bg-emerald-600' : 'bg-red-600'"
-      >
-        {{ feedback.message }}
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div v-for="s in stats" :key="s.label" class="sc" :class="`sc--${s.color}`">
+        <div class="sc-top">
+          <div class="sc-icon" :class="`sc-icon--${s.color}`">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path :d="s.icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" />
+            </svg>
+          </div>
+          <span class="sc-lbl">{{ s.label }}</span>
+        </div>
+        <div class="sc-val">{{ s.getValue() }}</div>
       </div>
-    </transition>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="search-wrap">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
+        </svg>
+        <input
+          v-model="searchInput"
+          @input="handleSearch(searchInput)"
+          type="text"
+          placeholder="Rechercher un formateur…"
+          class="search-input"
+        />
+      </div>
+      <select
+        v-model="statusFilter"
+        @change="handleStatusFilter(statusFilter)"
+        class="filter-select"
+      >
+        <option value="all">Tous les statuts</option>
+        <option value="active">Actifs</option>
+        <option value="suspended">Suspendus</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <FormateursList
+      @view="handleView"
+      @suspend="handleSuspend"
+      @reactivate="handleReactivate"
+    />
+
+    <!-- Toast -->
+    <Transition name="toast">
+      <div
+        v-if="toast.show"
+        class="page-toast"
+        :class="toast.type === 'success' ? 'page-toast--ok' : 'page-toast--err'"
+      >
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path v-if="toast.type === 'success'" stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+          <path v-else stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        {{ toast.text }}
+      </div>
+    </Transition>
+
   </div>
 </template>
 
 <style scoped>
-.toast-fade-enter-active,
-.toast-fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+.page-root { padding: 32px; display: flex; flex-direction: column; gap: 20px; }
+
+.page-hero { }
+
+.page-heading { font-size: 22px; font-weight: 700; color: #111827; letter-spacing: -0.03em; }
+.page-sub { font-size: 13px; color: #9CA3AF; margin-top: 3px; }
+
+/* Stats */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+.sc {
+  padding: 18px 20px 16px;
+  background: #FFFFFF; border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 12px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.sc::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.sc--blue::after   { background: linear-gradient(90deg, #1D4ED8, #60A5FA); }
+.sc--green::after  { background: linear-gradient(90deg, #15803D, #4ade80); }
+.sc--red::after    { background: linear-gradient(90deg, #991B1B, #F87171); }
+.sc--orange::after { background: linear-gradient(90deg, #C2410C, #FB923C); }
+.sc:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.07); transform: translateY(-1px); }
+
+.sc-top { display: flex; align-items: center; justify-content: space-between; }
+
+.sc-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.sc-icon--blue   { background: rgba(59,130,246,0.10);  color: #2563EB; }
+.sc-icon--green  { background: rgba(22,163,74,0.10);   color: #16A34A; }
+.sc-icon--red    { background: rgba(220,38,38,0.10);   color: #DC2626; }
+.sc-icon--orange { background: rgba(234,88,12,0.10);   color: #EA580C; }
+
+.sc-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #9CA3AF; }
+.sc-val { font-size: 36px; font-weight: 800; color: #111827; line-height: 1; letter-spacing: -0.04em; }
+
+/* Filters */
+.filters-bar {
+  display: flex;
+  gap: 10px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
 }
 
-.toast-fade-enter-from,
-.toast-fade-leave-to {
-  opacity: 0;
-  transform: translateY(8px);
+.search-wrap { flex: 1; position: relative; }
+
+.search-icon {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: #9CA3AF; pointer-events: none;
 }
+
+.search-input {
+  width: 100%; height: 36px; padding: 0 12px 0 32px;
+  font-size: 13px; color: #111827;
+  background: #F9FAFB; border: 1px solid #E5E7EB;
+  border-radius: 8px; outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.search-input:focus { background: white; border-color: #16A34A; box-shadow: 0 0 0 3px rgba(22,163,74,0.10); }
+
+.filter-select {
+  height: 36px; padding: 0 10px;
+  font-size: 13px; color: #374151;
+  background: #F9FAFB; border: 1px solid #E5E7EB;
+  border-radius: 8px; outline: none; cursor: pointer;
+}
+.filter-select:focus { border-color: #16A34A; }
+
+/* Toast */
+.page-toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 60;
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; border-radius: 10px;
+  font-size: 13px; font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.page-toast--ok  { background: #16A34A; color: white; }
+.page-toast--err { background: #DC2626; color: white; }
+
+.toast-enter-active, .toast-leave-active { transition: opacity 0.2s, transform 0.2s; }
+.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(6px); }
 </style>
-

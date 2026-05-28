@@ -1,36 +1,22 @@
 <template>
-  <section class="p-6 max-w-5xl mx-auto">
-   <div class="flex items-center justify-between mb-6">
-  <button
-          class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 group -ml-1 sm:-ml-2"
-          @click="router.back()"
-          title="Retour"
-        >
-          <svg class="w-6 h-6 group-hover:-translate-x-0.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-          </svg>
-        </button>
+  <div class="page-root">
 
-  <h1 class="text-2xl font-semibold text-blue-900 text-right">
-    Étapes du parcours
-  </h1>
-</div>
-
-    <!-- <section class="p-6 max-w-5xl mx-auto space-y-14">
-      <StepForm :parcoursId="parcoursId" @created="refreshKey++" />
-      <StepList :parcoursId="parcoursId" :key="refreshKey" />
-    </section> -->
-
-    <!-- Formulaire création -->
-    <div class="mt-8">
-      <StepForm :pathId="pathId" @created="stepStore.fetchSteps(pathId)" />
+    <div class="page-hero">
+      <button class="btn-back" @click="router.back()" title="Retour">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="back-ico">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <div>
+        <h1 class="page-heading">Étapes du parcours</h1>
+        <p class="page-sub">Gérez le contenu et l'ordre des étapes</p>
+      </div>
     </div>
-    <div class="mt-8">
-      <!-- Liste des étapes -->
-      <StepList :pathId="pathId" />
-    </div>
-    
-  </section>
+
+    <StepForm :pathId="pathId" @created="stepStore.fetchSteps(pathId)" />
+    <StepList :pathId="pathId" />
+
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -38,8 +24,6 @@ import { useRoute, useRouter } from "vue-router";
 import StepList from "@/components/Module-formateur/Step/StepList.vue";
 import StepForm from "@/components/Module-formateur/Step/StepForm.vue";
 import { useStepStore } from "~/stores/stepStore";
-
-
 
 definePageMeta({
   layout: "formateur",
@@ -51,3 +35,48 @@ const stepStore = useStepStore();
 
 const pathId = String(route.params.id);
 </script>
+
+<style scoped>
+.page-root {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.page-heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+
+.page-sub {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin-top: 3px;
+}
+
+.btn-back {
+  width: 34px; height: 34px;
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #374151;
+  flex-shrink: 0;
+  transition: background 0.12s, border-color 0.12s;
+}
+.btn-back:hover { background: #F3F4F6; border-color: #D1D5DB; }
+.back-ico { width: 16px; height: 16px; }
+</style>

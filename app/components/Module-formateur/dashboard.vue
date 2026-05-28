@@ -1,99 +1,47 @@
-﻿<template>
-  <div class="min-h-screen bg-slate-50 px-6 py-10">
+<template>
+  <div class="page-root">
 
-    <!-- HEADER -->
-    <div class="max-w-6xl mx-auto mb-10">
-      <h1 class="text-3xl font-bold text-slate-800">
-        Choisissez une langue
-      </h1>
-      <p class="text-slate-500 mt-1">
-        Sélectionnez une langue pour accéder aux modules d’apprentissage
-      </p>
+    <!-- Hero -->
+    <div class="page-hero">
+      <h1 class="page-heading">Choisissez une langue</h1>
+      <p class="page-sub">Sélectionnez une langue pour accéder aux modules d'apprentissage</p>
     </div>
 
-    <!-- LOADING -->
-    <div
-      v-if="isLoading"
-      class="max-w-6xl mx-auto flex flex-col items-center justify-center py-20"
-    >
-      <div class="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
-      <p class="mt-4 text-slate-500 text-sm">Chargement des langues...</p>
+    <!-- Loading -->
+    <div v-if="isLoading" class="state-center">
+      <div class="spinner"></div>
+      <p class="state-text">Chargement des langues…</p>
     </div>
 
-    <!-- CONTENT -->
-    <div v-else class="max-w-6xl mx-auto">
-
-      <!-- GRID -->
-      <div
-        v-if="languages && languages.length"
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
-
-        <div
-          v-for="lang in languages"
-          :key="lang.id"
-          class="group bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
-        >
-
-          <!-- HEADER CARD -->
-          <div class="flex items-center gap-3 mb-4">
-            
-            <div class="w-12 h-12 flex items-center justify-center rounded-xl bg-blue-50 text-xl">
-              🌍
-            </div>
-
-            <div>
-              <h2 class="font-semibold text-slate-800 group-hover:text-blue-600 transition">
-                {{ lang.name }}
-              </h2>
-              <p class="text-xs text-slate-400">
-                Langue disponible
-              </p>
-            </div>
+    <!-- Grid -->
+    <div v-else-if="languages && languages.length" class="lang-grid">
+      <div v-for="lang in languages" :key="lang.id" class="lang-card">
+        <div class="lang-card-top">
+          <div class="lang-icon">🌍</div>
+          <div>
+            <h2 class="lang-name">{{ lang.name }}</h2>
+            <p class="lang-avail">Langue disponible</p>
           </div>
-
-          <!-- DESCRIPTION -->
-          <p class="text-sm text-slate-500 leading-relaxed line-clamp-3 min-h-[60px]">
-            {{ lang.description || "Aucune description disponible pour cette langue." }}
-          </p>
-
-          <!-- ACTION -->
-          <div class="mt-6 flex justify-end">
-            <button
-              @click="goToModules(lang.id)"
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 active:scale-95 transition"
-            >
-              <span>Voir modules</span>
-              <span class="group-hover:translate-x-1 transition">→</span>
-            </button>
-          </div>
-
+        </div>
+        <p class="lang-desc">{{ lang.description || 'Aucune description disponible pour cette langue.' }}</p>
+        <div class="lang-action">
+          <button class="btn-primary" @click="goToModules(lang.id)">
+            Voir modules
+            <svg class="btn-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
-
-      <!-- EMPTY STATE -->
-      <div
-        v-else
-        class="text-center py-20 bg-white border border-slate-200 rounded-2xl shadow-sm"
-      >
-        <div class="text-5xl mb-4">📚</div>
-
-        <h3 class="text-lg font-semibold text-slate-800">
-          Aucune langue disponible
-        </h3>
-
-        <p class="text-slate-500 text-sm mt-2">
-          Les langues apparaîtront ici dès qu’elles seront ajoutées
-        </p>
-
-        <button
-          class="mt-6 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-sm hover:bg-blue-700 transition"
-        >
-          Rafraîchir
-        </button>
-      </div>
-
     </div>
+
+    <!-- Empty -->
+    <div v-else class="empty-card">
+      <div class="empty-icon">📚</div>
+      <p class="empty-title">Aucune langue disponible</p>
+      <p class="empty-sub">Les langues apparaîtront ici dès qu'elles seront ajoutées</p>
+    </div>
+
   </div>
 </template>
 
@@ -172,107 +120,159 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-
-.dashboard-container {
-  padding: 20px;
-}
-
-.section-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: #0f172a;
-}
-
-/* Grid responsive */
-.cards-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+.page-root {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
-/* Card */
-.language-card {
-  background: white;
-  border-radius: 14px;
-  padding: 20px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-  transition: all .25s ease;
+
+.page-heading {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.03em;
+}
+
+.page-sub {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin-top: 3px;
+}
+
+/* Loading */
+.state-center {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-height: 190px;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  gap: 12px;
 }
 
-.language-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 28px rgba(0,0,0,0.10);
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid #E5E7EB;
+  border-top-color: #16A34A;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
 }
 
-/* Header */
-.card-header {
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.state-text { font-size: 13px; color: #9CA3AF; }
+
+/* Grid */
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.lang-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px 22px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-left: 3px solid #16A34A;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.lang-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.07);
+}
+
+.lang-card-top {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 10px;
 }
 
 .lang-icon {
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
-  background: #1e3a8a;
-  color: white;
+  background: rgba(22,163,74,0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
+  flex-shrink: 0;
 }
 
-.lang-title {
-  font-weight: 600;
-  font-size: 18px;
-  color: #0f172a;
-}
-
-/* Description */
-.lang-description {
+.lang-name {
   font-size: 14px;
-  color: #475569;
-  margin: 12px 0 18px;
-  line-height: 1.5;
-  flex-grow: 1;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
 }
 
-/* Bouton */
-.module-btn {
-  background: #1e3a8a;
+.lang-avail {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin: 2px 0 0;
+}
+
+.lang-desc {
+  font-size: 13px;
+  color: #6B7280;
+  line-height: 1.6;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.lang-action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Buttons */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: #16A34A;
   color: white;
   border: none;
-  padding: 10px 14px;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background .2s ease;
+  box-shadow: 0 1px 3px rgba(22,163,74,.3);
+  transition: background 0.15s;
+  font-family: inherit;
 }
 
-.module-btn:hover {
-  background: #172554;
+.btn-primary:hover { background: #15803D; }
+
+.btn-arrow { width: 14px; height: 14px; }
+
+/* Empty */
+.empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 64px 32px;
+  gap: 10px;
+  background: #FFFFFF;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
+  text-align: center;
 }
 
-/* Empty state */
-.empty-state {
-  margin-top: 20px;
-  color: #64748b;
-}
-
-.eye-btn:hover .eye-wrapper{
-  transform: scale(1.2);
-}
-
-.eye-wrapper{
-  display:inline-block;
-  transition: transform .2s ease;
-}
-
+.empty-icon { font-size: 40px; }
+.empty-title { font-size: 15px; font-weight: 600; color: #111827; margin: 0; }
+.empty-sub { font-size: 13px; color: #9CA3AF; margin: 0; }
 </style>

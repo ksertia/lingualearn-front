@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, computed } from 'vue'
 
 interface LoginLog {
@@ -153,7 +153,7 @@ const failedCount  = computed(() => logs.value.filter(l => l.status === 'failed'
 
 <style scoped>
 .s-card {
-  background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
+  background: #FFFFFF;
   border-radius: 14px;
   overflow: hidden;
   box-shadow:
@@ -349,3 +349,4 @@ const failedCount  = computed(() => logs.value.filter(l => l.status === 'failed'
 .s-page-btn:hover:not(:disabled) { background: #E5E7EB; }
 .s-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
+

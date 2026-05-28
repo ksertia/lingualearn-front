@@ -1,238 +1,215 @@
 <template>
-  <div class="max-w-7xl mx-auto px-6 lg:px-8 py-10">
-    <section class="bg-white rounded-3xl border border-slate-200 shadow-sm">
+  <div class="page-root">
 
-      <!-- ================= HEADER ================= -->
-      <div class="flex items-center justify-between px-6 py-6 border-b border-slate-100">
-        
-        <!-- Back -->
-        <button
-          class="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 group -ml-1 sm:-ml-2"
-          @click="goBack"
-          title="Retour"
-        >
-          <svg class="w-6 h-6 group-hover:-translate-x-0.5 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+    <!-- ================= PAGE HERO ================= -->
+    <div class="page-hero">
+      <div class="hero-left">
+        <button class="back-btn" @click="goBack" title="Retour">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
         </button>
+        <div class="hero-text">
+          <h1 class="page-title">Modules</h1>
+          <p class="page-subtitle">{{ languageId ? `Langue : ${languageId}` : 'Gérez les modules de cette langue' }}</p>
+        </div>
+      </div>
+      <button class="btn-primary" @click="openModal">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-width="2" d="M12 6v12m6-6H6"/>
+        </svg>
+        Nouveau module
+      </button>
+    </div>
 
-        <!-- Action -->
-        <button
-          @click="openModal"
-          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition shadow-sm"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-width="2" d="M12 6v12m6-6H6"/>
+    <!-- ================= MAIN CARD ================= -->
+    <div class="card">
+
+      <!-- LOADING -->
+      <div v-if="isFetchingModules" class="state-center">
+        <div class="spinner"></div>
+        <p class="state-sub">Chargement des modules…</p>
+      </div>
+
+      <!-- TABLE -->
+      <div v-else-if="modules.length" class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr class="table-head-row">
+              <th class="th">Nom</th>
+              <th class="th">Niveau</th>
+              <th class="th th-hide-mobile">Description</th>
+              <th class="th th-center">Parcours</th>
+              <th class="th th-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="m in paginatedModules"
+              :key="m.id"
+              class="table-row"
+            >
+              <!-- TITLE -->
+              <td class="td td-title">{{ m.title }}</td>
+
+              <!-- LEVEL -->
+              <td class="td">
+                <span class="level-badge">{{ getLevelName(m.levelId) }}</span>
+              </td>
+
+              <!-- DESC -->
+              <td class="td td-hide-mobile td-desc">{{ m.description || '—' }}</td>
+
+              <!-- COUNT -->
+              <td class="td td-center">
+                <span class="parcours-count">{{ parcoursCount[m.id] ?? 0 }}</span>
+              </td>
+
+              <!-- ACTIONS -->
+              <td class="td td-right">
+                <div class="action-btns">
+                  <button class="btn-ghost-blue" @click="goToParcours(m.id)">Parcours</button>
+                  <button class="btn-ghost-red" @click="removeModule(m.id)">Supprimer</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- EMPTY -->
+      <div v-else class="state-center">
+        <div class="empty-icon">
+          <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-width="1.5" d="M9 12h6m-6 4h6M5 8h14M5 4h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5a1 1 0 011-1z"/>
           </svg>
-          Nouveau module
+        </div>
+        <h3 class="empty-title">Aucun module</h3>
+        <p class="state-sub">Commencez par créer votre premier module</p>
+        <button class="btn-primary" style="margin-top: 16px;" @click="openModal">
+          Créer un module
         </button>
       </div>
 
-      <!-- ================= CONTENT ================= -->
-      <div class="p-6">
+      <!-- PAGINATION -->
+      <div v-if="modules.length > perPage" class="pagination">
+        <button
+          class="page-btn"
+          :disabled="currentPage === 1"
+          @click="currentPage--"
+        >Précédent</button>
+        <span class="page-info">Page {{ currentPage }} / {{ totalPages }}</span>
+        <button
+          class="page-btn"
+          :disabled="currentPage === totalPages"
+          @click="currentPage++"
+        >Suivant</button>
+      </div>
 
-        <!-- LOADING -->
-        <div v-if="isFetchingModules" class="text-center py-16">
-          <div class="animate-spin w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto mb-4"></div>
-          <p class="text-slate-500 text-sm">Chargement des modules...</p>
-        </div>
+    </div>
 
-        <!-- TABLE -->
-        <div v-else-if="modules.length" class="overflow-x-auto">
-          <table class="w-full">
-            
-            <!-- HEAD -->
-            <thead>
-              <tr class="text-xs text-slate-500 uppercase border-b border-slate-200">
-                <th class="py-3 text-left">Nom</th>
-                <th class="py-3 text-left hidden md:table-cell">Niveau</th>
-                <th class="py-3 text-left hidden lg:table-cell">Description</th>
-                <th class="py-3 text-center">Parcours</th>
-                <th class="py-3 text-right">Actions</th>
-              </tr>
-            </thead>
+    <!-- ================= CREATE MODAL ================= -->
+    <Transition name="modal-fade">
+      <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+        <div class="modal-box">
 
-            <!-- BODY -->
-            <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="m in paginatedModules"
-                :key="m.id"
-                class="hover:bg-slate-50 transition"
-              >
-                <!-- TITLE -->
-                <td class="py-4 font-medium text-slate-800">
-                  {{ m.title }}
-                </td>
-
-                <!-- LEVEL -->
-                <td class="hidden md:table-cell">
-                  <span class="px-3 py-1 text-xs rounded-full bg-slate-100 text-slate-600">
-                    {{ getLevelName(m.levelId) }}
-                  </span>
-                </td>
-
-                <!-- DESC -->
-                <td class="hidden lg:table-cell text-sm text-slate-500 max-w-xs truncate">
-                  {{ m.description || '—' }}
-                </td>
-
-                <!-- COUNT -->
-                <td class="text-center">
-                  <span class="text-sm font-medium text-blue-600">
-                    {{ parcoursCount[m.id] ?? 0 }}
-                  </span>
-                </td>
-
-                <!-- ACTIONS -->
-                <td class="text-right">
-                  <div class="flex justify-end gap-3">
-                    
-                    <button
-                      @click="goToParcours(m.id)"
-                      class="px-4 py-2 text-sm rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
-                    >
-                      Parcours
-                    </button>
-
-                    <button
-                      @click="removeModule(m.id)"
-                      class="px-4 py-2 text-sm rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition"
-                    >
-                      Supprimer
-                    </button>
-
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-
-          </table>
-        </div>
-
-        <!-- EMPTY -->
-        <div v-else class="text-center py-20">
-          <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-width="1.5" d="M9 12h6m-6 4h6"/>
-            </svg>
+          <!-- Header -->
+          <div class="modal-header">
+            <div class="modal-header-left">
+              <div class="modal-icon modal-icon-green">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-width="2" d="M12 6v12m6-6H6"/>
+                </svg>
+              </div>
+              <h3 class="modal-title">Nouveau module</h3>
+            </div>
+            <button class="modal-close" @click="closeModal">✕</button>
           </div>
 
-          <h3 class="text-lg font-medium text-slate-800 mb-2">
-            Aucun module
-          </h3>
-
-          <p class="text-sm text-slate-500 mb-6">
-            Commencez par créer votre premier module
-          </p>
-
-          <button
-            @click="openModal"
-            class="px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm hover:bg-blue-700 transition"
-          >
-            Créer un module
-          </button>
-        </div>
-
-        <!-- PAGINATION -->
-        <div
-          v-if="modules.length > perPage"
-          class="flex items-center justify-between mt-8 pt-6 border-t border-slate-100"
-        >
-          <button
-            :disabled="currentPage === 1"
-            @click="currentPage--"
-            class="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-          >
-            Précédent
-          </button>
-
-          <span class="text-sm text-slate-500">
-            Page {{ currentPage }} / {{ totalPages }}
-          </span>
-
-          <button
-            :disabled="currentPage === totalPages"
-            @click="currentPage++"
-            class="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-          >
-            Suivant
-          </button>
-        </div>
-
-      </div>
-
-      <!-- ================= MODAL ================= -->
-      <transition name="fade">
-        <div v-if="showModal" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4">
-          <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl">
-
-            <div class="flex justify-between items-center mb-6">
-              <h3 class="text-lg font-semibold text-slate-800">Nouveau module</h3>
-              <button @click="closeModal" class="text-slate-400 hover:text-slate-600">✕</button>
-            </div>
-
-            <form class="space-y-4" @submit.prevent="onSubmit">
-              
-              <input
-                v-model="name"
-                placeholder="Nom du module"
-                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-300 outline-none"
-              />
-
-              <textarea
-                v-model="description"
-                placeholder="Description"
-                rows="3"
-                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-300 outline-none"
-              ></textarea>
-
-              <select
-                v-model="selectedLevelId"
-                class="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-300 outline-none"
-              >
-                <option value="" disabled>Choisir un niveau</option>
-                <option v-for="level in levels" :key="level.id" :value="level.id">
-                  {{ level.name }}
-                </option>
-              </select>
-
-              <div class="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  @click="closeModal"
-                  class="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50"
-                >
-                  Annuler
-                </button>
-
-                <button
-                  type="submit"
-                  class="flex-1 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700"
-                >
-                  Créer
-                </button>
+          <!-- Body -->
+          <div class="modal-body">
+            <form @submit.prevent="onSubmit">
+              <div class="form-group">
+                <label class="form-label">Nom du module</label>
+                <input
+                  v-model="name"
+                  class="form-input"
+                  placeholder="Ex. : Les salutations"
+                />
               </div>
 
+              <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea
+                  v-model="description"
+                  class="form-input"
+                  placeholder="Description du module"
+                  rows="3"
+                ></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Niveau</label>
+                <select v-model="selectedLevelId" class="form-input">
+                  <option value="" disabled>Choisir un niveau</option>
+                  <option v-for="level in levels" :key="level.id" :value="level.id">
+                    {{ level.name }}
+                  </option>
+                </select>
+              </div>
+
+              <p v-if="error" class="form-error">{{ error }}</p>
+
+              <!-- Footer -->
+              <div class="modal-footer">
+                <button type="button" class="btn-cancel" @click="closeModal">Annuler</button>
+                <button type="submit" class="btn-primary">Créer</button>
+              </div>
             </form>
-
           </div>
-        </div>
-      </transition>
 
-      <transition name="fade">
-        <div v-if="moduleToDeleteId" class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl">
-            <h3 class="text-lg font-semibold text-slate-800 mb-2">Supprimer le module</h3>
-            <p class="text-sm text-slate-600 mb-6">Cette action est irréversible. Voulez-vous continuer ?</p>
-            <div class="flex justify-end gap-3">
-              <button @click="moduleToDeleteId = null" class="px-4 py-2 rounded-lg border border-slate-200 text-slate-600">Annuler</button>
-              <button @click="confirmDeleteModule" class="px-4 py-2 rounded-lg bg-red-600 text-white">Supprimer</button>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- ================= DELETE MODAL ================= -->
+    <Transition name="modal-fade">
+      <div v-if="moduleToDeleteId" class="modal-overlay" @click.self="moduleToDeleteId = null">
+        <div class="modal-box">
+
+          <!-- Header -->
+          <div class="modal-header">
+            <div class="modal-header-left">
+              <div class="modal-icon modal-icon-red">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V5a1 1 0 011-1h6a1 1 0 011 1v2"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="modal-title">Supprimer le module</h3>
+                <p class="modal-subtitle">Cette action est irréversible</p>
+              </div>
             </div>
+            <button class="modal-close" @click="moduleToDeleteId = null">✕</button>
           </div>
-        </div>
-      </transition>
 
-    </section>
+          <!-- Body -->
+          <div class="modal-body">
+            <p class="delete-confirm-text">
+              Êtes-vous sûr de vouloir supprimer ce module ? Tous les parcours associés seront également supprimés.
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div class="modal-footer modal-footer-border">
+            <button class="btn-cancel" @click="moduleToDeleteId = null">Annuler</button>
+            <button class="btn-delete" @click="confirmDeleteModule">Supprimer</button>
+          </div>
+
+        </div>
+      </div>
+    </Transition>
+
   </div>
 </template>
 
@@ -269,15 +246,15 @@ const fetchModulesByLanguage = async (languageId: string, expectedLevelId?: stri
     isFetchingModules.value = true
     moduleStore.module = []
     parcoursCount.value = {}
-    
+
     console.log('Début récupération modules pour langue:', languageId)
-    
+
     // Récupérer les niveaux de cette langue
     await levelStore.fetchLevelsByLanguage(languageId)
     console.log('Niveaux récupérés:', levelStore.levels)
-    
+
     const allModules = []
-    
+
     // Pour chaque niveau, récupérer les modules
     for (const level of levelStore.levels) {
       console.log('Vérification niveau:', level, 'languageId:', level.languageId, 'recherché:', languageId)
@@ -285,7 +262,7 @@ const fetchModulesByLanguage = async (languageId: string, expectedLevelId?: stri
         console.log('Récupération modules pour niveau:', level.id)
         const response = await apiService.getModulesByLevel(languageId, level.id)
         console.log('Réponse API pour niveau', level.id, ':', response)
-        
+
         // L'API retourne {modules: Array} au lieu d'un tableau direct
         const responseData = response?.data as any || {}
         const modules = responseData.modules || []
@@ -295,23 +272,23 @@ const fetchModulesByLanguage = async (languageId: string, expectedLevelId?: stri
         }
       }
     }
-    
+
     console.log('Tous les modules agrégés:', allModules)
-    
+
     // Afficher les levelId de tous les modules pour débogage
     console.log('LevelId des modules:', allModules.map(m => ({ id: m.id, title: m.title, levelId: m.levelId })))
-    
+
     // Vérifier si le module créé est dans la liste
     if (expectedLevelId) {
-      console.log('Module créé avec levelId:', expectedLevelId, 'présent dans les modules?', 
+      console.log('Module créé avec levelId:', expectedLevelId, 'présent dans les modules?',
         allModules.some(m => m.levelId === expectedLevelId))
     }
-    
+
     // Mettre à jour le store avec les modules filtrés
     moduleStore.module = allModules
     console.log('Modules chargés:', allModules)
     console.log('Store module:', moduleStore.module)
-    
+
     // Calculer les nombres de parcours
     await parcoursStore.fetchAll()
     computeCounts()
@@ -444,10 +421,10 @@ const onSubmit = async () => {
     })
 
     console.log('Module créé, rechargement des modules pour languageId actuel:', route.params.id)
-    
+
     // Attendre un peu pour que l'API ait le temps de mettre à jour
     await new Promise(resolve => setTimeout(resolve, 500))
-    
+
     await fetchModulesByLanguage(route.params.id as string, createdLevelId)
     closeModal()
   } catch (e) {
@@ -489,49 +466,479 @@ const paginatedModules = computed(() => {
 </script>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: scale(0.95) translateY(20px);
-}
-
-/* Améliorations fluides */
-.group-hover\:text-teal-800:hover {
-  color: #0d9488;
+/* ===== LAYOUT ===== */
+.page-root {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: 'Inter', sans-serif;
 }
 
-/* Line clamp pour mobile */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+/* ===== HERO ===== */
+.page-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.hero-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hero-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.2;
+}
+.page-subtitle {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin: 0;
+}
+
+/* ===== BACK BUTTON ===== */
+.back-btn {
+  height: 34px;
+  width: 34px;
+  border-radius: 8px;
+  background: rgba(22, 163, 74, 0.10);
+  color: #15803D;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.back-btn:hover {
+  background: rgba(22, 163, 74, 0.18);
+}
+
+/* ===== PRIMARY BUTTON ===== */
+.btn-primary {
+  background: #16A34A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.3);
+  transition: background 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+.btn-primary:hover {
+  background: #15803D;
+}
+
+/* ===== CARD ===== */
+.card {
+  background: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  border-radius: 14px;
   overflow: hidden;
 }
 
-/* Custom scrollbar pour modal */
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
+/* ===== TABLE ===== */
+.table-wrap {
+  overflow-x: auto;
 }
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 3px;
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
 }
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, #e2e8f0, #cbd5e1);
-  border-radius: 3px;
+.table-head-row {
+  background: #FAFAFA;
 }
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+.th {
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+}
+.th-center { text-align: center; }
+.th-right { text-align: right; }
+.th-hide-mobile {
+  display: none;
+}
+@media (min-width: 768px) {
+  .th-hide-mobile { display: table-cell; }
 }
 
-/* Responsive amélioré */
-@media (max-width: 640px) {
-  .grid-cols-1 {
-    gap: 1rem;
-  }
+.table-row {
+  border-bottom: 1px solid #F9FAFB;
+  transition: background 0.12s;
+}
+.table-row:hover {
+  background: #FAFAFA;
+}
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.td {
+  padding: 13px 16px;
+  font-size: 13px;
+  color: #374151;
+  vertical-align: middle;
+}
+.td-title {
+  font-weight: 500;
+  color: #111827;
+}
+.td-center { text-align: center; }
+.td-right { text-align: right; }
+.td-desc {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #6B7280;
+}
+.td-hide-mobile {
+  display: none;
+}
+@media (min-width: 768px) {
+  .td-hide-mobile { display: table-cell; }
+}
+
+/* ===== BADGES ===== */
+.level-badge {
+  background: #F3F4F6;
+  color: #374151;
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+}
+.parcours-count {
+  color: #2563EB;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-btns {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.btn-ghost-blue {
+  background: #EFF6FF;
+  color: #2563EB;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+.btn-ghost-blue:hover {
+  background: #DBEAFE;
+}
+.btn-ghost-red {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: none;
+  border-radius: 7px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+.btn-ghost-red:hover {
+  background: #FEE2E2;
+}
+
+/* ===== STATES ===== */
+.state-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+}
+.state-sub {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin: 6px 0 0;
+}
+
+/* Spinner */
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #DCFCE7;
+  border-top-color: #16A34A;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  margin-bottom: 12px;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Empty */
+.empty-icon {
+  width: 56px;
+  height: 56px;
+  background: #F0FDF4;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #16A34A;
+  margin-bottom: 16px;
+}
+.empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px;
+}
+
+/* ===== PAGINATION ===== */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid #F3F4F6;
+}
+.page-btn {
+  background: white;
+  color: #374151;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+.page-btn:hover:not(:disabled) {
+  background: #F9FAFB;
+}
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.page-info {
+  font-size: 13px;
+  color: #6B7280;
+}
+
+/* ===== MODAL OVERLAY ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+
+/* ===== MODAL BOX ===== */
+.modal-box {
+  background: white;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 20px 0;
+}
+.modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.modal-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.modal-icon-green {
+  background: #F0FDF4;
+  color: #16A34A;
+}
+.modal-icon-red {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+.modal-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+.modal-subtitle {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin: 2px 0 0;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #9CA3AF;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.12s;
+  flex-shrink: 0;
+}
+.modal-close:hover {
+  color: #374151;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+/* ===== FORM ===== */
+.form-group {
+  margin-bottom: 14px;
+}
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 5px;
+}
+.form-input {
+  width: 100%;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: inherit;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  color: #111827;
+  resize: vertical;
+}
+.form-input:focus {
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.10);
+}
+.form-error {
+  font-size: 12px;
+  color: #DC2626;
+  margin: 0 0 12px;
+}
+
+/* ===== MODAL FOOTER ===== */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 6px;
+}
+.modal-footer-border {
+  padding: 16px 20px;
+  border-top: 1px solid #F3F4F6;
+}
+
+/* Cancel */
+.btn-cancel {
+  background: white;
+  color: #6B7280;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+.btn-cancel:hover {
+  background: #F9FAFB;
+}
+
+/* Delete */
+.btn-delete {
+  background: #DC2626;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+  font-family: inherit;
+}
+.btn-delete:hover {
+  background: #B91C1C;
+}
+
+/* Delete confirm text */
+.delete-confirm-text {
+  font-size: 13px;
+  color: #6B7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ===== MODAL TRANSITIONS ===== */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.modal-fade-enter-active .modal-box,
+.modal-fade-leave-active .modal-box {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+.modal-fade-enter-from .modal-box,
+.modal-fade-leave-to .modal-box {
+  transform: scale(0.96) translateY(8px);
+  opacity: 0;
 }
 </style>

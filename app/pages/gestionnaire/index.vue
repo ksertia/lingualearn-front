@@ -15,6 +15,5 @@ definePageMeta({
 <style scoped>
 .gestionnaire-page {
   width: 100%;
-  height: 100vh;
 }
 </style>

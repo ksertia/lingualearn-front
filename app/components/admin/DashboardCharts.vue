@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="chart-card">
     <!-- Header -->
     <div class="chart-header">
@@ -70,7 +70,7 @@ const segments = computed(() => {
 
 <style scoped>
 .chart-card {
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  background: #FFFFFF;
   border: none;
   border-radius: 14px;
   overflow: hidden;
@@ -210,3 +210,4 @@ const segments = computed(() => {
   text-align: right;
 }
 </style>
+

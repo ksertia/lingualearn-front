@@ -25,7 +25,7 @@ const languages = computed(() => {
 const levels = computed(() => {
   // Regrouper les niveaux par nom (Débutant, Intermédiaire, Avancé) peu importe la langue
   const uniqueLevels = new Map();
-  
+
   levelStore.levels.forEach((level: any) => {
     const levelName = level.name.toLowerCase().trim();
     if (!uniqueLevels.has(levelName)) {
@@ -35,7 +35,7 @@ const levels = computed(() => {
       });
     }
   });
-  
+
   return Array.from(uniqueLevels.values());
 });
 
@@ -113,250 +113,164 @@ const showAdvancedFilters = ref(false);
 </script>
 
 <template>
-  <div
-    class="content-filters bg-white rounded-2xl shadow-sm border border-gray-100 p-6"
-  >
-    <!-- Filtres principaux -->
-    <div class="flex flex-col lg:flex-row gap-4">
-      <!-- Recherche -->
-      <div class="relative flex-1">
-        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-5 h-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-        </span>
+  <div class="cf-root">
+    <div class="cf-row">
+      <!-- Search -->
+      <div class="cf-search">
+        <svg class="cf-search-ico" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
         <input
           :value="store.filters.search"
-          @input="
-            store.filters.search = ($event.target as HTMLInputElement).value
-          "
+          @input="store.filters.search = ($event.target as HTMLInputElement).value"
           type="text"
-          placeholder="Rechercher un contenu..."
-          class="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm"
+          placeholder="Rechercher un contenu…"
+          class="cf-input"
         />
       </div>
 
       <!-- Langue -->
-      <div class="relative min-w-[180px]">
-        <select
-          :value="store.filters.languageId || ''"
-          @change="handleLanguageChange"
-          class="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium"
-        >
+      <div class="cf-sel-wrap">
+        <select :value="store.filters.languageId || ''" @change="handleLanguageChange" class="cf-select">
           <option value="">Toutes les langues</option>
-          <option
-            v-for="lang in languages"
-            :key="lang.value"
-            :value="lang.value"
-          >
-            {{ lang.label }}
-          </option>
+          <option v-for="lang in languages" :key="lang.value" :value="lang.value">{{ lang.label }}</option>
         </select>
-        <div
-          class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </div>
+        <svg class="cf-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
       </div>
 
       <!-- Niveau -->
-      <div class="relative min-w-[180px]">
-        <select
-          :value="store.filters.levelId || ''"
-          @change="handleLevelChange"
-         
-          class="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+      <div class="cf-sel-wrap">
+        <select :value="store.filters.levelId || ''" @change="handleLevelChange" class="cf-select">
           <option value="">Tous les niveaux</option>
-          <option
-            v-for="level in levels"
-            :key="level.value"
-            :value="level.value"
-          >
-            {{ level.label }}
-          </option>
+          <option v-for="level in levels" :key="level.value" :value="level.value">{{ level.label }}</option>
         </select>
-        <div
-          class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </div>
+        <svg class="cf-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
       </div>
 
       <!-- Statut -->
-      <div class="relative min-w-[160px]">
-        <select
-          :value="store.filters.status || 'all'"
-          @change="handleStatusChange"
-          class="appearance-none w-full pl-4 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none transition-all text-sm font-medium"
-        >
+      <div class="cf-sel-wrap">
+        <select :value="store.filters.status || 'all'" @change="handleStatusChange" class="cf-select">
           <option value="all">Tous les statuts</option>
           <option value="active">Actifs</option>
           <option value="disabled">Désactivés</option>
         </select>
-        <div
-          class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </div>
+        <svg class="cf-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
       </div>
 
-      <!-- Bouton filtres avancés -->
-      <!-- <button
-        @click="showAdvancedFilters = !showAdvancedFilters"
-        class="flex items-center gap-2 px-4 py-3 text-sm font-medium text-[#000099] bg-[#000099]/5 hover:bg-[#000099]/10 rounded-xl transition-colors whitespace-nowrap"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          class="w-5 h-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-          />
+      <!-- Advanced toggle -->
+      <button class="cf-adv-btn" :class="{ 'cf-adv-btn--on': showAdvancedFilters }" @click="showAdvancedFilters = !showAdvancedFilters">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
         </svg>
-        <span>{{ showAdvancedFilters ? "Masquer" : "Plus de filtres" }}</span>
-      </button> -->
+        {{ showAdvancedFilters ? 'Masquer' : 'Filtres' }}
+      </button>
     </div>
 
-    <!-- Filtres avancés -->
-    <div v-if="showAdvancedFilters" class="mt-6 pt-6 border-t border-gray-100">
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Date de début -->
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-2"
-            >Date de publication (depuis)</label
-          >
-          <input
-            type="date"
-            :value="store.filters.dateFrom || ''"
-            @change="handleDateFromChange"
-            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none text-sm"
-          />
+    <!-- Advanced section -->
+    <Transition name="cf-slide">
+      <div v-if="showAdvancedFilters" class="cf-advanced">
+        <div class="cf-adv-grid">
+          <div class="cf-field">
+            <label class="cf-label">Date de publication (depuis)</label>
+            <input type="date" :value="store.filters.dateFrom || ''" @change="handleDateFromChange" class="cf-input-sm" />
+          </div>
+          <div class="cf-field">
+            <label class="cf-label">Date de publication (jusqu'à)</label>
+            <input type="date" :value="store.filters.dateTo || ''" @change="handleDateToChange" class="cf-input-sm" />
+          </div>
+          <div class="cf-field">
+            <label class="cf-label">Inscrits (min)</label>
+            <input type="number" :value="store.filters.minEnrolled || ''" @change="handleMinEnrolledChange" placeholder="0" min="0" class="cf-input-sm" />
+          </div>
+          <div class="cf-field">
+            <label class="cf-label">Inscrits (max)</label>
+            <input type="number" :value="store.filters.maxEnrolled || ''" @change="handleMaxEnrolledChange" placeholder="9999" min="0" class="cf-input-sm" />
+          </div>
         </div>
-
-        <!-- Date de fin -->
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-2"
-            >Date de publication (jusqu'à)</label
-          >
-          <input
-            type="date"
-            :value="store.filters.dateTo || ''"
-            @change="handleDateToChange"
-            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none text-sm"
-          />
-        </div>
-
-        <!-- Inscrits (min) -->
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-2"
-            >Inscrits (min)</label
-          >
-          <input
-            type="number"
-            :value="store.filters.minEnrolled || ''"
-            @change="handleMinEnrolledChange"
-            placeholder="0"
-            min="0"
-            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none text-sm"
-          />
-        </div>
-
-        <!-- Inscrits (max) -->
-        <div>
-          <label class="block text-xs font-medium text-gray-500 mb-2"
-            >Inscrits (max)</label
-          >
-          <input
-            type="number"
-            :value="store.filters.maxEnrolled || ''"
-            @change="handleMaxEnrolledChange"
-            placeholder="9999"
-            min="0"
-            class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#00ced1]/20 focus:border-[#00ced1] outline-none text-sm"
-          />
-        </div>
-      </div>
-
-      <!-- Bouton reset -->
-      <div class="mt-4 flex justify-end">
-        <button
-          @click="handleReset"
-          class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
+        <button class="cf-reset" @click="handleReset">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
           Réinitialiser les filtres
         </button>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.cf-root { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; }
+
+.cf-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.cf-search { flex: 1; min-width: 200px; position: relative; }
+.cf-search-ico {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: #9CA3AF; pointer-events: none;
+}
+.cf-input {
+  width: 100%; height: 36px; padding: 0 12px 0 32px;
+  font-size: 13px; color: #111827;
+  background: #F9FAFB; border: 1px solid #E5E7EB;
+  border-radius: 8px; outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  box-sizing: border-box;
+}
+.cf-input:focus { background: white; border-color: #16A34A; box-shadow: 0 0 0 3px rgba(22,163,74,0.10); }
+
+.cf-sel-wrap { position: relative; flex-shrink: 0; }
+.cf-select {
+  height: 36px; padding: 0 28px 0 10px;
+  font-size: 13px; color: #374151;
+  background: #F9FAFB; border: 1px solid #E5E7EB;
+  border-radius: 8px; outline: none; cursor: pointer; appearance: none;
+  transition: border-color 0.12s;
+}
+.cf-select:focus { border-color: #16A34A; box-shadow: 0 0 0 3px rgba(22,163,74,0.10); }
+.cf-chevron {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  width: 13px; height: 13px; color: #9CA3AF; pointer-events: none;
+}
+
+.cf-adv-btn {
+  display: flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 12px;
+  font-size: 13px; font-weight: 500; color: #6B7280;
+  background: #F3F4F6; border: none; border-radius: 8px; cursor: pointer;
+  transition: all 0.13s; white-space: nowrap; flex-shrink: 0;
+}
+.cf-adv-btn:hover { background: #E5E7EB; color: #374151; }
+.cf-adv-btn--on { background: rgba(22,163,74,0.10); color: #15803D; }
+
+.cf-advanced { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; border-top: 1px solid #F3F4F6; }
+.cf-adv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.cf-field { display: flex; flex-direction: column; gap: 5px; }
+.cf-label { font-size: 11.5px; font-weight: 600; color: #6B7280; }
+.cf-input-sm {
+  height: 34px; padding: 0 10px;
+  font-size: 13px; color: #111827;
+  background: #F9FAFB; border: 1px solid #E5E7EB;
+  border-radius: 8px; outline: none;
+  transition: border-color 0.12s;
+  box-sizing: border-box;
+}
+.cf-input-sm:focus { background: white; border-color: #16A34A; box-shadow: 0 0 0 3px rgba(22,163,74,0.10); }
+
+.cf-reset {
+  display: flex; align-items: center; gap: 6px;
+  width: fit-content; height: 32px; padding: 0 12px;
+  font-size: 12.5px; font-weight: 500; color: #6B7280;
+  background: none; border: none; border-radius: 7px; cursor: pointer;
+  transition: all 0.12s;
+}
+.cf-reset:hover { background: #F3F4F6; color: #374151; }
+
+.cf-slide-enter-active, .cf-slide-leave-active { transition: opacity 0.18s, transform 0.18s; }
+.cf-slide-enter-from, .cf-slide-leave-to { opacity: 0; transform: translateY(-4px); }
+</style>

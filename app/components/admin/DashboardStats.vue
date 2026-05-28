@@ -81,7 +81,6 @@ defineProps<{
   engagementRate: number
   conversionRate: number
   verificationRate: number
-  contentDensity: string
   activeKpi?: string
 }>()
 
@@ -108,31 +107,20 @@ defineEmits<{ (e: 'select', kpi: string): void }>()
    - ring shadow          → replaces explicit border
 ──────────────────────────────────────── */
 .kpi-card {
-  /* Subtle diagonal gradient — barely visible, adds dimensionality */
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  background: #FFFFFF;
   border: none;
   border-radius: 14px;
   overflow: hidden;
   cursor: pointer;
   text-align: left;
   padding: 0;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.9),
-    0 1px 2px rgba(0,0,0,0.05),
-    0 3px 10px rgba(0,0,0,0.05),
-    0 0 0 1px rgba(17,24,39,0.05);
-  transition:
-    box-shadow 0.25s cubic-bezier(0.4,0,0.2,1),
-    transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
+  transition: box-shadow 0.22s cubic-bezier(0.4,0,0.2,1), transform 0.22s cubic-bezier(0.4,0,0.2,1);
 }
 
 .kpi-card:hover {
-  transform: translateY(-3px);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.9),
-    0 4px 8px rgba(0,0,0,0.07),
-    0 16px 36px rgba(0,0,0,0.10),
-    0 0 0 1px rgba(17,24,39,0.06);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.07);
 }
 
 .kpi-card:active {

@@ -52,13 +52,13 @@ const today = new Date().toLocaleDateString('fr-FR', {
 
     <!-- Error -->
     <div v-else-if="dashboardStore.error" class="state-error">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="state-error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
       </svg>
       <div>
-        <p class="font-semibold text-sm">Erreur de chargement</p>
-        <p class="text-xs mt-0.5 opacity-80">{{ dashboardStore.error }}</p>
+        <p class="state-error-title">Erreur de chargement</p>
+        <p class="state-error-msg">{{ dashboardStore.error }}</p>
       </div>
     </div>
 
@@ -69,7 +69,6 @@ const today = new Date().toLocaleDateString('fr-FR', {
         :engagement-rate="dashboardStore.engagementRate"
         :conversion-rate="dashboardStore.conversionRate"
         :verification-rate="dashboardStore.verificationRate"
-        :content-density="dashboardStore.contentDensity"
         @select="handleKpiDetail"
       />
 
@@ -181,17 +180,17 @@ const today = new Date().toLocaleDateString('fr-FR', {
   margin-bottom: 20px;
 }
 
+.state-error-icon { width: 20px; height: 20px; flex-shrink: 0; }
+.state-error-title { font-size: 13px; font-weight: 600; }
+.state-error-msg { font-size: 12px; margin-top: 2px; opacity: 0.8; }
+
 /* Activity card */
 .activity-card {
-  background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
+  background: #FFFFFF;
   border: none;
   border-radius: 14px;
   overflow: hidden;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.9),
-    0 1px 2px rgba(0,0,0,0.05),
-    0 3px 10px rgba(0,0,0,0.05),
-    0 0 0 1px rgba(17,24,39,0.05);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
 }
 
 .activity-header {

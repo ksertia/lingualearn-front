@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="user-table-card">
 
     <!-- ── Top bar ───────────────────────── -->
@@ -95,7 +95,7 @@
               <span class="status-dot"></span>
               {{ user.isVerified ? 'Vérifié' : 'En attente' }}
             </span>
-            <span class="status-pill mt-1" :class="user.isActive ? 'status-pill--teal' : 'status-pill--gray'">
+            <span class="status-pill mt-1" :class="user.isActive ? 'status-pill--emerald' : 'status-pill--gray'">
               <span class="status-dot"></span>
               {{ user.isActive ? 'Actif' : 'Inactif' }}
             </span>
@@ -200,15 +200,15 @@
           </svg>
         </button>
 
-        <button
-          v-for="page in totalPages"
-          :key="page"
-          class="page-btn"
-          :class="{ 'page-btn--active': page === currentPage }"
-          @click="currentPage = page"
-        >
-          {{ page }}
-        </button>
+        <template v-for="page in visiblePages" :key="page">
+          <span v-if="page === '…'" class="page-ellipsis">…</span>
+          <button
+            v-else
+            class="page-btn"
+            :class="{ 'page-btn--active': page === currentPage }"
+            @click="currentPage = (page as number)"
+          >{{ page }}</button>
+        </template>
 
         <button
           class="page-btn page-btn--nav"
@@ -250,8 +250,15 @@ const toggleMenu = (id: string) => {
 }
 
 const handleClickOutside = () => { openMenuId.value = null }
-onMounted(() => window.addEventListener('click', handleClickOutside))
-onUnmounted(() => window.removeEventListener('click', handleClickOutside))
+const handleKeydown = (e: KeyboardEvent) => { if (e.key === 'Escape') openMenuId.value = null }
+onMounted(() => {
+  window.addEventListener('click', handleClickOutside)
+  window.addEventListener('keydown', handleKeydown)
+})
+onUnmounted(() => {
+  window.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('keydown', handleKeydown)
+})
 
 const rolesMap: Record<string, string> = {
   learner: 'Apprenant',
@@ -288,6 +295,15 @@ const paginatedUsers = computed(() => {
   return filteredUsers.value.slice(start, start + itemsPerPage)
 })
 
+const visiblePages = computed<(number | '…')[]>(() => {
+  const total = totalPages.value
+  const cur = currentPage.value
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  if (cur <= 4) return [1, 2, 3, 4, 5, '…', total]
+  if (cur >= total - 3) return [1, '…', total - 4, total - 3, total - 2, total - 1, total]
+  return [1, '…', cur - 1, cur, cur + 1, '…', total]
+})
+
 const roleTagClass = (role: string) => {
   const map: Record<string, string> = {
     admin: 'role-admin',
@@ -307,7 +323,7 @@ watch([search, selectedRole, selectedStatus], () => { currentPage.value = 1 })
 <style scoped>
 /* ── Card wrapper ────────────────────────── */
 .user-table-card {
-  background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
+  background: #FFFFFF;
   border: none;
   border-radius: 14px;
   overflow: hidden;
@@ -556,8 +572,8 @@ watch([search, selectedRole, selectedStatus], () => { currentPage.value = 1 })
 .status-pill--green .status-dot  { background: #16A34A; }
 .status-pill--amber  { background: #FEF3C7; color: #B45309; }
 .status-pill--amber .status-dot  { background: #D97706; }
-.status-pill--teal   { background: #D1FAE5; color: #065F46; }
-.status-pill--teal .status-dot   { background: #10B981; }
+.status-pill--emerald   { background: #D1FAE5; color: #065F46; }
+.status-pill--emerald .status-dot { background: #10B981; }
 .status-pill--gray   { background: #F3F4F6; color: #6B7280; }
 .status-pill--gray .status-dot   { background: #9CA3AF; }
 
@@ -744,6 +760,17 @@ watch([search, selectedRole, selectedStatus], () => { currentPage.value = 1 })
   cursor: not-allowed;
 }
 
+.page-ellipsis {
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12.5px;
+  color: #9CA3AF;
+  user-select: none;
+}
+
 /* Menu transition */
 .menu-enter-active, .menu-leave-active {
   transition: opacity 0.1s ease, transform 0.1s ease;
@@ -753,3 +780,4 @@ watch([search, selectedRole, selectedStatus], () => { currentPage.value = 1 })
   transform: translateY(-4px) scale(0.97);
 }
 </style>
+

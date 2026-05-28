@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useSubscriptionStore } from '~/stores/subscriptionStore'
 import type { SubscriptionPlan, CreatePlanPayload } from '~/types/settings'
@@ -312,7 +312,7 @@ const formatFeatures = (features: any): string[] => {
 <style scoped>
 /* ── Card ───────────────────────────── */
 .s-card {
-  background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
+  background: #FFFFFF;
   border-radius: 14px;
   overflow: hidden;
   box-shadow:
@@ -562,3 +562,4 @@ const formatFeatures = (features: any): string[] => {
 .m-btn-danger:hover { background: #B91C1C; }
 .m-btn-danger:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>
+

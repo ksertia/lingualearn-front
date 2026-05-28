@@ -181,25 +181,22 @@ const submitForm = async () => {
 }
 
 .btn-add {
-  background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+  background: #16A34A;
   border: none;
   color: #fff;
-  padding: 12px 24px;
+  padding: 8px 14px;
   border-radius: 8px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 14px;
+  transition: background 0.15s;
+  font-size: 13px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.25);
+  gap: 7px;
+  box-shadow: 0 1px 3px rgba(22,163,74,.3);
 }
 
-.btn-add:hover {
-  box-shadow: 0 6px 20px rgba(255, 152, 0, 0.35);
-  transform: translateY(-2px);
-}
+.btn-add:hover { background: #15803D; }
 
 .btn-add:active {
   transform: translateY(0);
@@ -279,7 +276,7 @@ const submitForm = async () => {
 .modal-title {
   font-size: 20px;
   font-weight: 700;
-  color: #1a2855;
+  color: #111827;
   margin: 0;
 }
 
@@ -299,7 +296,7 @@ const submitForm = async () => {
 }
 
 .btn-close:hover {
-  color: #1a2855;
+  color: #111827;
   background: #f5f5f5;
   border-radius: 6px;
 }
@@ -316,7 +313,7 @@ const submitForm = async () => {
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: #1a2855;
+  color: #111827;
   margin-bottom: 8px;
 }
 
@@ -332,19 +329,15 @@ const submitForm = async () => {
 
 .form-input:focus {
   outline: none;
-  border-color: #00bcd4;
-  box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+  border-color: #16A34A;
+  box-shadow: 0 0 0 3px rgba(22,163,74,0.1);
 }
 
 .form-info {
-  background: linear-gradient(
-    135deg,
-    rgba(0, 188, 212, 0.08),
-    rgba(255, 152, 0, 0.08)
-  );
+  background: rgba(22,163,74,0.06);
   padding: 12px;
   border-radius: 8px;
-  border-left: 4px solid #00bcd4;
+  border-left: 3px solid #16A34A;
   margin-bottom: 24px;
   display: flex;
   gap: 8px;
@@ -382,23 +375,15 @@ const submitForm = async () => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  background: #16A34A;
   color: #fff;
 }
 
-.btn-primary:hover {
-  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
-  transform: translateY(-2px);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
+.btn-primary:hover { background: #15803D; }
 
 .btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
 .btn-secondary {
@@ -419,6 +404,33 @@ const submitForm = async () => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Level rows */
+.level-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  transition: background 0.12s;
+  cursor: pointer;
+}
+
+.level-row:hover { background: #F9FAFB; }
+
+.level-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #16A34A;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.level-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
 }
 
 /* Responsive Design */

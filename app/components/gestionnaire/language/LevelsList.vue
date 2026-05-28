@@ -78,7 +78,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useLanguageStore } from "../../../stores/languageStore";
-import type { Level } from "~/types/language-level";
 
 const languageStore = useLanguageStore();
 const feedback = ref({ message: "", type: "success" as "success" | "error" });
@@ -185,33 +184,33 @@ const toggleLevel = async (level: any) => {
 }
 
 .btn-back {
-  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+  background: rgba(22,163,74,0.10);
   border: none;
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   border-radius: 8px;
-  color: #fff;
+  color: #15803D;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s;
   font-weight: 700;
   flex-shrink: 0;
 }
 
 .btn-back:hover {
-  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
+  background: rgba(22,163,74,0.18);
   transform: translateX(-2px);
 }
 
 .section-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1a2855;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
 }
 
 .section-subtitle {
@@ -229,79 +228,31 @@ const toggleLevel = async (level: any) => {
 }
 
 .level-card {
-  background: #fff;
+  background: #FFFFFF;
   border-radius: 12px;
-  padding: 28px 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 22px 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
   display: flex;
   flex-direction: column;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-left: 4px solid transparent;
+  transition: box-shadow 0.2s, transform 0.2s;
+  border-left: 3px solid transparent;
   position: relative;
   overflow: hidden;
 }
 
-.level-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    circle at top right,
-    rgba(255, 152, 0, 0.1),
-    transparent
-  );
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-}
-
 .level-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  transform: translateY(-6px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.07);
+  transform: translateY(-2px);
 }
 
-.level-card:hover::before {
-  opacity: 1;
-}
+.level-card.level-1 { border-left-color: #16A34A; }
+.level-card.level-1 .level-icon { background: rgba(22,163,74,0.10); }
 
-.level-card.level-1 {
-  border-left-color: #4caf50;
-}
+.level-card.level-2 { border-left-color: #2563EB; }
+.level-card.level-2 .level-icon { background: rgba(37,99,235,0.10); }
 
-.level-card.level-1 .level-icon {
-  background: linear-gradient(
-    135deg,
-    rgba(76, 175, 80, 0.1),
-    rgba(76, 175, 80, 0.05)
-  );
-}
-
-.level-card.level-2 {
-  border-left-color: #00bcd4;
-}
-
-.level-card.level-2 .level-icon {
-  background: linear-gradient(
-    135deg,
-    rgba(0, 188, 212, 0.1),
-    rgba(0, 188, 212, 0.05)
-  );
-}
-
-.level-card.level-3 {
-  border-left-color: #ff9800;
-}
-
-.level-card.level-3 .level-icon {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 152, 0, 0.1),
-    rgba(255, 152, 0, 0.05)
-  );
-}
+.level-card.level-3 { border-left-color: #7C3AED; }
+.level-card.level-3 .level-icon { background: rgba(124,58,237,0.10); }
 
 .level-icon {
   width: 52px;
@@ -322,7 +273,7 @@ const toggleLevel = async (level: any) => {
 .level-name {
   font-size: 18px;
   font-weight: 700;
-  color: #1a2855;
+  color: #111827;
   margin: 0 0 8px 0;
 }
 
@@ -355,7 +306,7 @@ const toggleLevel = async (level: any) => {
 .stat-value {
   font-size: 18px;
   font-weight: 700;
-  color: #1a2855;
+  color: #111827;
 }
 
 .stat-label {
@@ -394,14 +345,10 @@ const toggleLevel = async (level: any) => {
 }
 
 .footer-info {
-  background: linear-gradient(
-    135deg,
-    rgba(0, 188, 212, 0.05),
-    rgba(255, 152, 0, 0.05)
-  );
-  padding: 16px;
+  background: rgba(22,163,74,0.05);
+  padding: 14px 16px;
   border-radius: 8px;
-  border-left: 4px solid #00bcd4;
+  border-left: 3px solid #16A34A;
 }
 
 .info-text {
@@ -412,7 +359,7 @@ const toggleLevel = async (level: any) => {
 }
 
 .info-text strong {
-  color: #1a2855;
+  color: #111827;
   font-weight: 700;
 }
 
@@ -433,7 +380,7 @@ const toggleLevel = async (level: any) => {
 .no-selection-text {
   font-size: 20px;
   font-weight: 600;
-  color: #1a2855;
+  color: #111827;
   margin: 0 0 8px 0;
 }
 
@@ -695,17 +642,14 @@ const toggleLevel = async (level: any) => {
 }
 
 .btn-activate {
-  background: linear-gradient(135deg, #4caf50, #388e3c);
-  color: #fff;
+  background: rgba(22,163,74,0.10);
+  color: #15803D;
 }
 
 .btn-deactivate {
-  background: linear-gradient(135deg, #f44336, #d32f2f);
-  color: #fff;
+  background: rgba(220,38,38,0.09);
+  color: #DC2626;
 }
 
-.btn-toggle:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-}
+.btn-toggle:hover { opacity: 0.8; }
 </style>

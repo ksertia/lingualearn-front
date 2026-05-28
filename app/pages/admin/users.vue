@@ -129,23 +129,23 @@
     <Teleport to="body">
       <div v-if="userToDelete" class="modal-overlay" @click.self="userToDelete = null">
         <div class="modal-box modal-box--sm">
-          <div class="flex items-center gap-3 mb-5">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#FEF2F2;">
-              <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+          <div class="del-header">
+            <div class="del-icon">
+              <svg class="del-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
             <div>
-              <h3 class="text-sm font-semibold" style="color:#111827;">Supprimer l'utilisateur</h3>
-              <p class="text-xs mt-0.5" style="color:#9CA3AF;">Cette action est irréversible</p>
+              <h3 class="del-title">Supprimer l'utilisateur</h3>
+              <p class="del-sub">Cette action est irréversible</p>
             </div>
           </div>
-          <p class="text-sm mb-6" style="color:#6B7280;">
+          <p class="del-msg">
             Vous êtes sur le point de supprimer
-            <span class="font-semibold" style="color:#111827;">{{ userToDelete.profile.firstName }} {{ userToDelete.profile.lastName }}</span>.
+            <strong class="del-name">{{ userToDelete.profile.firstName }} {{ userToDelete.profile.lastName }}</strong>.
             Toutes ses données seront définitivement supprimées.
           </p>
-          <div class="flex justify-end gap-2">
+          <div class="del-actions">
             <button class="btn-cancel" @click="userToDelete = null">Annuler</button>
             <button class="btn-delete" @click="confirmDeleteUser">Supprimer</button>
           </div>
@@ -367,6 +367,16 @@ const saveEdit = async () => {
 
 .modal-box--sm { max-width: 400px; padding: 24px; }
 
+/* Delete modal content */
+.del-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.del-icon { width: 40px; height: 40px; border-radius: 10px; background: #FEF2F2; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.del-icon-svg { width: 20px; height: 20px; color: #EF4444; }
+.del-title { font-size: 14px; font-weight: 600; color: #111827; }
+.del-sub { font-size: 12px; color: #9CA3AF; margin-top: 2px; }
+.del-msg { font-size: 13px; color: #6B7280; line-height: 1.6; margin-bottom: 24px; }
+.del-name { font-weight: 600; color: #111827; }
+.del-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -442,6 +452,7 @@ const saveEdit = async () => {
   border: 1px solid #E5E7EB;
   border-radius: 8px;
   font-size: 13px;
+  font-family: inherit;
   color: #111827;
   outline: none;
   transition: all 0.15s;
@@ -463,6 +474,7 @@ const saveEdit = async () => {
   border: 1px solid #E5E7EB;
   border-radius: 8px;
   font-size: 13px;
+  font-family: inherit;
   color: #111827;
   outline: none;
   appearance: none;

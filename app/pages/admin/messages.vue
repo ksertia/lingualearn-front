@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { useMessageStore } from '~/stores/messageStore'
 import { useAuthStore } from '~/stores/authStore'
 import type { MessageUser } from '~/types/message'
@@ -100,3 +100,4 @@ watch(
   height: calc(100vh - 240px);
 }
 </style>
+

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { ref } from 'vue'
 
 const policy = ref({
@@ -114,7 +114,7 @@ const rules = [
 <style scoped>
 /* ── Card shell ─────────────────────── */
 .s-card {
-  background: linear-gradient(145deg, #ffffff 0%, #f9fafb 100%);
+  background: #FFFFFF;
   border-radius: 14px;
   overflow: hidden;
   box-shadow:
@@ -320,3 +320,4 @@ const rules = [
 .s-btn-save:hover { background: #15803D; box-shadow: 0 3px 8px rgba(22,163,74,0.35); }
 .s-btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>
+

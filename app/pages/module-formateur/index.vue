@@ -1,17 +1,8 @@
 <template>
-  <div class="module-formateur-page">
-    <h1><strong>Module Formateur</strong></h1>
-    <dashboard />
-  </div>
+  <dashboard />
 </template>
 
 <script setup lang="ts">
-import dashboard from '~/components/Module-formateur/dashboard.vue';
-definePageMeta({
-  layout:'formateur'
-})
+import dashboard from '~/components/Module-formateur/dashboard.vue'
+definePageMeta({ layout: 'formateur' })
 </script>
-
-<style scoped>
-.module-formateur-page { padding: 2rem; }
-</style>

@@ -5,7 +5,6 @@
       <!-- Header -->
       <div class="dashboard-header">
         <div class="header-content">
-          <h1 class="page-title">Gestion des Langues</h1>
           <p class="page-subtitle">
             Administrez les langues, niveaux et contenus de votre plateforme
           </p>
@@ -65,10 +64,7 @@ onMounted(async () => {
 <style scoped>
 .dashboard-layout {
   display: flex;
-  min-height: 100vh;
-  background: #f8f9fa;
 }
-
 
 .dashboard-main {
   flex: 1;
@@ -77,45 +73,32 @@ onMounted(async () => {
   min-width: 0;
 }
 
-
 .dashboard-header {
-  padding: 32px 40px;
-  background: #fff;
-  border-bottom: 1px solid #e8e8e8;
+  padding: 32px 32px 0;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 24px;
+  gap: 16px;
   flex-wrap: wrap;
-  position: relative;
-  margin-top: 0;
 }
 
 .header-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   flex: 1;
   min-width: 200px;
 }
 
-.page-title {
-  font-size: 32px;
-  font-weight: 800;
-  color: #1a2855;
-  margin: 0;
-  letter-spacing: -1px;
-}
-
 .page-subtitle {
-  font-size: 14px;
-  color: #999;
+  font-size: 13px;
+  color: #9CA3AF;
   margin: 0;
 }
 
 .dashboard-content {
   flex: 1;
-  padding: 32px 40px;
+  padding: 24px 32px 32px;
   min-width: 0;
 }
 
@@ -134,88 +117,18 @@ onMounted(async () => {
 
 /* Tablette (1024px et moins) */
 @media (max-width: 1023px) {
-  .dashboard-layout {
-    flex-direction: row;
-  }
-
-  .dashboard-main {
-    margin-left: 0;
-    flex: 1;
-    padding-top: 0;
-  }
-
   .dashboard-header {
-    margin-top: 60px;
-    padding: 20px 24px;
+    padding: 20px 20px 0;
     flex-direction: column;
     align-items: stretch;
   }
-
-  .header-content {
-    width: 100%;
-    min-width: auto;
-  }
-
-  .page-title {
-    font-size: 24px;
-  }
-
-  .page-subtitle {
-    font-size: 12px;
-  }
-
-  .dashboard-content {
-    padding: 20px 24px;
-  }
-
-  .content-with-levels {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
+  .dashboard-content { padding: 20px; }
+  .content-with-levels { grid-template-columns: 1fr; gap: 24px; }
 }
 
-/* Mobile (640px et moins) */
 @media (max-width: 640px) {
-  .dashboard-main {
-    margin-left: 0;
-  }
-
-  .dashboard-header {
-    margin-top: 70px;
-    padding: 16px;
-  }
-
-  .page-title {
-    font-size: 20px;
-  }
-
-  .page-subtitle {
-    font-size: 12px;
-  }
-
-  .dashboard-content {
-    padding: 16px;
-  }
-
-  .content-with-levels {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
-
-/* Very small mobile (< 480px) */
-@media (max-width: 479px) {
-  .dashboard-header {
-    padding: 12px;
-    gap: 12px;
-  }
-
-  .page-title {
-    font-size: 18px;
-  }
-
-  .dashboard-content {
-    padding: 12px;
-  }
+  .dashboard-header { padding: 16px 16px 0; }
+  .dashboard-content { padding: 16px; }
+  .content-with-levels { grid-template-columns: 1fr; gap: 16px; }
 }
 </style>

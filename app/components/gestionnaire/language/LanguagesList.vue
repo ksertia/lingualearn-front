@@ -1,12 +1,5 @@
 <template>
   <div class="languages-section">
-    <div class="languages-header">
-      <h2 class="section-title">Langues disponibles</h2>
-      <p class="languages-count">
-        {{ languageStore.totalLanguages }} langue(s)
-      </p>
-    </div>
-
     <div class="languages-grid">
       <div
         v-for="language in languageStore.visibleLanguages"
@@ -126,29 +119,26 @@ const formatDate = (date: string | undefined) => {
 }
 
 .btn-toggle {
-  background: #e0e0e0;
   border: none;
-  padding: 4px 8px;
+  padding: 4px 9px;
   border-radius: 6px;
   font-size: 11px;
   cursor: pointer;
   font-weight: 600;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .btn-toggle.active {
-  background: #4caf50;
-  color: white;
+  background: rgba(220,38,38,0.08);
+  color: #DC2626;
 }
 
 .btn-toggle:not(.active) {
-  background: #ff9800;
-  color: white;
+  background: rgba(22,163,74,0.12);
+  color: #15803D;
 }
 
-.btn-toggle:hover {
-  opacity: 0.85;
-}
+.btn-toggle:hover { opacity: 0.8; }
 
 
 
@@ -164,20 +154,20 @@ const formatDate = (date: string | undefined) => {
 }
 
 .section-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1a2855;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
 }
 
 .languages-count {
-  font-size: 14px;
-  color: #999;
+  font-size: 12px;
+  color: #6B7280;
   margin: 0;
-  padding: 6px 12px;
-  background: #f5f5f5;
-  border-radius: 20px;
+  padding: 4px 10px;
+  background: #F3F4F6;
+  border-radius: 100px;
   font-weight: 500;
 }
 
@@ -189,12 +179,12 @@ const formatDate = (date: string | undefined) => {
 }
 
 .language-card {
-  background: #fff;
+  background: #FFFFFF;
   border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 18px 20px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow 0.2s, transform 0.2s;
   border: 2px solid transparent;
   position: relative;
   overflow: hidden;
@@ -203,36 +193,26 @@ const formatDate = (date: string | undefined) => {
 .language-card::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #00bcd4, #ff9800);
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #15803D, #4ade80);
   transform: scaleX(0);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.25s ease;
 }
 
 .language-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  transform: translateY(-4px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.07);
+  transform: translateY(-2px);
 }
 
-.language-card:hover::before {
-  transform: scaleX(1);
-}
+.language-card:hover::before { transform: scaleX(1); }
 
 .language-card.active {
-  border-color: #00bcd4;
-  background: linear-gradient(
-    135deg,
-    rgba(0, 188, 212, 0.05),
-    rgba(255, 152, 0, 0.05)
-  );
+  border-color: #16A34A;
+  background: rgba(22,163,74,0.03);
 }
 
-.language-card.active::before {
-  transform: scaleX(1);
-}
+.language-card.active::before { transform: scaleX(1); }
 
 .card-header {
   display: flex;
@@ -243,9 +223,9 @@ const formatDate = (date: string | undefined) => {
 }
 
 .language-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1a2855;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
   flex: 1;
 }
@@ -285,13 +265,13 @@ const formatDate = (date: string | undefined) => {
 
 .badge {
   display: inline-block;
-  background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
-  color: #fff;
-  padding: 4px 10px;
-  border-radius: 4px;
+  background: rgba(22,163,74,0.10);
+  color: #15803D;
+  padding: 3px 9px;
+  border-radius: 6px;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 }
 
 .language-meta {
@@ -302,48 +282,44 @@ const formatDate = (date: string | undefined) => {
 
 .card-action {
   position: absolute;
-  bottom: 16px;
+  bottom: 14px;
   right: 16px;
   opacity: 0;
-  color: #00bcd4;
-  font-size: 20px;
+  color: #16A34A;
+  font-size: 18px;
   font-weight: 700;
-  transition: all 0.3s;
+  transition: all 0.2s;
 }
 
 .language-card:hover .card-action,
 .language-card.active .card-action {
   opacity: 1;
-  transform: translateX(4px);
+  transform: translateX(3px);
 }
 
 .empty-state {
   text-align: center;
-  padding: 48px 24px;
-  background: linear-gradient(
-    135deg,
-    rgba(0, 188, 212, 0.05),
-    rgba(255, 152, 0, 0.05)
-  );
-  border-radius: 12px;
-  border: 2px dashed rgba(0, 188, 212, 0.2);
+  padding: 56px 24px;
+  background: #FFFFFF;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.06);
 }
 
 .empty-icon {
-  font-size: 48px;
-  margin: 0 0 16px 0;
+  font-size: 40px;
+  margin: 0 0 14px 0;
 }
 
 .empty-text {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
-  color: #1a2855;
-  margin: 0 0 8px 0;
+  color: #111827;
+  margin: 0 0 6px 0;
 }
 
 .empty-subtext {
-  font-size: 14px;
-  color: #999;
+  font-size: 13px;
+  color: #9CA3AF;
   margin: 0;
 }
 
