@@ -64,6 +64,9 @@ export const useAuthStore = defineStore('auth', () => {
         return '/gestionnaire/dashboard';
       case 'teacher':
         return '/module-formateur';
+      case 'learner':
+      case 'sub_account_learner':
+        return '/apprenant/dashboard';
       default:
         return '/';
     }

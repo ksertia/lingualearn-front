@@ -190,6 +190,7 @@ const pageTitle = computed(() =>
   border-right: 1px solid #DFE0E6;
   position: sticky;
   top: 0;
+  z-index: 50;
 }
 
 .sidebar-brand {

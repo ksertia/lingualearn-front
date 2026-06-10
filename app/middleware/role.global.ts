@@ -1,10 +1,11 @@
 export default defineNuxtRouteMiddleware(async(to) => {
 
-    const protections = {
+    const protections: Record<string, string | string[]> = {
         '/admin': 'admin',
         '/gestionnaire': 'plateform_manager',
-        '/module-formateur': 'teacher'
-    }   
+        '/module-formateur': 'teacher',
+        '/apprenant': ['learner', 'sub_account_learner']
+    }
 
     
     const authStore = useAuthStore();
@@ -16,12 +17,13 @@ export default defineNuxtRouteMiddleware(async(to) => {
         return
     }
 
-    for (const [pathPrefix, requiredRole]
-        of Object.entries(protections)) {
-            if (to.path.startsWith(pathPrefix)) {
-                if (authStore.user?.accountType !== requiredRole && authStore.user?.accountType !== 'admin') {
-                    return navigateTo('/connexion')
-                }
+    for (const [pathPrefix, requiredRole] of Object.entries(protections)) {
+        if (to.path.startsWith(pathPrefix)) {
+            const userType = authStore.user?.accountType
+            const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
+            if (!allowedRoles.includes(userType as string) && userType !== 'admin') {
+                return navigateTo('/connexion')
             }
         }
-    });
+    }
+});
