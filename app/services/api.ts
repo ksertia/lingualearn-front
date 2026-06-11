@@ -820,6 +820,30 @@ class ApiService {
       body: { senderId },
     });
   }
+
+  /* ===== APP SETTINGS ===== */
+
+  async getAdminSettings(): Promise<{ data: Record<string, string> }> {
+    return await this.api('/v1/admin/settings')
+  }
+
+  async getAdminSetting(key: string): Promise<{ data: { key: string; value: string } }> {
+    return await this.api(`/v1/admin/settings/${key}`)
+  }
+
+  async updateAdminSetting(key: string, value: string): Promise<{ data: { key: string; value: string } }> {
+    return await this.api(`/v1/admin/settings/${key}`, {
+      method: 'PUT',
+      body: { value },
+    })
+  }
+
+  async updateUserTrial(userId: string, expiresAt: string): Promise<any> {
+    return await this.api(`/v1/admin/users/${userId}/trial`, {
+      method: 'PATCH',
+      body: { expiresAt },
+    })
+  }
 }
 
 /* ===================== SINGLETON ===================== */
