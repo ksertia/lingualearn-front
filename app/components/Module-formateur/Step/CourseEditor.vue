@@ -279,10 +279,47 @@ const normalizeUploadUrl = (value: string) => {
   return encodeURI(`${origin}/${trimmed}`);
 };
 
+const isValidUploadFile = (file: File) => {
+  if (local.value.contentType === 'audio') {
+    if (file.type.startsWith('video/')) {
+      uploadError.value = 'Le fichier sélectionné est un fichier vidéo ; choisissez un vrai fichier audio.';
+      return false;
+    }
+  }
+  if (local.value.contentType === 'video') {
+    if (!file.type.startsWith('video/')) {
+      uploadError.value = 'Le fichier sélectionné n’est pas une vidéo valide.';
+      return false;
+    }
+  }
+  if (local.value.contentType === 'image') {
+    if (!file.type.startsWith('image/')) {
+      uploadError.value = 'Le fichier sélectionné n’est pas une image valide.';
+      return false;
+    }
+  }
+  if (local.value.contentType === 'pdf') {
+    if (file.type !== 'application/pdf') {
+      uploadError.value = 'Le fichier sélectionné n’est pas un PDF.';
+      return false;
+    }
+  }
+  return true;
+};
+
 const handleFileSelect = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
   if (!file) return;
+
+  if (!isValidUploadFile(file)) {
+    selectedFile.value = null;
+    previewUrl.value = null;
+    showPreview.value = false;
+    input.value = "";
+    uploadSuccess.value = false;
+    return;
+  }
 
   selectedFile.value = file;
   uploadError.value = null;
