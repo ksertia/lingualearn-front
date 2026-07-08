@@ -18,20 +18,18 @@ export interface course {
 export interface courseCreate {
     stepId: string;
     title: string;
-    description: string;
+    description?: string;
     contentType: 'audio' | 'video' | 'text' | 'pdf';
-    contentUrl: string;
-    duration: number;
-    order: number;
-    isPublished: boolean;
+    content: string;
+    attachments: any[];
     isActive: boolean;
 }
 
 export interface courseUpdate extends Partial<courseCreate> {
      title: string;
-     description: string;
+     description?: string;
      contentType: 'audio' | 'video' | 'text' | 'pdf';
-     contentUrl: string;
+    content: string;
      duration: number;
      order: number;
      isPublished: boolean;

@@ -246,10 +246,8 @@ type CourseForm = {
   title: string;
   description?: string;
   contentType: 'video' | 'audio' | 'text' | 'pdf' | 'image';
-  contentUrl: string;
-  duration?: number;
-  order?: number;
-  isPublished?: boolean;
+  content: string;
+  attachments: true
   isActive?: boolean;
 };
 
@@ -316,10 +314,8 @@ const defaultCourseForm = (): CourseForm => ({
   title: '',
   description: '',
   contentType: 'text',
-  contentUrl: '',
-  duration: undefined,
-  order: undefined,
-  isPublished: false,
+  content: '',
+  attachments: true,
   isActive: true,
 });
 
@@ -483,10 +479,8 @@ const mapCourseToForm = (course: Course): CourseForm => ({
   title: course.title || stepData.value.title || '',
   description: course.description || stepData.value.description || '',
   contentType: course.contentType || 'text',
-  contentUrl: course.contentUrl || '',
-  duration: course.duration ?? undefined,
-  order: course.order ?? undefined,
-  isPublished: course.isPublished ?? false,
+  content: course.content || '',
+  attachments: course.attachments || true,
   isActive: course.isActive ?? true,
 });
 
@@ -518,25 +512,35 @@ const normalizeCourseContentUrl = (value: string) => {
 };
 
 const buildCoursePayload = (includeStepId = true): any => {
-  const normalizedUrl = normalizeCourseContentUrl(courseData.value.contentUrl);
-  if (normalizedUrl && normalizedUrl !== courseData.value.contentUrl) {
-    courseData.value.contentUrl = normalizedUrl;
+  // For media types, normalize content into a full URL; for `text`, keep raw text.
+  let contentValue = '';
+  if (courseData.value.contentType === 'text') {
+    contentValue = courseData.value.content || '';
+  } else {
+    const normalizedUrl = normalizeCourseContentUrl(courseData.value.content);
+    if (normalizedUrl && normalizedUrl !== courseData.value.content) {
+      courseData.value.content = normalizedUrl;
+    }
+    contentValue = normalizeCourseContentUrl(courseData.value.content) || courseData.value.content || '';
   }
 
   const payload: any = {
     ...(includeStepId ? { stepId: id } : {}),
     title: courseData.value.title || stepData.value.title || 'Cours',
-    description: courseData.value.description ?? '',
     contentType: courseData.value.contentType,
-    contentUrl: normalizedUrl || courseData.value.contentUrl || '',
-    duration: courseData.value.duration,
-    order: courseData.value.order ?? stepData.value.index,
-    isPublished: courseData.value.isPublished ?? false,
+    // backend expects `content` as a string (text or media URL)
+    content: contentValue !== undefined && contentValue !== null ? String(contentValue) : '',
+    // backend requires attachments to be an array — default to empty array when absent or truthy boolean
+    attachments: Array.isArray(courseData.value.attachments)
+      ? courseData.value.attachments
+      : (courseData.value.attachments === false ? [] : []),
     isActive: courseData.value.isActive ?? true,
   };
 
-  if (!payload.contentUrl) {
-    delete payload.contentUrl;
+  // NOTE: backend rejects `description` field for this endpoint — do not send it at all
+
+  if (!payload.content) {
+    delete payload.content;
   }
   if (payload.duration === undefined) {
     delete payload.duration;
@@ -544,6 +548,16 @@ const buildCoursePayload = (includeStepId = true): any => {
   if (payload.order === undefined) {
     delete payload.order;
   }
+
+  // Cleanup: remove empty-string or null fields that backend may reject
+  Object.keys(payload).forEach((key) => {
+    const val = payload[key];
+    if (val === '' || val === null) {
+      // keep attachments even if empty array
+      if (key === 'attachments') return;
+      delete payload[key];
+    }
+  });
 
   return payload;
 };
@@ -586,7 +600,7 @@ const loadCourseForStep = async (fetchAll = false) => {
   courseData.value = defaultCourseForm();
   courseData.value.title = stepData.value.title || '';
   courseData.value.description = stepData.value.description || '';
-  courseData.value.order = stepData.value.index ?? undefined;
+  courseData.value.content = stepData.value.index ?? undefined;
 };
 
 const loadQuizForStep = async () => {
@@ -923,9 +937,17 @@ const saveStep = async () => {
       let courseId = existingCourseId.value;
 
       if (!courseId) {
-        if (!isValidHttpUrl(courseData.value.contentUrl)) {
-          showMessage('Vous devez fournir du contenu valide pour le cours.', 'error');
-          return;
+        // Allow direct text content when contentType is 'text', otherwise require a valid URL
+        if (courseData.value.contentType === 'text') {
+          if (!courseData.value.content || !courseData.value.content.toString().trim()) {
+            showMessage('Vous devez fournir du contenu texte pour le cours.', 'error');
+            return;
+          }
+        } else {
+          if (!isValidHttpUrl(courseData.value.content)) {
+            showMessage('Vous devez fournir une URL valide pour le contenu média du cours.', 'error');
+            return;
+          }
         }
 
         const createdCourse = await courseStore.createCourse(buildCoursePayload());
@@ -979,16 +1001,31 @@ const saveStep = async () => {
     }
 
     if (stepData.value.stepType === 'lesson') {
-      if (!isValidHttpUrl(courseData.value.contentUrl)) {
-        showMessage('Vous devez fournir du contenu valide pour le cours.', 'error');
-      } else {
-        const coursePayload = buildCoursePayload();
-        if (existingCourseId.value) {
-          await courseStore.updateCourse(existingCourseId.value, buildCoursePayload(false));
+      // For lessons allow plain text content or a media URL depending on contentType
+      if (courseData.value.contentType === 'text') {
+        if (!courseData.value.content || !courseData.value.content.toString().trim()) {
+          showMessage('Vous devez fournir du contenu texte pour le cours.', 'error');
         } else {
-          const created = await courseStore.createCourse(buildCoursePayload(true));
-          if (created?.id) {
-            existingCourseId.value = created.id;
+          if (existingCourseId.value) {
+            await courseStore.updateCourse(existingCourseId.value, buildCoursePayload(false));
+          } else {
+            const created = await courseStore.createCourse(buildCoursePayload(true));
+            if (created?.id) {
+              existingCourseId.value = created.id;
+            }
+          }
+        }
+      } else {
+        if (!isValidHttpUrl(courseData.value.content)) {
+          showMessage('Vous devez fournir une URL valide pour le contenu média du cours.', 'error');
+        } else {
+          if (existingCourseId.value) {
+            await courseStore.updateCourse(existingCourseId.value, buildCoursePayload(false));
+          } else {
+            const created = await courseStore.createCourse(buildCoursePayload(true));
+            if (created?.id) {
+              existingCourseId.value = created.id;
+            }
           }
         }
       }

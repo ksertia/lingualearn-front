@@ -50,10 +50,10 @@
           <template v-if="local.contentType === 'text'">
             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Contenu texte *</label>
             <textarea
-              v-model="local.contentUrl"
-              rows="6"
-              placeholder="Entrez le texte du contenu"
-              class="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition-all text-sm"
+                v-model="local.content"
+                rows="6"
+                placeholder="Entrez le texte du contenu"
+                class="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition-all text-sm"
             ></textarea>
             <p class="text-xs text-slate-400">
               Le contenu texte est saisi directement ici, sans upload.
@@ -150,30 +150,6 @@
         </div>
       </div>
 
-      <div>
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Duree (secondes)</label>
-        <input
-          v-model.number="local.duration"
-          type="number"
-          class="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition-all text-sm"
-        />
-      </div>
-
-      <div>
-        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Ordre</label>
-        <input
-          v-model.number="local.order"
-          type="number"
-          class="w-full bg-white px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 outline-none transition-all text-sm"
-        />
-      </div>
-    </div>
-
-    <div class="flex flex-wrap items-center gap-6">
-      <label class="flex items-center gap-3 cursor-pointer">
-        <input v-model="local.isPublished" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
-        <span class="text-sm font-semibold text-slate-600">Publie</span>
-      </label>
       <label class="flex items-center gap-3 cursor-pointer">
         <input v-model="local.isActive" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
         <span class="text-sm font-semibold text-slate-600">Actif</span>
@@ -191,10 +167,8 @@ interface CourseForm {
   title: string;
   description?: string;
   contentType: "video" | "audio" | "text" | "pdf" | "image";
-  contentUrl: string;
-  duration?: number;
-  order?: number;
-  isPublished?: boolean;
+  content: string;
+  attachments: true;
   isActive?: boolean;
 }
 
@@ -214,12 +188,10 @@ const normalize = (value: any): CourseForm => {
     title: typeof v.title === "string" ? v.title : "",
     description: typeof v.description === "string" ? v.description : "",
     contentType: ["video", "audio", "text", "pdf", "image"].includes(v.contentType)
-      ? v.contentType
-      : "text",
-    contentUrl: typeof v.contentUrl === "string" ? v.contentUrl : "",
-    duration: typeof v.duration === "number" ? v.duration : undefined,
-    order: typeof v.order === "number" ? v.order : undefined,
-    isPublished: typeof v.isPublished === "boolean" ? v.isPublished : false,
+        ? v.contentType
+        : "text",
+    content: typeof v.content === "string" ? v.content : "",
+    attachments: true,
     isActive: typeof v.isActive === "boolean" ? v.isActive : true,
   };
 };
@@ -246,7 +218,7 @@ const uploadAccept = computed(() => {
     case "video":
       return "video/*";
     case "audio":
-      return "audio/*,video/mp4,.mp4,.m4a";
+      return "audio/*,.mp4,.m4a";
     case "pdf":
       return "application/pdf";
     case "image":
@@ -337,15 +309,14 @@ const confirmUpload = async () => {
   uploadSuccess.value = false;
 
   try {
-    const response = await api.uploadMedia(null, selectedFile.value);
-    
+    const response = await api.uploadMedia(uploadKind.value, selectedFile.value);
+
     const url = extractUploadUrl(response);
     if (!url) {
       throw new Error("URL manquante dans la réponse d'upload.");
     }
-    local.value.contentUrl = normalizeUploadUrl(url);
-    
-    // Succès - mettre à jour l'état
+    local.value.content = normalizeUploadUrl(url); // ✅ contentUrl -> content
+
     isUploading.value = false;
     uploadSuccess.value = true;
     clearFile();

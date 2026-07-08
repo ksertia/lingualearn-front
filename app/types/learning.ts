@@ -89,13 +89,9 @@ export interface Course {
   title: string
   description?: string
   contentType: 'video' | 'audio' | 'text' | 'pdf' | 'image'
-  contentUrl: string
-  duration?: number
-  order?: number
-  isPublished?: boolean
+  content: string
+  attachments: true
   isActive?: boolean
-  createdAt?: Date
-  updatedAt?: Date
 }
 
 export interface StepQuiz {
@@ -174,10 +170,8 @@ export interface CreateCourseRequest {
   title: string
   description?: string
   contentType: 'video' | 'audio' | 'text' | 'pdf' | 'image'
-  contentUrl: string
-  duration?: number
-  order?: number
-  isPublished?: boolean
+  content: string,
+  attachments: true,
   isActive?: boolean
 }
 export interface ApiResponse<T> {
