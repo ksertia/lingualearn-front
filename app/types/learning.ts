@@ -83,15 +83,52 @@ export interface Exercise {
   updatedAt?: Date
 }
 
+export type LessonSectionType =
+  | 'introduction'
+  | 'main'
+  | 'transcript'
+  | 'example'
+  | 'example_audio'
+  | 'key_points'
+
+export type LessonContentType = 'text' | 'video' | 'audio' | 'pdf' | 'image'
+
+export interface LessonBlock {
+  id?: string
+  lessonId?: string
+  sectionType: LessonSectionType
+  contentType: LessonContentType
+  content: string
+  caption?: string | null
+  index: number
+  order?: number
+}
+
+export interface LessonBlockCreateRequest {
+  sectionType: LessonSectionType
+  contentType: LessonContentType
+  content: string
+  caption?: string | null
+  index?: number
+}
+
+export interface LessonBlockUpdateRequest extends Partial<LessonBlockCreateRequest> {}
+
+export interface LessonBlockReorderRequest {
+  orderedIds: string[]
+}
+
 export interface Course {
   id: string
   stepId: string
   title: string
+  summary?: string | null
   description?: string
-  contentType: 'video' | 'audio' | 'text' | 'pdf' | 'image'
-  content: string
-  attachments: true
+  contentType?: 'video' | 'audio' | 'text' | 'pdf' | 'image'
+  content?: string
+  attachments?: true | unknown[]
   isActive?: boolean
+  blocks?: LessonBlock[]
 }
 
 export interface StepQuiz {
@@ -168,10 +205,21 @@ export interface CreateStepQuizRequest {
 export interface CreateCourseRequest {
   stepId: string
   title: string
+  summary?: string | null
   description?: string
-  contentType: 'video' | 'audio' | 'text' | 'pdf' | 'image'
-  content: string,
-  attachments: true,
+  contentType?: 'video' | 'audio' | 'text' | 'pdf' | 'image'
+  content?: string
+  attachments?: true | unknown[]
+  isActive?: boolean
+}
+
+export interface UpdateCourseRequest {
+  title?: string
+  summary?: string | null
+  description?: string
+  contentType?: 'video' | 'audio' | 'text' | 'pdf' | 'image'
+  content?: string
+  attachments?: true | unknown[]
   isActive?: boolean
 }
 export interface ApiResponse<T> {

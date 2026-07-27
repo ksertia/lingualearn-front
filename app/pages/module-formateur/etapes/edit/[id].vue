@@ -99,7 +99,7 @@
 
           <div class="ed-editor-body">
             <template v-if="stepData.stepType === 'lesson'">
-              <CourseEditor v-model="courseData" />
+              <CourseEditorWithBlocks v-model="courseData" />
             </template>
             <template v-else-if="stepData.stepType === 'quiz'">
               <QuizEditor v-model="quizData" />
@@ -154,14 +154,14 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStepStore } from '~/stores/stepStore';
-import CourseEditor from '@/components/Module-formateur/Step/CourseEditor.vue';
+import CourseEditorWithBlocks from '@/components/Module-formateur/Step/CourseEditorWithBlocks.vue';
 import QuizEditor from '@/components/Module-formateur/Step/QuizEditor.vue';
 import ExerciseEditor from '@/components/Module-formateur/Step/ExerciseEditor.vue';
 import { useExerciseStore } from '~/stores/exerciseStore';
 import { useCourseStore } from '~/stores/courseStore';
 import { useQuizStore } from '~/stores/quizStore';
 import { useApiService } from '~/services/api';
-import type { Exercise, CreateExerciseRequest, Course, CreateCourseRequest, StepQuiz, CreateStepQuizRequest, QuizQuestion } from '~/types/learning';
+import type { Exercise, CreateExerciseRequest, Course, CreateCourseRequest, StepQuiz, CreateStepQuizRequest, QuizQuestion, LessonBlock } from '~/types/learning';
 
 definePageMeta({
   layout: "formateur",
@@ -244,11 +244,14 @@ type QuizForm = {
 type CourseForm = {
   id?: string;
   title: string;
-  description?: string;
-  contentType: 'video' | 'audio' | 'text' | 'pdf' | 'image';
-  content: string;
-  attachments: true
+  summary?: string | null;
   isActive?: boolean;
+  blocks: BlockForm[];
+};
+
+interface BlockForm extends Partial<LessonBlock> {
+  tempId: string;
+  isDirty?: boolean;
 };
 
 const exerciseStore = useExerciseStore();
@@ -312,11 +315,9 @@ const quizData = ref<QuizForm>(defaultQuizForm());
 
 const defaultCourseForm = (): CourseForm => ({
   title: '',
-  description: '',
-  contentType: 'text',
-  content: '',
-  attachments: true,
+  summary: null,
   isActive: true,
+  blocks: [],
 });
 
 const courseData = ref<CourseForm>(defaultCourseForm());
@@ -474,15 +475,23 @@ const validateQuizData = (): string | null => {
   return null;
 };
 
-const mapCourseToForm = (course: Course): CourseForm => ({
-  id: course.id,
-  title: course.title || stepData.value.title || '',
-  description: course.description || stepData.value.description || '',
-  contentType: course.contentType || 'text',
-  content: course.content || '',
-  attachments: course.attachments || true,
-  isActive: course.isActive ?? true,
-});
+const mapCourseToForm = (course: Course): CourseForm => {
+  const blocks = Array.isArray(course.blocks)
+    ? course.blocks.map((b, i) => ({
+        ...b,
+        tempId: b.id || `block-${Date.now()}-${i}`,
+        isDirty: false,
+      }))
+    : []
+
+  return {
+    id: course.id,
+    title: course.title || stepData.value.title || '',
+    summary: course.summary ?? null,
+    isActive: course.isActive ?? true,
+    blocks,
+  }
+}
 
 const getApiOrigin = () => {
   if (config.public.apiBase) {
@@ -511,56 +520,16 @@ const normalizeCourseContentUrl = (value: string) => {
   return encodeURI(normalized);
 };
 
-const buildCoursePayload = (includeStepId = true): any => {
-  // For media types, normalize content into a full URL; for `text`, keep raw text.
-  let contentValue = '';
-  if (courseData.value.contentType === 'text') {
-    contentValue = courseData.value.content || '';
-  } else {
-    const normalizedUrl = normalizeCourseContentUrl(courseData.value.content);
-    if (normalizedUrl && normalizedUrl !== courseData.value.content) {
-      courseData.value.content = normalizedUrl;
-    }
-    contentValue = normalizeCourseContentUrl(courseData.value.content) || courseData.value.content || '';
-  }
-
-  const payload: any = {
+const buildCoursePayload = (includeStepId = true): CreateCourseRequest => {
+  const payload: CreateCourseRequest = {
     ...(includeStepId ? { stepId: id } : {}),
     title: courseData.value.title || stepData.value.title || 'Cours',
-    contentType: courseData.value.contentType,
-    // backend expects `content` as a string (text or media URL)
-    content: contentValue !== undefined && contentValue !== null ? String(contentValue) : '',
-    // backend requires attachments to be an array — default to empty array when absent or truthy boolean
-    attachments: Array.isArray(courseData.value.attachments)
-      ? courseData.value.attachments
-      : (courseData.value.attachments === false ? [] : []),
+    summary: courseData.value.summary ?? null,
     isActive: courseData.value.isActive ?? true,
-  };
-
-  // NOTE: backend rejects `description` field for this endpoint — do not send it at all
-
-  if (!payload.content) {
-    delete payload.content;
-  }
-  if (payload.duration === undefined) {
-    delete payload.duration;
-  }
-  if (payload.order === undefined) {
-    delete payload.order;
   }
 
-  // Cleanup: remove empty-string or null fields that backend may reject
-  Object.keys(payload).forEach((key) => {
-    const val = payload[key];
-    if (val === '' || val === null) {
-      // keep attachments even if empty array
-      if (key === 'attachments') return;
-      delete payload[key];
-    }
-  });
-
-  return payload;
-};
+  return payload
+}
 
 const isValidHttpUrl = (value: string) => {
   const normalized = normalizeCourseContentUrl(value);
@@ -570,6 +539,54 @@ const isValidHttpUrl = (value: string) => {
     return url.protocol === 'http:' || url.protocol === 'https:';
   } catch (err) {
     return false;
+  }
+};
+
+const syncLessonBlocks = async (courseId: string) => {
+  const blocks = courseData.value.blocks || []
+
+  // Récupérer les blocs existants
+  const course = await courseStore.fetchCourseById(courseId)
+  if (!course) return
+
+  const existingBlocks = new Set((course.blocks || []).map((b) => b.id).filter(Boolean))
+  const newBlockIds = new Set(blocks.filter((b) => b.id).map((b) => b.id))
+
+  // Supprimer les blocs qui n'existent plus
+  for (const existingId of existingBlocks) {
+    if (!newBlockIds.has(existingId)) {
+      await courseStore.deleteBlock(courseId, existingId)
+    }
+  }
+
+  // Créer ou mettre à jour les blocs avec l'index pour l'ordre
+  const blockIds: string[] = []
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i]
+    if (block.id) {
+      await courseStore.updateBlock(courseId, block.id, {
+        sectionType: block.sectionType,
+        contentType: block.contentType,
+        content: block.content,
+        caption: block.caption,
+        index: i, // Envoyer l'index pour l'ordre
+      })
+      blockIds.push(block.id)
+    } else if (block.tempId) {
+      const created = await courseStore.createBlock(courseId, {
+        sectionType: block.sectionType,
+        contentType: block.contentType,
+        content: block.content,
+        caption: block.caption,
+        index: i, // Envoyer l'index pour l'ordre
+      })
+      if (created?.id) blockIds.push(created.id)
+    }
+  }
+
+  // Tentative de réordonnancement via l'endpoint dédié (optionnel)
+  if (blockIds.length > 0) {
+    await courseStore.reorderBlocks(courseId, blockIds)
   }
 };
 
@@ -1001,33 +1018,33 @@ const saveStep = async () => {
     }
 
     if (stepData.value.stepType === 'lesson') {
-      // For lessons allow plain text content or a media URL depending on contentType
-      if (courseData.value.contentType === 'text') {
-        if (!courseData.value.content || !courseData.value.content.toString().trim()) {
-          showMessage('Vous devez fournir du contenu texte pour le cours.', 'error');
-        } else {
-          if (existingCourseId.value) {
-            await courseStore.updateCourse(existingCourseId.value, buildCoursePayload(false));
-          } else {
-            const created = await courseStore.createCourse(buildCoursePayload(true));
-            if (created?.id) {
-              existingCourseId.value = created.id;
-            }
-          }
-        }
+      // Valider qu'il y a au moins un bloc
+      if (!courseData.value.blocks || courseData.value.blocks.length === 0) {
+        showMessage('Vous devez ajouter au moins un bloc de contenu à la leçon.', 'error')
+        return
+      }
+
+      if (existingCourseId.value) {
+        // Mettre à jour la leçon existante
+        await courseStore.updateCourse(existingCourseId.value, buildCoursePayload(false))
       } else {
-        if (!isValidHttpUrl(courseData.value.content)) {
-          showMessage('Vous devez fournir une URL valide pour le contenu média du cours.', 'error');
+        // Créer une nouvelle leçon
+        const created = await courseStore.createCourse(buildCoursePayload(true))
+        if (created?.id) {
+          existingCourseId.value = created.id
         } else {
-          if (existingCourseId.value) {
-            await courseStore.updateCourse(existingCourseId.value, buildCoursePayload(false));
-          } else {
-            const created = await courseStore.createCourse(buildCoursePayload(true));
-            if (created?.id) {
-              existingCourseId.value = created.id;
-            }
-          }
+          showMessage('Impossible de créer la leçon.', 'error')
+          return
         }
+      }
+
+      // Synchroniser les blocs de contenu
+      try {
+        await syncLessonBlocks(existingCourseId.value)
+      } catch (err) {
+        console.error('Erreur lors de la synchronisation des blocs:', err)
+        showMessage('Erreur lors de la sauvegarde des blocs de contenu.', 'error')
+        return
       }
     }
     if (stepSuccess) {

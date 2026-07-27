@@ -1,3 +1,30 @@
+export type LessonSectionType =
+  | 'introduction'
+  | 'main'
+  | 'transcript'
+  | 'example'
+  | 'example_audio'
+  | 'key_points'
+
+export type LessonContentType = 'text' | 'video' | 'audio' | 'pdf' | 'image'
+
+export interface LessonBlock {
+  id?: string
+  order: number
+  sectionType: LessonSectionType
+  contentType: LessonContentType
+  content: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface LessonContentPayload {
+  title: string
+  description?: string
+  blocks: LessonBlock[]
+  isActive?: boolean
+}
+
 export interface course {
     success: boolean;
      data: {
@@ -19,7 +46,7 @@ export interface courseCreate {
     stepId: string;
     title: string;
     description?: string;
-    contentType: 'audio' | 'video' | 'text' | 'pdf';
+    contentType: 'audio' | 'video' | 'text' | 'pdf' | 'image';
     content: string;
     attachments: any[];
     isActive: boolean;
@@ -28,8 +55,8 @@ export interface courseCreate {
 export interface courseUpdate extends Partial<courseCreate> {
      title: string;
      description?: string;
-     contentType: 'audio' | 'video' | 'text' | 'pdf';
-    content: string;
+     contentType: 'audio' | 'video' | 'text' | 'pdf' | 'image';
+     content: string;
      duration: number;
      order: number;
      isPublished: boolean;

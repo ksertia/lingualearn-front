@@ -4,7 +4,16 @@ import type {
   CreateLevelPayload,
   Level,
 } from "~/types/language-level";
-import type { ApiResponse, StepQuiz, CreateStepQuizRequest } from "~/types/learning";
+import type {
+  ApiResponse,
+  StepQuiz,
+  CreateStepQuizRequest,
+  CreateCourseRequest,
+  UpdateCourseRequest,
+  LessonBlockCreateRequest,
+  LessonBlockUpdateRequest,
+  LessonBlockReorderRequest,
+} from "~/types/learning";
 import type { CreateUserPayload, UpdateUserPayload, UserFilter } from "~/types/user";
 import type { module, moduleRequest, moduleResponse } from "~/types/modules";
 import type { StatTotalResponse, UsersTotalParams } from "~/types/dashboard";
@@ -430,22 +439,57 @@ class ApiService {
     return await this.api(`/v1/courses/${id}`);
   }
 
-  async createCourse(data: any): Promise<ApiResponse<any>> {
+  async getCoursesByStep(stepId: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/courses/step/${stepId}/lessons`);
+  }
+
+  async getCoursesByUser(userId: string): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/courses/user/${userId}`);
+  }
+
+  async createCourse(data: CreateCourseRequest): Promise<ApiResponse<any>> {
     return await this.api("/v1/courses", {
       method: "POST",
       body: data,
     });
   }
 
-  async updateCourse(id: string, data: any): Promise<ApiResponse<any>> {
+  async updateCourse(id: string, data: UpdateCourseRequest): Promise<ApiResponse<any>> {
     return await this.api(`/v1/courses/${id}`, {
-      method: "PUT",
+      method: "PATCH",
       body: data,
     });
   }
 
   async deleteCourse(id: string): Promise<ApiResponse<void>> {
     return await this.api(`/v1/courses/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+  async createCourseBlock(courseId: string, data: LessonBlockCreateRequest): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/courses/${courseId}/blocks`, {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  async reorderCourseBlocks(courseId: string, data: LessonBlockReorderRequest): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/courses/${courseId}/blocks/reorder`, {
+      method: "POST",
+      body: data,
+    });
+  }
+
+  async updateCourseBlock(courseId: string, blockId: string, data: LessonBlockUpdateRequest): Promise<ApiResponse<any>> {
+    return await this.api(`/v1/courses/${courseId}/blocks/${blockId}`, {
+      method: "PATCH",
+      body: data,
+    });
+  }
+
+  async deleteCourseBlock(courseId: string, blockId: string): Promise<ApiResponse<void>> {
+    return await this.api(`/v1/courses/${courseId}/blocks/${blockId}`, {
       method: "DELETE",
     });
   }

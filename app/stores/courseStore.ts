@@ -1,7 +1,14 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useApiService } from '~/services/api';
-import type { Course, CreateCourseRequest } from '~/types/learning';
+import type {
+    Course,
+    CreateCourseRequest,
+    UpdateCourseRequest,
+    LessonBlockCreateRequest,
+    LessonBlockUpdateRequest,
+    LessonBlockReorderRequest,
+} from '~/types/learning';
 
 export const useCourseStore = defineStore('course', () => {
     const apiService = useApiService();
@@ -83,13 +90,71 @@ export const useCourseStore = defineStore('course', () => {
 
     } catch (err: any) {
         error.value = err.message || 'Erreur création';
-        throw err; // 🔥 IMPORTANT
+        throw err;
     } finally {
         isLoading.value = false;
     }
 }
 
-    async function updateCourse(id: string, data: Partial<Course>) {
+    async function fetchCourseById(id: string): Promise<Course | null> {
+        isLoading.value = true;
+        error.value = null;
+        try {
+            const response: any = await apiService.getCourse(id);
+            const courseData = response?.data ?? response;
+            if (courseData) {
+                const existingIndex = courses.value.findIndex(c => c.id === id);
+                if (existingIndex !== -1) {
+                    courses.value[existingIndex] = courseData;
+                } else {
+                    courses.value.push(courseData);
+                }
+                return courseData as Course;
+            }
+            return null;
+        } catch (err: any) {
+            error.value = err.data?.message || 'Erreur lors de la récupération du cours';
+            return null;
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
+    async function fetchCoursesByStep(stepId: string): Promise<Course[]> {
+        isLoading.value = true;
+        error.value = null;
+        try {
+            const response: any = await apiService.getCoursesByStep(stepId);
+            const payload = response?.data ?? response;
+            const items = Array.isArray(payload) ? payload : (payload?.items ?? payload?.lessons ?? payload?.data ?? []);
+            courses.value = Array.isArray(items) ? items as Course[] : [];
+            return courses.value;
+        } catch (err: any) {
+            error.value = err.data?.message || 'Erreur lors de la récupération des leçons de l\'étape';
+            return [];
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
+    async function fetchCoursesByUser(userId: string): Promise<Course[]> {
+        isLoading.value = true;
+        error.value = null;
+        try {
+            const response: any = await apiService.getCoursesByUser(userId);
+            const payload = response?.data ?? response;
+            const items = Array.isArray(payload) ? payload : (payload?.items ?? payload?.lessons ?? payload?.data ?? []);
+            courses.value = Array.isArray(items) ? items as Course[] : [];
+            return courses.value;
+        } catch (err: any) {
+            error.value = err.data?.message || 'Erreur lors de la récupération des leçons utilisateur';
+            return [];
+        } finally {
+            isLoading.value = false;
+        }
+    }
+
+    async function updateCourse(id: string, data: UpdateCourseRequest) {
         isLoading.value = true;
         error.value = null;
         try {
@@ -133,13 +198,84 @@ export const useCourseStore = defineStore('course', () => {
         }
     }
 
+    async function createBlock(courseId: string, data: LessonBlockCreateRequest) {
+        try {
+            const response: any = await apiService.createCourseBlock(courseId, data);
+            const blockData = response?.data ?? response;
+            const course = courses.value.find((item) => item.id === courseId);
+            if (course) {
+                course.blocks = [...(course.blocks ?? []), blockData];
+            }
+            return blockData;
+        } catch (err: any) {
+            error.value = err.data?.message || 'Erreur lors de l\'ajout du bloc';
+            throw err;
+        }
+    }
+
+    async function reorderBlocks(courseId: string, orderedIds: string[]) {
+        try {
+            const payload: LessonBlockReorderRequest = { orderedIds };
+            const response: any = await apiService.reorderCourseBlocks(courseId, payload);
+            const updatedCourse = response?.data ?? response;
+            if (updatedCourse) {
+                const index = courses.value.findIndex((item) => item.id === courseId);
+                if (index !== -1) {
+                    courses.value[index] = { ...courses.value[index], ...updatedCourse };
+                }
+            }
+            return response;
+        } catch (err: any) {
+            // L'endpoint reorder peut ne pas exister sur le backend
+            // On log l'erreur mais on ne la relève pas pour éviter de bloquer la sauvegarde
+            console.warn('Endpoint reorder non disponible, les blocs ont été ordonnés localement:', err?.message);
+            return null;
+        }
+    }
+
+    async function updateBlock(courseId: string, blockId: string, data: LessonBlockUpdateRequest) {
+        try {
+            const response: any = await apiService.updateCourseBlock(courseId, blockId, data);
+            const blockData = response?.data ?? response;
+            const course = courses.value.find((item) => item.id === courseId);
+            if (course?.blocks) {
+                course.blocks = course.blocks.map((block) => block.id === blockId ? { ...block, ...blockData } : block);
+            }
+            return blockData;
+        } catch (err: any) {
+            error.value = err.data?.message || 'Erreur lors de la mise à jour du bloc';
+            throw err;
+        }
+    }
+
+    async function deleteBlock(courseId: string, blockId: string) {
+        try {
+            const response: any = await apiService.deleteCourseBlock(courseId, blockId);
+            const course = courses.value.find((item) => item.id === courseId);
+            if (course?.blocks) {
+                course.blocks = course.blocks.filter((block) => block.id !== blockId);
+            }
+            return response;
+        } catch (err: any) {
+            error.value = err.data?.message || 'Erreur lors de la suppression du bloc';
+            throw err;
+        }
+    }
+
     return {
         courses,
         isLoading,
         error,
         fetchCourses,
+        fetchCourseById,
+        fetchCoursesByStep,
+        fetchCoursesByUser,
         createCourse,
         updateCourse,
-        deleteCourse
+        deleteCourse,
+        createBlock,
+        reorderBlocks,
+        updateBlock,
+        deleteBlock
     };
 });
