@@ -877,20 +877,14 @@ const buildExercisePayload = (lessonId: string): CreateExerciseRequest => {
 };
 
 const buildStepPayload = () => {
-  const payload: Record<string, any> = {
+  return {
     title: stepData.value.title,
     description: stepData.value.description,
     estimatedMinutes: stepData.value.estimatedMinutes,
     index: stepData.value.index,
     isActive: stepData.value.isActive,
+    stepType: stepData.value.stepType,
   };
-
-  if (stepData.value.stepType === 'quiz') {
-    const questions = quizData.value.questions || [];
-    payload.content = questions.length ? JSON.stringify(questions) : null;
-  }
-
-  return payload;
 };
 
 const loadExerciseForStep = async () => {
@@ -945,46 +939,12 @@ onMounted(async () => {
 const saveStep = async () => {
   isSaving.value = true;
   try {
-    let stepSuccess = true;
-    if (stepData.value.stepType !== 'quiz') {
-      stepSuccess = await stepStore.updateStep(id, buildStepPayload());
-    }
-
-    if (stepData.value.stepType === 'exercise') {
-      let courseId = existingCourseId.value;
-
-      if (!courseId) {
-        // Allow direct text content when contentType is 'text', otherwise require a valid URL
-        if (courseData.value.contentType === 'text') {
-          if (!courseData.value.content || !courseData.value.content.toString().trim()) {
-            showMessage('Vous devez fournir du contenu texte pour le cours.', 'error');
-            return;
-          }
-        } else {
-          if (!isValidHttpUrl(courseData.value.content)) {
-            showMessage('Vous devez fournir une URL valide pour le contenu média du cours.', 'error');
-            return;
-          }
-        }
-
-        const createdCourse = await courseStore.createCourse(buildCoursePayload());
-        if (!createdCourse?.id) {
-          return;
-        }
-        existingCourseId.value = createdCourse.id;
-        courseId = createdCourse.id;
-        showCourseForm.value = false;
-      }
-
-      const exercisePayload = buildExercisePayload(courseId);
-      if (existingExerciseId.value) {
-        await exerciseStore.updateExercise(existingExerciseId.value, exercisePayload);
-      } else {
-        const created = await exerciseStore.createExercise(exercisePayload);
-        if (created?.id) {
-          existingExerciseId.value = created.id;
-        }
-      }
+    // Toujours mettre à jour le Step en premier pour garantir sa cohérence métier
+    const stepPayload = buildStepPayload();
+    const updatedStep = await stepStore.updateStep(id, stepPayload);
+    if (!updatedStep) {
+      showMessage("Impossible de mettre à jour l'étape.", 'error');
+      return;
     }
 
     if (stepData.value.stepType === 'quiz') {
@@ -993,6 +953,7 @@ const saveStep = async () => {
         showMessage(quizError, 'error');
         return;
       }
+
       if (!existingQuizId.value) {
         await quizStore.fetchQuizzes(id);
         const existing = quizStore.quizzes.find((q) => q.stepId === id);
@@ -1000,6 +961,7 @@ const saveStep = async () => {
           existingQuizId.value = existing.id;
         }
       }
+
       const quizPayload = buildQuizPayload();
       if (existingQuizId.value) {
         const updated = await quizStore.updateQuiz(existingQuizId.value, quizPayload as Partial<StepQuiz>);
@@ -1015,54 +977,82 @@ const saveStep = async () => {
         }
         existingQuizId.value = createdQuiz.id;
       }
+
+      showMessage("Le quiz de l'étape a été enregistré avec succès.", 'success');
+      setTimeout(() => router.back(), 2000);
+      return;
+    }
+
+    if (stepData.value.stepType === 'exercise') {
+      let courseId = existingCourseId.value;
+
+      if (!courseId) {
+        const createdCourse = await courseStore.createCourse(buildCoursePayload(true));
+        if (!createdCourse?.id) {
+          showMessage('Impossible de créer le cours associé à l’exercice.', 'error');
+          return;
+        }
+        existingCourseId.value = createdCourse.id;
+        courseId = createdCourse.id;
+      }
+
+      const exercisePayload = buildExercisePayload(courseId);
+      if (existingExerciseId.value) {
+        const updated = await exerciseStore.updateExercise(existingExerciseId.value, exercisePayload);
+        if (!updated) {
+          showMessage(exerciseStore.error || "Impossible de modifier l'exercice.", 'error');
+          return;
+        }
+      } else {
+        const created = await exerciseStore.createExercise(exercisePayload);
+        if (!created?.id) {
+          showMessage(exerciseStore.error || "Impossible de créer l'exercice.", 'error');
+          return;
+        }
+        existingExerciseId.value = created.id;
+      }
+
+      showMessage("L'exercice de l'étape a été enregistré avec succès.", 'success');
+      setTimeout(() => router.back(), 2000);
+      return;
     }
 
     if (stepData.value.stepType === 'lesson') {
-      // Valider qu'il y a au moins un bloc
       if (!courseData.value.blocks || courseData.value.blocks.length === 0) {
-        showMessage('Vous devez ajouter au moins un bloc de contenu à la leçon.', 'error')
-        return
+        showMessage('Vous devez ajouter au moins un bloc de contenu à la leçon.', 'error');
+        return;
       }
 
       if (existingCourseId.value) {
-        // Mettre à jour la leçon existante
-        await courseStore.updateCourse(existingCourseId.value, buildCoursePayload(false))
-      } else {
-        // Créer une nouvelle leçon
-        const created = await courseStore.createCourse(buildCoursePayload(true))
-        if (created?.id) {
-          existingCourseId.value = created.id
-        } else {
-          showMessage('Impossible de créer la leçon.', 'error')
-          return
+        const updated = await courseStore.updateCourse(existingCourseId.value, buildCoursePayload(false));
+        if (!updated) {
+          showMessage(courseStore.error || 'Impossible de mettre à jour la leçon.', 'error');
+          return;
         }
+      } else {
+        const created = await courseStore.createCourse(buildCoursePayload(true));
+        if (!created?.id) {
+          showMessage('Impossible de créer la leçon.', 'error');
+          return;
+        }
+        existingCourseId.value = created.id;
       }
 
-      // Synchroniser les blocs de contenu
       try {
-        await syncLessonBlocks(existingCourseId.value)
+        await syncLessonBlocks(existingCourseId.value);
       } catch (err) {
-        console.error('Erreur lors de la synchronisation des blocs:', err)
-        showMessage('Erreur lors de la sauvegarde des blocs de contenu.', 'error')
-        return
+        console.error('Erreur lors de la synchronisation des blocs:', err);
+        showMessage('Erreur lors de la sauvegarde des blocs de contenu.', 'error');
+        return;
       }
-    }
-    if (stepSuccess) {
-      message.value = stepData.value.stepType === 'quiz'
-          ? "Le quiz de l'étape a été enregistré avec succès."
-          : "Le cours de l'étape a été enregistré avec succès.";
-      messageType.value = 'success';
 
-      setTimeout(() => {
-        router.back(); // retourne à la page d'où vous venez
-      }, 2000);
+      showMessage("La leçon de l'étape a été enregistrée avec succès.", 'success');
+      setTimeout(() => router.back(), 2000);
+      return;
     }
-
-    if (!stepSuccess) {
-      console.warn("Mise a jour de l'etape echouee, mais le contenu associe a ete traite.");
-    }
-  } catch (err) {
-    console.error("Erreur sauvegarde:", err);
+  } catch (err: any) {
+    console.error('Erreur sauvegarde:', err);
+    showMessage(err?.message || 'Erreur lors de la sauvegarde de l’étape.', 'error');
   } finally {
     isSaving.value = false;
   }
